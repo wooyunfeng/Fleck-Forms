@@ -1,0 +1,344 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.IO;
+using System.Collections;
+using System.Threading;
+using System.Diagnostics;
+using System.Xml;
+using System.Net;
+using ServiceStack.Redis;
+using RedisStudy;
+using System.Timers;
+using Newtonsoft.Json;
+<<<<<<< master
+=======
+using System.Data.SQLite;
+using Fleck_Forms;
+>>>>>>> local
+
+namespace Fleck.aiplay
+{    
+    class Comm : SQLiteHelper
+    {
+        public Log log;
+        public Log logPosition;
+        public Setting setting;
+        public Queue DealSpeedQueue;
+        public RedisHelper redis;
+        public SQLiteHelper sqllite;
+        public User user;
+        private static int nMsgQueuecount { get; set; }
+<<<<<<< master
+
+        public void WriteInfo(string message, bool isOutConsole = true)
+=======
+        public bool bRedis { get; set; }
+        public void WriteInfo(string message, bool isOutConsole = false)
+>>>>>>> local
+        {
+            log.WriteInfo(message);
+            if (isOutConsole)
+            {
+                Console.WriteLine(message);
+            }
+        }
+
+        public void WritePosition(string message)
+        {
+            logPosition.WritePosition(message);            
+        }
+     
+        public int getActiveCount()
+        {
+            int no = 0;
+            foreach (Role r in user.allRoles)
+            {
+                if (r.isActive())
+                {
+                    no++;
+                }
+            }
+            return no;
+        }
+       
+        public int getDealspeed()
+        {
+            return nMsgQueuecount;
+        }
+
+        public string getDepth()
+        {
+            return Setting.level;
+        }
+
+        public string getThinktimeout()
+        {
+            return Setting.thinktimeout.ToString();
+        }
+
+        public bool getSupportCloudApi()
+        {
+            return Setting.isSupportCloudApi;
+        }
+
+        public void LoadXml()
+        {
+            setting.LoadXml();
+        }
+
+        public int getUserCount()
+        {
+            return user.allSockets.Count;
+        }
+  
+        public void StatThread()
+        {
+            while (true)
+            {
+                if (DealSpeedQueue.Count >= 100)
+                {
+                    DealSpeedQueue.Dequeue();
+                }
+                DealSpeedQueue.Enqueue(nMsgQueuecount);
+                nMsgQueuecount = 0;
+                //休眠60s
+                Thread.Sleep(60000);
+            }
+        }
+
+        public void Init()
+        {
+            cpuCounter = new PerformanceCounter();
+
+            cpuCounter.CategoryName = "Processor";
+            cpuCounter.CounterName = "% Processor Time";
+            cpuCounter.InstanceName = "_Total";
+
+            ramCounter = new PerformanceCounter("Memory", "Available MBytes");
+
+            setting = new Setting();
+            log = new Log();
+            logPosition = new Log("Position");
+            DealSpeedQueue = new Queue();                
+            user = new User();
+            redis = new RedisHelper();
+<<<<<<< master
+            sqllite = new SQLiteHelper();
+            //统计在线用户的提交量
+            StartStatThread(); 
+        }
+
+        public void AddtoSQLite(string[] parameters)
+        {
+            try
+            {
+                sqllite.Add(parameters);
+            }
+            catch (System.Exception ex)
+            {
+                throw;
+            }           
+        }
+=======
+            SQLite_Init();
+         }
+>>>>>>> local
+
+        public void DealActiveMessage(IWebSocketConnection socket)
+        {
+            int no = 0;
+            foreach (Role r in user.allRoles)
+            {
+                if (r.isActive())
+                {
+                    socket.Send((no++)+1 + ": " + r.ToString());
+                }
+            }           
+            socket.Send("There are " + no + " clients active.");
+        }
+
+        public void DealListMessage(IWebSocketConnection socket)
+        {
+            int no = 0;
+            user.allRoles.ToList().ForEach(
+                r => socket.Send((no++)+1 + ": " + r.ToString())
+                );
+            socket.Send("There are " + no + " clients online.");
+        }
+
+        public string DealQueryallMessage(string message)
+        {
+            string str = "";
+            if (Setting.isSupportCloudApi)
+            {
+                str = redis.QueryallFromCloud(message);
+            }
+            return str;
+        }
+
+        public void redisPushItemToList(string p, string line)
+        {
+            if (!bRedis)
+            {
+                return;
+            }
+            redis.PushItemToList(p, line);
+        }
+
+
+        public bool redisContainsKey(string p)
+        {
+            if (!bRedis)
+            {
+                return false;
+            }
+            return redis.ContainsKey(p);
+        }
+
+        public void DealQueryallMessage(IWebSocketConnection socket, string message)
+        {
+            if (!bRedis)
+            {
+                return;
+            }
+            string str = redis.QueryallFromCloud(message);
+            if (str != null)
+            {
+                socket.Send(str);
+            }
+        }
+
+        public void getFromList(Role role, string message)
+        {
+            if (!bRedis)
+            {
+                return;
+            }          
+            List<string> list = redis.GetAllItemsFromList(message);
+            string strmsg = "";
+            int nlevel = Int32.Parse(Setting.level);
+            if (list.Count >= nlevel)
+            {
+                //过滤空消息
+                for (int i = 0; i < nlevel; i++)
+                {
+                    if (list[i].Length > 0)
+                    {
+                        strmsg = list[i];
+                        role.Send(strmsg);
+                    }
+                }
+                if (strmsg.Length > 0)
+                {
+                    string[] infoArray = strmsg.Split(' ');
+                    for (int j = 0; j < infoArray.Length; j++)
+                    {
+                        if (infoArray[j] == "pv")
+                        {
+                            role.Done("bestmove " + infoArray[j + 1]);
+                            Console.WriteLine("depth " + infoArray[2] + " bestmove " + infoArray[j + 1]);
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+
+        public void getFromList(string message)
+        {
+            Console.Write("0");
+            List<string> list = redis.GetAllItemsFromList(message);
+            string strmsg = "";
+            int nlevel = Int32.Parse(Setting.level);
+            if (list.Count >= nlevel)
+            {
+                //过滤空消息
+                for (int i = 0; i < nlevel; i++)
+                {
+                    if (list[i].Length > 0)
+                    {
+                        strmsg = list[i];
+                    }
+                }
+                if (strmsg.Length > 0)
+                {
+                    string[] infoArray = strmsg.Split(' ');
+                    for (int j = 0; j < infoArray.Length; j++)
+                    {
+                        if (infoArray[j] == "pv")
+                        {
+                            //Console.WriteLine("depth " + infoArray[2] + " bestmove " + infoArray[j + 1]);
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+
+<<<<<<< master
+        public void StartStatThread()
+        {
+            Thread statThread = new Thread(new ThreadStart(StatThread));
+            statThread.IsBackground = true;
+            statThread.Start();
+            nMsgQueuecount = 0;        
+        }
+
+        public Msg Json2Msg(string jsonStr)
+        {           
+            try
+            {
+                Msg msg;
+                JavaScriptObject jsonObj = JavaScriptConvert.DeserializeObject<JavaScriptObject>(jsonStr);
+                msg = new Msg(jsonObj["id"].ToString(), jsonObj["fen"].ToString());
+                return msg;
+            }
+            catch (System.Exception ex)
+            {
+                throw;
+            }           
+        }       
+=======
+        public Msg Json2Msg(string jsonStr)
+        {  
+            Msg msg = null;       
+            try
+            {               
+                JavaScriptObject jsonObj = JavaScriptConvert.DeserializeObject<JavaScriptObject>(jsonStr);
+                msg = new Msg(jsonObj["id"].ToString(), jsonObj["fen"].ToString());               
+            }
+            catch
+            {
+                throw;
+            }
+            return msg;
+        }
+>>>>>>> local
+
+        PerformanceCounter cpuCounter;
+        PerformanceCounter ramCounter;
+
+        public string getCurrentCpuUsage()
+        {
+            return (int)cpuCounter.NextValue() + "%";
+        }
+
+        public string getAvailableRAM()
+        {
+            return ramCounter.NextValue()/1024 + " GB";
+        }
+
+        
+        public void ReadFile(string path)
+        {
+            StreamReader sr = new StreamReader(path, Encoding.Default);
+            String line;
+            while ((line = sr.ReadLine()) != null)
+            {
+                Console.WriteLine(line.ToString());
+            }
+        }
+    }
+}
