@@ -25,14 +25,17 @@ namespace Fleck_Forms
                 DateString = DateTime.Now.ToString("yyyyMMdd");
                 string sql = "CREATE TABLE IF NOT EXISTS chess" + DateString + "(id integer PRIMARY KEY UNIQUE, revTime varchar(20),Address varchar(20), command varchar(255), dealTime varchar(20), dealType integer(1),result varchar(50));";//建表语句    
                 SQLiteCommand cmdCreateTable = new SQLiteCommand(sql, conn);
-                cmdCreateTable.ExecuteNonQuery();//如果表不存在，创建数据表                    
+                cmdCreateTable.ExecuteNonQuery();//如果表不存在，创建数据表     
+                string sqlLogin = "CREATE TABLE IF NOT EXISTS Login (id integer PRIMARY KEY UNIQUE, Address varchar(20), Connected DATETIME(20), Closed DATETIME(20));";//建表语句    
+                SQLiteCommand cmdCreateTable1 = new SQLiteCommand(sqlLogin, conn);
+                cmdCreateTable1.ExecuteNonQuery();//如果表不存在，创建数据表   
             }
             catch
             {
                 throw;
             }
         }
-        public int SQLite_Insert(string[] param)
+        public int SQLite_InsertCommand(string[] param)
         {
             if (DateString != DateTime.Now.ToString("yyyyMMdd"))
             {
@@ -56,13 +59,47 @@ namespace Fleck_Forms
 
         }
 
-        public int SQLite_Update(int dealType, string result, string address, string command)
+        public int SQLite_UpdateCommand(int dealType, string result, string address, string command)
         {
             try
             {
                 string dealTime = DateTime.Now.ToLongTimeString();
                 SQLiteCommand cmdInsert = new SQLiteCommand(conn);
                 cmdInsert.CommandText = String.Format("UPDATE  chess{0} set dealType = {1},result = '{2}' , dealTime = '{3}' where Address = '{4}' and command = '{5}'", DateString, dealType, result, dealTime, address, command);    
+                return cmdInsert.ExecuteNonQuery();
+            }
+            catch (System.Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                throw;
+            }
+
+        }
+
+        public int SQLite_Login(string address)
+        {
+            try
+            {
+                DateTime dealTime = DateTime.Now;
+                SQLiteCommand cmdInsert = new SQLiteCommand(conn);
+                cmdInsert.CommandText = String.Format("INSERT INTO Login(Address, Connected) VALUES('{0}', '{1}')", address, dealTime);//插入几条数据    
+                return cmdInsert.ExecuteNonQuery();
+            }
+            catch (System.Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                throw;
+            }
+
+        }
+
+        public int SQLite_Logout(string address)
+        {
+            try
+            {
+                DateTime dealTime = DateTime.Now;
+                SQLiteCommand cmdInsert = new SQLiteCommand(conn);
+                cmdInsert.CommandText = String.Format("UPDATE  Login set Closed = '{0}' where Address = '{1}'", dealTime, address);
                 return cmdInsert.ExecuteNonQuery();
             }
             catch (System.Exception ex)

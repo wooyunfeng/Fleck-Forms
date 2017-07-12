@@ -56,13 +56,14 @@ namespace Fleck_Forms
             RunTime = System.DateTime.Now;
             m_CloudApi.Checked = Setting.isSupportCloudApi;
             m_depth.Text = Setting.level;
+            m_port.Text = Setting.port;
             FleckLog.Level = LogLevel.Info;
             OnWebSocketServer(Setting.port);
         }
 
         public void OnWebSocketServer(string port)
         {
-            var server = new WebSocketServer("ws://0.0.0.0:" + Port);
+            var server = new WebSocketServer("ws://0.0.0.0:" + port);
 
             server.Start(socket =>
             {
@@ -181,7 +182,7 @@ namespace Fleck_Forms
             listView2.View = View.Details;
             listView2.Columns.Add("时间", 60);
             listView2.Columns.Add("用户", 132);
-            listView2.Columns.Add("命令", 190);
+            listView2.Columns.Add("命令", 1100);
 
             listView3.GridLines = true;
             //单选时,选择整行

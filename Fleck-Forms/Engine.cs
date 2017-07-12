@@ -31,6 +31,10 @@ namespace Fleck.aiplay
         public int getMsgQueueCount()
         {
             int count = 0;
+            if (InputEngineQueue == null)
+            {
+                return 0;
+            }
             lock (_locker)
             {
                 count = InputEngineQueue.Count;
@@ -162,7 +166,7 @@ namespace Fleck.aiplay
                         {
                             currentMsg.Send(line);
                             OutputEngineQueueEnqueue("depth " + intDepth.ToString() + " " + line);
-                            SQLite_Update(1, line, currentMsg.GetAddr(), currentMsg.GetMessage());
+                            SQLite_UpdateCommand(1, line, currentMsg.GetAddr(), currentMsg.GetMessage());
                             _wh.Set();  // 给工作线程发信号
                         }
                         Thread.Sleep(10);
@@ -200,12 +204,14 @@ namespace Fleck.aiplay
         public void OnOpen(IWebSocketConnection socket)
         {
             var role = new Role(socket);
+            SQLite_Login(role.GetAddr());
             user.Add(role);
         }
 
         public void OnClose(IWebSocketConnection socket)
         {
             var role = user.GetAt(socket);
+            SQLite_Logout(role.GetAddr());
             user.Remove(socket);
         }
 
@@ -230,7 +236,7 @@ namespace Fleck.aiplay
             //记录每个用户的消息队列
             string strAddr = socket.ConnectionInfo.ClientIpAddress + ":" + socket.ConnectionInfo.ClientPort.ToString();
             string[] param = { DateTime.Now.ToLongTimeString(), strAddr, message };      
-            SQLite_Insert(param);
+            SQLite_InsertCommand(param);
 
             NewMsg msg = new NewMsg(socket,message);
             lock (_locker)

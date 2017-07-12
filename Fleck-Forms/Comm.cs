@@ -164,7 +164,7 @@ namespace Fleck.aiplay
                         if (infoArray[j] == "pv")
                         {
                             string line = "bestmove " + infoArray[j + 1];
-                            SQLite_Update(0, line, msg.GetAddr(), msg.GetMessage());
+                            SQLite_UpdateCommand(0, line, msg.GetAddr(), msg.GetMessage());
                             return;
                         }
                     }
