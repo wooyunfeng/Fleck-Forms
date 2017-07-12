@@ -22,7 +22,6 @@ namespace Fleck_Forms
     {
         //1.声明自适应类实例
         AutoSizeFormClass asc = new AutoSizeFormClass();
-        public SQLiteConnection conn;
         string Port = "9001";
         public Form1()
         {
@@ -48,17 +47,17 @@ namespace Fleck_Forms
 
             asc.controllInitializeSize(this);
             InitListView();
-        
             comm = new Engine();
             comm.Port = Port;
             comm.Start();
+            comm.bRedis = m_Redis.Checked;
             countQueue = new Queue();
             MsgCount = 0;
             RunTime = System.DateTime.Now;
             m_CloudApi.Checked = Setting.isSupportCloudApi;
             m_depth.Text = Setting.level;
             FleckLog.Level = LogLevel.Info;
-            OnWebSocketServer(Port);
+            OnWebSocketServer(Setting.port);
         }
 
         public void OnWebSocketServer(string port)
@@ -80,55 +79,20 @@ namespace Fleck_Forms
                 socket.OnMessage = message =>
                 {
                     comm.OnMessage(socket, message);
-                    Role role = comm.GetRoleAt(socket);
-                    string[] names = { DateTime.Now.ToLongTimeString(), role.GetAddr(), role.GetMsgCount().ToString(), message };
-                    comm.WriteInfo(role.GetAddr() + "  " + role.GetMsgCount().ToString() + "  " + message);
+                    string strAddr = socket.ConnectionInfo.ClientIpAddress + ":" + socket.ConnectionInfo.ClientPort.ToString();
+                    string[] names = { DateTime.Now.ToLongTimeString(), strAddr, message };                    
                     AddMsg(names);
                 };
             });
         }
-        public void SQLite_Init()
-        {
-            string strSQLiteDB = Environment.CurrentDirectory;
-            //             strSQLiteDB = strSQLiteDB.Substring(0, strSQLiteDB.LastIndexOf("\\"));
-            //             strSQLiteDB = strSQLiteDB.Substring(0, strSQLiteDB.LastIndexOf("\\"));// 这里获取到了Bin目录  
 
-            try
-            {
-                string dbPath = "Data Source=" + strSQLiteDB + "\\history.db";
-                conn = new SQLiteConnection(dbPath);//创建数据库实例，指定文件位置    
-                conn.Open();                        //打开数据库，若文件不存在会自动创建    
-
-                string sql = "CREATE TABLE IF NOT EXISTS chess(Time varchar(20),ID integer, command varchar(20), reslut varchar(50));";//建表语句    
-                SQLiteCommand cmdCreateTable = new SQLiteCommand(sql, conn);
-                cmdCreateTable.ExecuteNonQuery();//如果表不存在，创建数据表                    
-            }
-            catch
-            {
-                throw;
-            }
-        }
-        public int SQLite_Insert(string[] param)
-        {
-            try
-            {
-                SQLiteCommand cmdInsert = new SQLiteCommand(conn);
-                cmdInsert.CommandText = String.Format("INSERT INTO chess(Time, ID,command, reslut) VALUES('{0}', '{1}',{2},'')", param[0], param[1], param[2]);//插入几条数据    
-                return cmdInsert.ExecuteNonQuery();
-            }
-            catch (System.Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-                throw;
-            }
-
-        }
-        private void AddMsg(string [] role)
+        
+        private void AddMsg(string [] param)
         {
             try
             {
                 MsgCount++;
-                this.Invoke(this.addMsgDelegate, new Object[] { role });
+                this.Invoke(this.addMsgDelegate, new Object[] { param });
             }
             catch (System.Exception ex)
             {
@@ -217,8 +181,7 @@ namespace Fleck_Forms
             listView2.View = View.Details;
             listView2.Columns.Add("时间", 60);
             listView2.Columns.Add("用户", 132);
-            listView2.Columns.Add("序号", 40);
-            listView2.Columns.Add("命令", 150);
+            listView2.Columns.Add("命令", 190);
 
             listView3.GridLines = true;
             //单选时,选择整行
@@ -418,20 +381,6 @@ namespace Fleck_Forms
             }
         }
 
-        
-        public void AddMsg(string str)
-        {           
-            try
-            { 
-                MsgCount++;
-                this.Invoke(this.addMsgDelegate, new Object[] { str });
-            }
-            catch (System.Exception ex)
-            {
-                ShowError(ex.Message);
-            }
-        }
-
         public void DelConnection(IWebSocketConnection socket)
         {
             try
@@ -484,11 +433,6 @@ namespace Fleck_Forms
             comm.stopEngine();
         }
 
-        private void checkBox1_CheckedChanged(object sender, EventArgs e)
-        {
-            comm.bJson = checkBox1.Checked;
-        }
-
         private void m_Redis_CheckedChanged(object sender, EventArgs e)
         {
             comm.bRedis = m_Redis.Checked;
@@ -501,7 +445,7 @@ namespace Fleck_Forms
 
         private void button2_Click(object sender, EventArgs e)
         {
-            //SQLite_Init();
+
         }
 
         private void m_depth_TextChanged(object sender, EventArgs e)
@@ -516,8 +460,9 @@ namespace Fleck_Forms
 
         private void button3_Click(object sender, EventArgs e)
         {
-            comm.InputEngineQueueDequeue();
+            comm.InputEngineQueue.Dequeue();
         }
-           
+
     }
+
 }

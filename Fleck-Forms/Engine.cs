@@ -19,32 +19,23 @@ namespace Fleck.aiplay
         Process pProcess;
         Boolean bEngineRun;
         DateTime EngineRunTime;
-        List<string> result;
-        public Queue<Role> InputEngineQueue; 
-        public Role currentRole;
+        public Queue<NewMsg> InputEngineQueue;
+        public NewMsg currentMsg;
         public Queue OutputEngineQueue;
         // 为保证线程安全，使用一个锁来保护_task的访问
         readonly static object _locker = new object();
         // 通过 _wh 给工作线程发信号
         static EventWaitHandle _wh = new AutoResetEvent(false);
+
         public bool bJson { get; set; }
-        public bool bRedis { get; set; }
         public int getMsgQueueCount()
         {
-            if (InputEngineQueue == null)
+            int count = 0;
+            lock (_locker)
             {
-                return 0;
+                count = InputEngineQueue.Count;
             }
-             return InputEngineQueue.Count;
-        }
-
-        public bool CheckInputEngineQueue()
-        {
-            if((InputEngineQueue != null) && (InputEngineQueue.Count > 0)) 
-            {
-                return true;
-            }
-            return false;
+            return count;
         }
 
         public void OutputEngineQueueEnqueue(string line, bool save = false)
@@ -83,12 +74,10 @@ namespace Fleck.aiplay
             StartPipeThread();
             //启动消费者线程
             StartCustomerThread();
-            result = new List<string>();
-            InputEngineQueue = new Queue<Role>();
+            InputEngineQueue = new Queue<NewMsg>();
             OutputEngineQueue = new Queue();
             bLock = false;
-            currentRole = null;
-            bJson = false;
+            currentMsg = null;
         }
 
         public void StartPipeThread()
@@ -165,15 +154,15 @@ namespace Fleck.aiplay
                         if (sArray.Length > 3 && sArray[1] == "depth" && sArray[3] == "seldepth")
                         {
                             intDepth = Int32.Parse(sArray[2]);
-                            currentRole.Send(line);
-                            currentRole.GetCurrentMsg().mList.Add(line);
-                            redis.PushItemToList(currentRole.GetCurrentMsg().message, line);
+                            currentMsg.Send(line);
+                        //    redisPushItemToList(currentRole.GetCurrentMsg().message, line);
                         }
 
                         if (line.IndexOf("bestmove") != -1)
                         {
+                            currentMsg.Send(line);
                             OutputEngineQueueEnqueue("depth " + intDepth.ToString() + " " + line);
-                            currentRole.Done(line);
+                            SQLite_Update(1, line, currentMsg.GetAddr(), currentMsg.GetMessage());
                             _wh.Set();  // 给工作线程发信号
                         }
                         Thread.Sleep(10);
@@ -194,14 +183,6 @@ namespace Fleck.aiplay
             KillPipeThread();
             //启动管道线程
             StartPipeThread();
-        }
-
-        internal void Flush(Role role)
-        {
-            if (role == currentRole)
-            {
-                PipeWriter.Write("stop\r\n");
-            }            
         }
 
         public void StartCustomerThread()
@@ -229,164 +210,53 @@ namespace Fleck.aiplay
         }
 
         public void OnMessage(IWebSocketConnection socket, string message)
-        {
-            //WriteInfo(socket.ConnectionInfo.ClientIpAddress + ":" + socket.ConnectionInfo.ClientPort.ToString() + " " + message);
-            switch (message)
+        { 
+            //过滤命令
+            if (message.IndexOf("queryall") != -1)
             {
-                case "HeartBeat":
-                    break;
-                case "count":
-                    {
-                        socket.Send("There are " + getUserCount() + " clients online.");
-                        break;
-                    }
-                case "msgcount":
-                    {
-                        socket.Send("There are " + getMsgQueueCount() + " messages haven't deal.");
-                        break;
-                    }
-                case "activecount":
-                    {
-                        socket.Send(getActiveCount().ToString());
-                        break;
-                    }
-                case "dealspeed":
-                    {
-                        socket.Send("The deal speed is " + getDealspeed() + " peer minute.");
-                        break;
-                    }
-                case "timeout":
-                    {
-                        socket.Send("The thinktimeout is " + getThinktimeout() + " second.");
-                        break;
-                    }
-                case "depth":
-                    {
-                        socket.Send(getDepth());
-                        break;
-                    }
-                case "cloudapi":
-                    {
-                        socket.Send(getSupportCloudApi().ToString());
-                        break;
-                    }
-                case "reload":
-                    {
-                        LoadXml();
-                        break;
-                    }
-                case "reset":
-                    {
-                        resetEngine();
-                        break;
-                    }
-                case "list":
-                    {
-                        DealListMessage(socket);
-                        break;
-                    }//统计在线用户的活跃度
-                case "active":
-                    {
-                        DealActiveMessage(socket);
-                        break;
-                    }
-                default:
-                    {
-                        //过滤命令
-                        if (message.IndexOf("queryall") != -1)
-                        {
-                            string str = DealQueryallMessage(message);
-                            OutputEngineQueueEnqueue(str);
-                            socket.Send(str);
-                            var role = user.GetAt(socket);
-
-                            role.EnqueueQueryMessage(message);                               
-
-                        }
-                        else if (message.IndexOf("position") != -1)
-                        {
-                            DealPositionMessage(socket, message);
-                            WritePosition(socket.ConnectionInfo.ClientIpAddress + ":" + socket.ConnectionInfo.ClientPort.ToString() + " " + message);
-                        }
-
-                        break;
-                    }
+                string str = DealQueryallMessage(message);
+                OutputEngineQueueEnqueue(str);
+                socket.Send(str);
             }
-
+            else if (message.IndexOf("position") != -1)
+            {
+                DealPositionMessage(socket, message);
+                WritePosition(socket.ConnectionInfo.ClientIpAddress + ":" + socket.ConnectionInfo.ClientPort.ToString() + " " + message);
+            }
         }
 
         private void DealPositionMessage(IWebSocketConnection socket, string message)
         {
             //记录每个用户的消息队列
-            var role = user.GetAt(socket);
-            Msg msg;
-            if (bJson)
-            {
-                msg = Json2Msg(message);
-            }
-            else
-            {
-                msg = new Msg(message);
-            }
-            if (msg != null)
-            {
-                role.EnqueuePositionMessage(msg);
-                InputEngineQueueEnqueue(role);
-            }          
-        }
+            string strAddr = socket.ConnectionInfo.ClientIpAddress + ":" + socket.ConnectionInfo.ClientPort.ToString();
+            string[] param = { DateTime.Now.ToLongTimeString(), strAddr, message };      
+            SQLite_Insert(param);
 
-        private void InputEngineQueueEnqueue(Role role)
-        {
-            try
+            NewMsg msg = new NewMsg(socket,message);
+            lock (_locker)
             {
-                lock (_locker)
-                {
-                    InputEngineQueue.Enqueue(role);
-                }
-            }
-            catch (System.Exception ex)
-            {
-                OutputEngineQueueEnqueue(ex.Message);
-            }
-          
-        }
-
-        public Role InputEngineQueueDequeue()
-        {
-            Role role = null;
-            try
-            {
-                lock (_locker)
-                {
-
-                    role = InputEngineQueue.Dequeue();
-                }
-            }
-            catch (System.Exception ex)
-            {
-                OutputEngineQueueEnqueue(ex.Message);
-            }            
-
-            return role;
-        
+                InputEngineQueue.Enqueue(msg);
+            }      
         }
 
         public void CustomerThread()
         {            
             while (true)
             {
-                Msg msg = null;
                 try
                 {
-                    if (InputEngineQueue.Count > 0)
+                    currentMsg = null;
+                    lock (_locker)
                     {
-                        currentRole = InputEngineQueueDequeue();
-                        msg = currentRole.GetCurrentMsg();
+                         if (InputEngineQueue.Count > 0)
+                        {
+                            currentMsg = InputEngineQueue.Dequeue();
+                        }
                     }
-
-                    if (msg != null)
+                   
+                    if (currentMsg != null)
                     {
-                        EngineDeal(msg.message);  // 任务不为null时，处理并保存数据     
+                        EngineDeal(currentMsg);  // 任务不为null时，处理并保存数据     
                         _wh.WaitOne();   //等待信号
                     }
 
@@ -395,75 +265,38 @@ namespace Fleck.aiplay
                 catch (System.Exception ex)
                 {                    
                     OutputEngineQueueEnqueue("[error] GetFromEngine " + ex.Message, true);
-                    InputEngineQueueDequeue();
                     resetEngine();
                 }
             }
         }
 
-        public void EngineDeal(string message)
+        public void EngineDeal(NewMsg msg)
         {
-            if (redis.ContainsKey(message))
+            if (redisContainsKey(msg.GetCommand()))
             {
-                OutputEngineQueue.Enqueue("getFromList");
-                getFromList(currentRole, message);
+                OutputEngineQueueEnqueue("getFromList");
+                getFromList(msg);
                 _wh.Set();  // 给工作线程发信号
             }
             else
             {
-                OutputEngineQueue.Enqueue("getFromEngine");
-                PipeWriter.Write(message + "\r\n");
+                OutputEngineQueueEnqueue("getFromEngine");
+                PipeWriter.Write(msg.GetCommand() + "\r\n");
                 PipeWriter.Write("go depth " + Setting.level + "\r\n");
                 Thread.Sleep(50);
             }
         }
-
-//         public int VerifyFEN(string s) 
-//         {
-// 	        s = s.Replace(/[\r\n]/, '');
-// 	        s = s.Replace(/%20/, ' ');
-// 	        s = s.Replace(/\+/, ' ');
-// 	        s = s.Replace(/ b.*/g, ' b');
-// 	        s = s.Replace(/ w.*/g, ' w');
-// 	        s = s.Replace(/ r.*/g, ' w');
-// 	        if (s.Replace(/\+/) != -1) {
-// 		        s = s.Substring(0, s.IndexOf(/\+/));
-// 	        }
-// 
-// 	        var a = new Array();
-// 	        var sum = 0;
-// 	        var w = new String(s.Substring(s.length - 2, 2));
-// 	        w = w.toLowerCase();
-// 	        if (w != ' w' && w != ' b') {
-// 		        return (0);
-// 	        }
-// 	        s = s.substr(0, s.length - 2);
-// 	        a = String(s).split(/\//);
-// 	        if (a.length != 10) {
-// 		        return (0);
-// 	        }
-// 	        for (var x = 0; x < 10; x++) {
-// 		        sum = 0;
-// 		        if (String(a[x]).search(/[^1-9kabnrcpKABNRCP]/) != -1) {
-// 			        return (0);
-// 		        }
-// 		        a[x] = String(a[x]).replace(/[kabnrcpKABNRCP]/g, '1');
-// 		        while (String(a[x]).length != 0) {
-// 			        sum = sum + Number(String(a[x]).charAt(0));
-// 			        a[x] = String(a[x]).substr(1);
-// 		        }
-// 		        if (sum != 9) {
-// 			        return (0);
-// 		        }
-// 	        }
-// 	        return (1);
-//         }
 
         public void stopEngine()
         {
             bLock = false;
             KillPipeThread();
             OutputEngineQueueEnqueue("引擎停止！");
+        }
+
+        internal object getUserCount()
+        {
+            return user.allRoles.Count;
         }
     }
 }

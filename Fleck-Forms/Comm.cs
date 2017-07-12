@@ -13,10 +13,11 @@ using RedisStudy;
 using System.Timers;
 using Newtonsoft.Json;
 using System.Data.SQLite;
+using Fleck_Forms;
 
 namespace Fleck.aiplay
 {    
-    class Comm
+    class Comm : SQLiteHelper
     {
         public Log log;
         public Log logPosition;
@@ -26,7 +27,7 @@ namespace Fleck.aiplay
         public User user;
         public string Port { get; set; }
         private static int nMsgQueuecount { get; set; }
-        public SQLiteConnection conn;
+        public bool bRedis { get; set; }
         public void WriteInfo(string message, bool isOutConsole = false)
         {
             if (log == null)
@@ -45,18 +46,6 @@ namespace Fleck.aiplay
             logPosition.WritePosition(message);            
         }
      
-        public int getActiveCount()
-        {
-            int no = 0;
-            foreach (Role r in user.allRoles)
-            {
-                if (r.isActive())
-                {
-                    no++;
-                }
-            }
-            return no;
-        }
        
         public int getDealspeed()
         {
@@ -83,15 +72,6 @@ namespace Fleck.aiplay
             setting.LoadXml();
         }
 
-        public int getUserCount()
-        {
-            int cout = 0;
-            if (user != null)
-            {
-                cout = user.allSockets.Count;
-            }
-            return cout;
-        }
       
         public void Init()
         {
@@ -102,39 +82,17 @@ namespace Fleck.aiplay
             cpuCounter.InstanceName = "_Total";
 
             ramCounter = new PerformanceCounter("Memory", "Available MBytes");
-
+            user = new User();
             setting = new Setting();
             log = new Log(Port);
             logPosition = new Log("Position"+Port);
             DealSpeedQueue = new Queue();                
-            user = new User();
             redis = new RedisHelper();
-          //  SQLite_Init();
+            SQLite_Init();
          }
 
+ 
         
-        
-        public void DealActiveMessage(IWebSocketConnection socket)
-        {
-            int no = 0;
-            foreach (Role r in user.allRoles)
-            {
-                if (r.isActive())
-                {
-                    socket.Send((no++)+1 + ": " + r.ToString());
-                }
-            }           
-            socket.Send("There are " + no + " clients active.");
-        }
-
-        public void DealListMessage(IWebSocketConnection socket)
-        {
-            int no = 0;
-            user.allRoles.ToList().ForEach(
-                r => socket.Send((no++)+1 + ": " + r.ToString())
-                );
-            socket.Send("There are " + no + " clients online.");
-        }
 
         public string DealQueryallMessage(string message)
         {
@@ -145,10 +103,46 @@ namespace Fleck.aiplay
             }
             return str;
         }
-            
-        public void getFromList(Role role, string message)
-        {            
-            List<string> list = redis.GetAllItemsFromList(message);
+
+        public void redisPushItemToList(string p, string line)
+        {
+            if (!bRedis)
+            {
+                return;
+            }
+            redis.PushItemToList(p, line);
+        }
+
+
+        public bool redisContainsKey(string p)
+        {
+            if (!bRedis)
+            {
+                return false;
+            }
+            return redis.ContainsKey(p);
+        }
+
+        public void DealQueryallMessage(IWebSocketConnection socket, string message)
+        {
+            if (!bRedis)
+            {
+                return;
+            }
+            string str = redis.QueryallFromCloud(message);
+            if (str != null)
+            {
+                socket.Send(str);
+            }
+        }
+
+        public void getFromList(NewMsg msg)
+        {
+            if (!bRedis)
+            {
+                return;
+            }
+            List<string> list = redis.GetAllItemsFromList(msg.GetCommand());
             string strmsg = "";
             int nlevel = Int32.Parse(Setting.level);
             if (list.Count >= nlevel)
@@ -159,7 +153,7 @@ namespace Fleck.aiplay
                     if (list[i].Length > 0)
                     {
                         strmsg = list[i];
-                        role.Send(strmsg);
+                        msg.Send(strmsg);
                     }
                 }
                 if (strmsg.Length > 0)
@@ -169,8 +163,8 @@ namespace Fleck.aiplay
                     {
                         if (infoArray[j] == "pv")
                         {
-                            role.Done("bestmove " + infoArray[j + 1]);
-                            Console.WriteLine("depth " + infoArray[2] + " bestmove " + infoArray[j + 1]);
+                            string line = "bestmove " + infoArray[j + 1];
+                            SQLite_Update(0, line, msg.GetAddr(), msg.GetMessage());
                             return;
                         }
                     }
@@ -215,50 +209,15 @@ namespace Fleck.aiplay
             try
             {               
                 JavaScriptObject jsonObj = JavaScriptConvert.DeserializeObject<JavaScriptObject>(jsonStr);
-                msg = new Msg(jsonObj["id"].ToString(), jsonObj["fen"].ToString());               
-            }
-            catch
-            {
-                throw;
-            }
-            return msg;
-        }
-
-        public void SQLite_Init()
-        {
-            string strSQLiteDB = Environment.CurrentDirectory;
-//             strSQLiteDB = strSQLiteDB.Substring(0, strSQLiteDB.LastIndexOf("\\"));
-//             strSQLiteDB = strSQLiteDB.Substring(0, strSQLiteDB.LastIndexOf("\\"));// 这里获取到了Bin目录  
-
-            try
-            {
-                string dbPath = "Data Source=" + strSQLiteDB + "\\history.db";
-                conn = new SQLiteConnection(dbPath);//创建数据库实例，指定文件位置    
-                conn.Open();                        //打开数据库，若文件不存在会自动创建    
-
-                string sql = "CREATE TABLE IF NOT EXISTS chess(Time varchar(20),ID integer, command varchar(20), reslut varchar(50));";//建表语句    
-                SQLiteCommand cmdCreateTable = new SQLiteCommand(sql, conn);
-                cmdCreateTable.ExecuteNonQuery();//如果表不存在，创建数据表                    
-            }
-            catch
-            {
-                throw;
-            }
-        }  
-        public int SQLite_Insert(string[] param)
-        {
-            try
-            {
-                SQLiteCommand cmdInsert = new SQLiteCommand(conn);
-                cmdInsert.CommandText = String.Format("INSERT INTO chess(Time, ID,command, reslut) VALUES('{0}', '{1}',{2},'')", param[0], param[1], param[2]);//插入几条数据    
-                return cmdInsert.ExecuteNonQuery();
+                msg = new Msg(jsonObj["index"].ToString(), jsonObj["command"].ToString());               
             }
             catch (System.Exception ex)
             {
                 Console.WriteLine(ex.Message);
                 throw;
-            }          
-            
+            }
+
+            return msg;
         }
 
         PerformanceCounter cpuCounter;
@@ -283,5 +242,6 @@ namespace Fleck.aiplay
                 Console.WriteLine(line.ToString());
             }
         }
+       
     }
 }
