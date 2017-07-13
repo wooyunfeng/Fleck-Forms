@@ -32,6 +32,8 @@
             this.panel1 = new System.Windows.Forms.Panel();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
+            this.m_port = new System.Windows.Forms.Label();
+            this.label2 = new System.Windows.Forms.Label();
             this.treeView1 = new System.Windows.Forms.TreeView();
             this.btn_expend = new System.Windows.Forms.Button();
             this.btn_closeall = new System.Windows.Forms.Button();
@@ -46,8 +48,7 @@
             this.m_Redis = new System.Windows.Forms.CheckBox();
             this.m_CloudApi = new System.Windows.Forms.CheckBox();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
-            this.label2 = new System.Windows.Forms.Label();
-            this.m_port = new System.Windows.Forms.Label();
+            this.listViewNF1 = new Fleck_Forms.ListViewNF();
             this.listView1 = new Fleck_Forms.ListViewNF();
             this.listView2 = new Fleck_Forms.ListViewNF();
             this.listView3 = new Fleck_Forms.ListViewNF();
@@ -82,6 +83,7 @@
             // 
             // tabPage1
             // 
+            this.tabPage1.Controls.Add(this.listViewNF1);
             this.tabPage1.Controls.Add(this.m_port);
             this.tabPage1.Controls.Add(this.label2);
             this.tabPage1.Controls.Add(this.listView1);
@@ -96,16 +98,35 @@
             this.tabPage1.Text = "在线用户";
             this.tabPage1.UseVisualStyleBackColor = true;
             // 
+            // m_port
+            // 
+            this.m_port.AutoSize = true;
+            this.m_port.Location = new System.Drawing.Point(62, 297);
+            this.m_port.Name = "m_port";
+            this.m_port.Size = new System.Drawing.Size(29, 12);
+            this.m_port.TabIndex = 35;
+            this.m_port.Text = "port";
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(26, 297);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(41, 12);
+            this.label2.TabIndex = 34;
+            this.label2.Text = "端口：";
+            // 
             // treeView1
             // 
-            this.treeView1.Location = new System.Drawing.Point(8, 3);
+            this.treeView1.Location = new System.Drawing.Point(2, 3);
             this.treeView1.Name = "treeView1";
-            this.treeView1.Size = new System.Drawing.Size(161, 287);
+            this.treeView1.Size = new System.Drawing.Size(103, 287);
             this.treeView1.TabIndex = 26;
+            this.treeView1.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.treeView1_AfterSelect);
             // 
             // btn_expend
             // 
-            this.btn_expend.Location = new System.Drawing.Point(21, 315);
+            this.btn_expend.Location = new System.Drawing.Point(26, 315);
             this.btn_expend.Name = "btn_expend";
             this.btn_expend.Size = new System.Drawing.Size(62, 23);
             this.btn_expend.TabIndex = 28;
@@ -115,9 +136,9 @@
             // 
             // btn_closeall
             // 
-            this.btn_closeall.Location = new System.Drawing.Point(93, 315);
+            this.btn_closeall.Location = new System.Drawing.Point(26, 340);
             this.btn_closeall.Name = "btn_closeall";
-            this.btn_closeall.Size = new System.Drawing.Size(60, 23);
+            this.btn_closeall.Size = new System.Drawing.Size(62, 23);
             this.btn_closeall.TabIndex = 27;
             this.btn_closeall.Text = "折叠";
             this.btn_closeall.UseVisualStyleBackColor = true;
@@ -236,29 +257,19 @@
             this.timer1.Interval = 1000;
             this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
             // 
-            // label2
+            // listViewNF1
             // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(21, 297);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(41, 12);
-            this.label2.TabIndex = 34;
-            this.label2.Text = "端口：";
-            // 
-            // m_port
-            // 
-            this.m_port.AutoSize = true;
-            this.m_port.Location = new System.Drawing.Point(64, 297);
-            this.m_port.Name = "m_port";
-            this.m_port.Size = new System.Drawing.Size(29, 12);
-            this.m_port.TabIndex = 35;
-            this.m_port.Text = "port";
+            this.listViewNF1.Location = new System.Drawing.Point(214, 3);
+            this.listViewNF1.Name = "listViewNF1";
+            this.listViewNF1.Size = new System.Drawing.Size(510, 363);
+            this.listViewNF1.TabIndex = 36;
+            this.listViewNF1.UseCompatibleStateImageBehavior = false;
             // 
             // listView1
             // 
-            this.listView1.Location = new System.Drawing.Point(192, 3);
+            this.listView1.Location = new System.Drawing.Point(105, 3);
             this.listView1.Name = "listView1";
-            this.listView1.Size = new System.Drawing.Size(525, 363);
+            this.listView1.Size = new System.Drawing.Size(109, 363);
             this.listView1.TabIndex = 33;
             this.listView1.UseCompatibleStateImageBehavior = false;
             // 
@@ -333,6 +344,7 @@
         private System.Windows.Forms.Button btn_reset;
         private System.Windows.Forms.Label m_port;
         private System.Windows.Forms.Label label2;
+        private ListViewNF listViewNF1;
 
     }
 }

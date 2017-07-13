@@ -216,7 +216,11 @@ namespace Fleck.aiplay
         }
 
         public void OnMessage(IWebSocketConnection socket, string message)
-        { 
+        {
+            string strAddr = socket.ConnectionInfo.ClientIpAddress + ":" + socket.ConnectionInfo.ClientPort.ToString();
+            string[] param = { DateTime.Now.ToLongTimeString(), strAddr, message };
+            SQLite_InsertCommand(param);
+
             //过滤命令
             if (message.IndexOf("queryall") != -1)
             {
@@ -234,10 +238,6 @@ namespace Fleck.aiplay
         private void DealPositionMessage(IWebSocketConnection socket, string message)
         {
             //记录每个用户的消息队列
-            string strAddr = socket.ConnectionInfo.ClientIpAddress + ":" + socket.ConnectionInfo.ClientPort.ToString();
-            string[] param = { DateTime.Now.ToLongTimeString(), strAddr, message };      
-            SQLite_InsertCommand(param);
-
             NewMsg msg = new NewMsg(socket,message);
             lock (_locker)
             {

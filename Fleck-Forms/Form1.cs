@@ -81,8 +81,8 @@ namespace Fleck_Forms
                 {
                     comm.OnMessage(socket, message);
                     string strAddr = socket.ConnectionInfo.ClientIpAddress + ":" + socket.ConnectionInfo.ClientPort.ToString();
-                    string[] names = { DateTime.Now.ToLongTimeString(), strAddr, message };                    
-                    AddMsg(names);
+                    string[] msg = { DateTime.Now.ToLongTimeString(), strAddr, message };                    
+                    AddMsg(msg);
                 };
             });
         }
@@ -218,6 +218,21 @@ namespace Fleck_Forms
             listView4.Columns.Add("剩余内存", 100, HorizontalAlignment.Center);
             listView4.Columns.Add("启动时间", 200, HorizontalAlignment.Center);
             listView4.Columns.Add("运行时间", 100, HorizontalAlignment.Center);
+
+            listViewNF1.GridLines = true;
+            //单选时,选择整行
+            listViewNF1.FullRowSelect = true;
+            //显示方式
+            listViewNF1.View = View.Details;
+            //没有足够的空间显示时,是否添加滚动条
+            listViewNF1.Scrollable = true;
+            //是否可以选择多行
+            listViewNF1.MultiSelect = false;
+
+            listViewNF1.View = View.Details;
+            listViewNF1.Columns.Add("时间", 60);
+            listViewNF1.Columns.Add("命令", 1000);
+            listViewNF1.Columns.Add("结果",200);
         }
 
         private void AddListViewItem(ListView listView, string[] array,int showLines = 28)
@@ -462,6 +477,22 @@ namespace Fleck_Forms
         private void button3_Click(object sender, EventArgs e)
         {
             comm.InputEngineQueue.Dequeue();
+        }
+
+        private void treeView1_AfterSelect(object sender, TreeViewEventArgs e)
+        {
+            if (treeView1.SelectedNode != null && treeView1.SelectedNode.Parent != null)
+            {
+                string addr = treeView1.SelectedNode.Parent.Text + ":" + treeView1.SelectedNode.Text;
+                SQLiteDataReader reader = comm.SQLite_Query(addr);
+                listViewNF1.Items.Clear();
+                while (reader.Read())
+                {
+                    string[] message = {reader["revTime"].ToString() ,reader["Command"].ToString() ,reader["result"].ToString()};
+                    AddListViewItem(listViewNF1, message);
+                }
+            }
+           
         }
 
     }

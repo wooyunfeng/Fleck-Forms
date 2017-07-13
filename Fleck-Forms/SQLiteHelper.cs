@@ -109,5 +109,21 @@ namespace Fleck_Forms
             }
 
         }
+
+        public SQLiteDataReader SQLite_Query(string address)
+        {
+            try
+            {
+                string sql = String.Format("select * from chess{0} where Address = '{1}'" ,DateString, address); ;
+                SQLiteCommand command = new SQLiteCommand(sql, conn);
+                SQLiteDataReader reader = command.ExecuteReader();                
+                return reader;
+            }
+            catch (System.Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                throw;
+            }
+        }
     }
 }
