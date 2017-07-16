@@ -140,6 +140,7 @@ namespace Fleck.aiplay
         {
             connection.Send(strmsg);
         }
+
         internal string GetCommand()
         {
             string strmsg = null;
@@ -159,6 +160,62 @@ namespace Fleck.aiplay
 
             return strmsg;
         }
+
+        internal string GetDepth()
+        {
+            string strdepth = null;
+            string strpower;
+            string type;
+            if (isJson)
+            {
+                try
+                {
+                    JavaScriptObject jsonObj = JavaScriptConvert.DeserializeObject<JavaScriptObject>(message);
+                    type = jsonObj["type"].ToString();
+                    if (type == "1") return Setting.level;
+
+                    strpower = jsonObj["power"].ToString();
+                    switch (strpower)
+                    {
+                        case "level-0":
+                            strdepth = "3";
+                            break;
+                        case "level-1":
+                            strdepth = "6";
+                            break;
+                        case "level-2":
+                            strdepth = "9";
+                            break;
+                        case "level-3":
+                            strdepth = "12";
+                            break;
+                        case "level-4":
+                            strdepth = "15";
+                            break;
+                        case "level-5":
+                            strdepth = "16";
+                            break;
+                        case "level-6":
+                            strdepth = "17";
+                            break;
+                        default:
+                            strdepth = Setting.level;
+                            break;
+                    }
+                }
+                catch (System.Exception ex)
+                {
+                    strdepth = Setting.level;
+                }                
+            }
+            else
+            {
+                strdepth = Setting.level;
+            }
+
+            return strdepth;
+        }
+
 
         internal string GetMessage()
         {

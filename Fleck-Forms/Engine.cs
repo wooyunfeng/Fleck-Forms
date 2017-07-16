@@ -76,6 +76,7 @@ namespace Fleck.aiplay
             Init();    
             //启动管道线程
             StartPipeThread();
+            Thread.Sleep(1000);
             //启动消费者线程
             StartCustomerThread();
             InputEngineQueue = new Queue<NewMsg>();
@@ -293,7 +294,7 @@ namespace Fleck.aiplay
             {
                 OutputEngineQueueEnqueue("getFromEngine");
                 PipeWriter.Write(msg.GetCommand() + "\r\n");
-                PipeWriter.Write("go depth " + Setting.level + "\r\n");
+                PipeWriter.Write("go depth " + msg.GetDepth() + "\r\n");
                 Thread.Sleep(50);
             }
         }

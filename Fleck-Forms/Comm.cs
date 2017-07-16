@@ -91,9 +91,6 @@ namespace Fleck.aiplay
             SQLite_Init();
          }
 
- 
-        
-
         public string DealQueryallMessage(string message)
         {
             string str = "";
