@@ -148,7 +148,8 @@ namespace Fleck_Forms
                         }
                     }          
                 }
-
+                //监视werfault.exe
+                comm.checkwerfault();
                 showUserCommand();
                      
             }

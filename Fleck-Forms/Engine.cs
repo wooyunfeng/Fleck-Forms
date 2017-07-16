@@ -105,21 +105,29 @@ namespace Fleck.aiplay
             pProcess.StartInfo.CreateNoWindow = true;
             pProcess.EnableRaisingEvents = true;
             pProcess.Exited += new EventHandler(exep_Exited);
-            pProcess.ErrorDataReceived += new DataReceivedEventHandler(exep_ErrorDataReceived); 
             pProcess.Start();           
         }
 
         //exep_Exited事件处理代码，这里外部程序退出后激活，可以执行你要的操作
         void exep_Exited(object sender, EventArgs e)
         {
-            OutputEngineQueueEnqueue("引擎关闭，将重启");
+            OutputEngineQueueEnqueue("引擎已关闭，将自动重启");
             resetEngine();
         }
 
-        void exep_ErrorDataReceived(object sender, EventArgs e)
+        //查找进程、结束进程
+        public void checkwerfault()
         {
-            OutputEngineQueueEnqueue("引擎异常，将重启");
-            resetEngine();
+            Process[] pro = Process.GetProcesses();//获取已开启的所有进程
+            //遍历所有查找到的进程
+            for (int i = 0; i < pro.Length; i++)
+            {
+                //判断此进程是否是要查找的进程
+                if (pro[i].ProcessName.ToString().ToLower() == "werfault")
+                {
+                    pro[i].Kill();//结束进程
+                }
+            }
         }
 
         private void KillPipeThread()
