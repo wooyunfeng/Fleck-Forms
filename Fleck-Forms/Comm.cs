@@ -77,7 +77,7 @@ namespace Fleck.aiplay
             ramCounter = new PerformanceCounter("Memory", "Available MBytes");
             user = new User();
             setting = new Setting();
-            log = new Log(Port);
+            log = new Log();
             DealSpeedQueue = new Queue();                
             redis = new RedisHelper();
             SQLite_Init();
