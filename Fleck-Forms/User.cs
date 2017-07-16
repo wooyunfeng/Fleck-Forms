@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Collections;
 using Newtonsoft.Json;
+using Fleck_Forms;
 
 namespace Fleck.aiplay
 {
@@ -115,16 +116,38 @@ namespace Fleck.aiplay
             return true;
         }
     }
+    class resultMsg
+    {
+        public string index { get; set; }
+        public string commandtype { get; set; }
+        public string result { get; set; }
+        public resultMsg()
+        {
+            index = "";
+            commandtype = "";
+            result = "";
+        }
+        // 对象--->JSON  
+        public string GetJson()
+        {
+            return JavaScriptConvert.SerializeObject(this);
+        }  
+    }
 
     class NewMsg
     {
         private IWebSocketConnection connection { get; set; }
         private string message { get; set; }
+        private string index { get; set; }
+        private string command { get; set; }
+        private string commandtype { get; set; }
         private bool isJson { get; set; }
         public NewMsg(IWebSocketConnection connection, string message)
         {
             if (JsonSplit.IsJson(message))//传入的json串
             {
+                JavaScriptObject jsonObj = JavaScriptConvert.DeserializeObject<JavaScriptObject>(message);
+                index = jsonObj["index"].ToString();
                 isJson = true;               
             }
             else
@@ -138,7 +161,29 @@ namespace Fleck.aiplay
 
         internal void Send(string strmsg)
         {
-            connection.Send(strmsg);
+            if (isJson)
+            {
+                resultMsg resultmsg = new resultMsg();
+                resultmsg.index = index;
+                resultmsg.commandtype = commandtype;
+                resultmsg.result = strmsg;
+                string resultJson = resultmsg.GetJson();
+                connection.Send(resultJson);
+            }
+            else
+            {
+                connection.Send(strmsg);
+            }            
+        }
+
+        internal string GetIndex()
+        {
+            return index;
+        }
+
+        internal string GetCommandType()
+        {
+            return commandtype;
         }
 
         internal string GetCommand()
@@ -148,6 +193,7 @@ namespace Fleck.aiplay
             {
                 JavaScriptObject jsonObj = JavaScriptConvert.DeserializeObject<JavaScriptObject>(message);
                 strmsg = jsonObj["command"].ToString();
+                commandtype = command.Substring(0, 8);
                 if (strmsg.IndexOf('K') < strmsg.IndexOf('k'))
                 {
                     strmsg = null;
@@ -157,7 +203,7 @@ namespace Fleck.aiplay
             {
                 strmsg = message;
             }
-
+            command = strmsg;
             return strmsg;
         }
 
