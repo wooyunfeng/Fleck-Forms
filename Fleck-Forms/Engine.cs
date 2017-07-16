@@ -261,7 +261,6 @@ namespace Fleck.aiplay
             else if (message.IndexOf("position") != -1)
             {
                 DealPositionMessage(socket, message);
-                WritePosition(socket.ConnectionInfo.ClientIpAddress + ":" + socket.ConnectionInfo.ClientPort.ToString() + " " + message);
             }
         }
 

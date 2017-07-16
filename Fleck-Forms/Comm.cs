@@ -20,7 +20,6 @@ namespace Fleck.aiplay
     class Comm : SQLiteHelper
     {
         public Log log;
-        public Log logPosition;
         public Setting setting;
         public Queue DealSpeedQueue;
         public RedisHelper redis;
@@ -40,12 +39,6 @@ namespace Fleck.aiplay
                 Console.WriteLine(message);
             }
         }
-
-        public void WritePosition(string message)
-        {
-            logPosition.WritePosition(message);            
-        }
-     
        
         public int getDealspeed()
         {
@@ -85,7 +78,6 @@ namespace Fleck.aiplay
             user = new User();
             setting = new Setting();
             log = new Log(Port);
-            logPosition = new Log("Position"+Port);
             DealSpeedQueue = new Queue();                
             redis = new RedisHelper();
             SQLite_Init();
