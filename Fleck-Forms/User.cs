@@ -147,6 +147,10 @@ namespace Fleck.aiplay
             {
                 JavaScriptObject jsonObj = JavaScriptConvert.DeserializeObject<JavaScriptObject>(message);
                 strmsg = jsonObj["command"].ToString();
+                if (strmsg.IndexOf('K') < strmsg.IndexOf('k'))
+                {
+                    strmsg = null;
+                }
             }
             else
             {

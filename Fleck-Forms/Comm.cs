@@ -97,7 +97,7 @@ namespace Fleck.aiplay
         public string DealQueryallMessage(string message)
         {
             string str = "";
-            if (Setting.isSupportCloudApi)
+            if (message.Length > 0 && Setting.isSupportCloudApi)
             {
                 str = redis.QueryallFromCloud(message);
             }

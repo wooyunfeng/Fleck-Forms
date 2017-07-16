@@ -264,8 +264,8 @@ namespace Fleck.aiplay
                             currentMsg = InputEngineQueue.Dequeue();
                         }
                     }
-                   
-                    if (currentMsg != null)
+
+                    if (currentMsg != null && currentMsg.GetCommand().Length > 0)
                     {
                         EngineDeal(currentMsg);  // 任务不为null时，处理并保存数据     
                         _wh.WaitOne();   //等待信号
