@@ -146,9 +146,15 @@ namespace Fleck.aiplay
         {
             if (JsonSplit.IsJson(message))//传入的json串
             {
+                isJson = true;
                 JavaScriptObject jsonObj = JavaScriptConvert.DeserializeObject<JavaScriptObject>(message);
                 index = jsonObj["index"].ToString();
-                isJson = true;               
+                command = jsonObj["command"].ToString();
+                commandtype = command.Substring(0, 8);
+                if (command.IndexOf('K') < command.IndexOf('k'))
+                {
+                    command = null;
+                }
             }
             else
             {
@@ -188,23 +194,7 @@ namespace Fleck.aiplay
 
         internal string GetCommand()
         {
-            string strmsg = null;
-            if (isJson)
-            {
-                JavaScriptObject jsonObj = JavaScriptConvert.DeserializeObject<JavaScriptObject>(message);
-                strmsg = jsonObj["command"].ToString();
-                commandtype = command.Substring(0, 8);
-                if (strmsg.IndexOf('K') < strmsg.IndexOf('k'))
-                {
-                    strmsg = null;
-                }
-            }
-            else
-            {
-                strmsg = message;
-            }
-            command = strmsg;
-            return strmsg;
+            return command;
         }
 
         internal string GetDepth()

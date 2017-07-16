@@ -72,17 +72,17 @@ namespace Fleck.aiplay
 
         public void Start()
         {
+            InputEngineQueue = new Queue<NewMsg>();
+            OutputEngineQueue = new Queue();
+            bLock = false;
+            currentMsg = null;
             //启动引擎线程
             Init();    
             //启动管道线程
             StartPipeThread();
             Thread.Sleep(1000);
             //启动消费者线程
-            StartCustomerThread();
-            InputEngineQueue = new Queue<NewMsg>();
-            OutputEngineQueue = new Queue();
-            bLock = false;
-            currentMsg = null;
+            StartCustomerThread();           
         }
 
         public void StartPipeThread()
@@ -103,7 +103,23 @@ namespace Fleck.aiplay
             pProcess.StartInfo.RedirectStandardInput = true;
             pProcess.StartInfo.UseShellExecute = false;
             pProcess.StartInfo.CreateNoWindow = true;
-            pProcess.Start();
+            pProcess.EnableRaisingEvents = true;
+            pProcess.Exited += new EventHandler(exep_Exited);
+            pProcess.ErrorDataReceived += new DataReceivedEventHandler(exep_ErrorDataReceived); 
+            pProcess.Start();           
+        }
+
+        //exep_Exited事件处理代码，这里外部程序退出后激活，可以执行你要的操作
+        void exep_Exited(object sender, EventArgs e)
+        {
+            OutputEngineQueueEnqueue("引擎关闭，将重启");
+            resetEngine();
+        }
+
+        void exep_ErrorDataReceived(object sender, EventArgs e)
+        {
+            OutputEngineQueueEnqueue("引擎异常，将重启");
+            resetEngine();
         }
 
         private void KillPipeThread()
@@ -145,7 +161,7 @@ namespace Fleck.aiplay
                 OutputEngineQueueEnqueue(line);
                 bEngineRun = true;
 
-                while (bEngineRun)
+                while (bEngineRun && PipeWriter!= null)
                 {
                     line = reader.ReadLine();
 
@@ -166,7 +182,7 @@ namespace Fleck.aiplay
                         if (line.IndexOf("bestmove") != -1)
                         {
                             currentMsg.Send(line);
-                            OutputEngineQueueEnqueue("depth " + intDepth.ToString() + " " + line);
+                            OutputEngineQueueEnqueue(currentMsg.GetAddr() + " depth " + intDepth.ToString() + " " + line);
                             SQLite_UpdateCommand(1, line, currentMsg.GetAddr(), currentMsg.GetMessage());
                             _wh.Set();  // 给工作线程发信号
                         }
@@ -231,7 +247,7 @@ namespace Fleck.aiplay
                 NewMsg msg = new NewMsg(socket, message);
 
                 string str = DealQueryallMessage(msg.GetCommand());
-                OutputEngineQueueEnqueue(str);
+                OutputEngineQueueEnqueue(strAddr + " " + str);
                 socket.Send(str);
             }
             else if (message.IndexOf("position") != -1)
@@ -252,15 +268,15 @@ namespace Fleck.aiplay
         }
 
         public void CustomerThread()
-        {            
-            while (bEngineRun)
-            {
-                try
+        {
+             try
+             {
+                while (bEngineRun && PipeWriter!= null)
                 {
                     currentMsg = null;
                     lock (_locker)
                     {
-                         if (InputEngineQueue.Count > 0)
+                        if (InputEngineQueue.Count > 0)
                         {
                             currentMsg = InputEngineQueue.Dequeue();
                         }
@@ -274,25 +290,25 @@ namespace Fleck.aiplay
 
                     Thread.Sleep(100);
                 }
-                catch (System.Exception ex)
-                {                    
-                    OutputEngineQueueEnqueue("[error] GetFromEngine " + ex.Message, true);
-                    resetEngine();
-                }
-            }
+             }
+             catch (System.Exception ex)
+             {
+                 OutputEngineQueueEnqueue("[error] GetFromEngine " + ex.Message, true);
+                 resetEngine();
+             }
         }
 
         public void EngineDeal(NewMsg msg)
         {
             if (redisContainsKey(msg.GetCommand()))
             {
-                OutputEngineQueueEnqueue("getFromList");
-                getFromList(msg);
+                //OutputEngineQueueEnqueue("getFromList");
+                OutputEngineQueueEnqueue(msg.GetAddr() + " " + getFromList(msg));
                 _wh.Set();  // 给工作线程发信号
             }
             else
             {
-                OutputEngineQueueEnqueue("getFromEngine");
+                //OutputEngineQueueEnqueue("getFromEngine");
                 PipeWriter.Write(msg.GetCommand() + "\r\n");
                 PipeWriter.Write("go depth " + msg.GetDepth() + "\r\n");
                 Thread.Sleep(50);

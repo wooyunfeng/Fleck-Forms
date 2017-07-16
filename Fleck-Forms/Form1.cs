@@ -198,7 +198,7 @@ namespace Fleck_Forms
 
             listView3.View = View.Details;
             listView3.Columns.Add("时间", 60);
-            listView3.Columns.Add("命令", 400);
+            listView3.Columns.Add("结果", 1400);
 
             listView4.GridLines = true;
             //单选时,选择整行

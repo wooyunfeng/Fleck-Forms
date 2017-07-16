@@ -204,7 +204,7 @@
             this.button3.Name = "button3";
             this.button3.Size = new System.Drawing.Size(121, 23);
             this.button3.TabIndex = 55;
-            this.button3.Text = "删除第一个消息";
+            this.button3.Text = "删除第一个队列消息";
             this.button3.UseVisualStyleBackColor = true;
             this.button3.Click += new System.EventHandler(this.button3_Click);
             // 

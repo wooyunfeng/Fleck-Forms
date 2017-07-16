@@ -133,11 +133,11 @@ namespace Fleck.aiplay
             }
         }
 
-        public void getFromList(NewMsg msg)
+        public string getFromList(NewMsg msg)
         {
             if (!bRedis)
             {
-                return;
+                return "";
             }
             List<string> list = redis.GetAllItemsFromList(msg.GetCommand());
             string strmsg = "";
@@ -162,11 +162,13 @@ namespace Fleck.aiplay
                         {
                             string line = "bestmove " + infoArray[j + 1];
                             SQLite_UpdateCommand(0, line, msg.GetAddr(), msg.GetMessage());
-                            return;
+                            return line;
                         }
                     }
                 }
             }
+
+            return "";
         }
 
         public void getFromList(string message)
