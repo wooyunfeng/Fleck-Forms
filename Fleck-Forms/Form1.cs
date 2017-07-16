@@ -148,6 +148,8 @@ namespace Fleck_Forms
                         }
                     }          
                 }
+
+                showUserCommand();
                      
             }
         }
@@ -481,6 +483,11 @@ namespace Fleck_Forms
 
         private void treeView1_AfterSelect(object sender, TreeViewEventArgs e)
         {
+            showUserCommand();           
+        }
+
+        private void showUserCommand()
+        {
             if (treeView1.SelectedNode != null && treeView1.SelectedNode.Parent != null)
             {
                 string addr = treeView1.SelectedNode.Parent.Text + ":" + treeView1.SelectedNode.Text;
@@ -488,11 +495,10 @@ namespace Fleck_Forms
                 listViewNF1.Items.Clear();
                 while (reader.Read())
                 {
-                    string[] message = {reader["revTime"].ToString() ,reader["Command"].ToString() ,reader["result"].ToString()};
-                    AddListViewItem(listViewNF1, message);
+                    string[] message = { reader["revTime"].ToString(), reader["Command"].ToString(), reader["result"].ToString() };
+                    AddListViewItem(listViewNF1, message, 100);
                 }
             }
-           
         }
 
     }

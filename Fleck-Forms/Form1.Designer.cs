@@ -32,12 +32,15 @@
             this.panel1 = new System.Windows.Forms.Panel();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
+            this.listViewNF1 = new Fleck_Forms.ListViewNF();
             this.m_port = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
+            this.listView1 = new Fleck_Forms.ListViewNF();
             this.treeView1 = new System.Windows.Forms.TreeView();
             this.btn_expend = new System.Windows.Forms.Button();
             this.btn_closeall = new System.Windows.Forms.Button();
             this.tabPage2 = new System.Windows.Forms.TabPage();
+            this.listView2 = new Fleck_Forms.ListViewNF();
             this.tabPage3 = new System.Windows.Forms.TabPage();
             this.button3 = new System.Windows.Forms.Button();
             this.m_depth = new System.Windows.Forms.TextBox();
@@ -47,12 +50,9 @@
             this.button1 = new System.Windows.Forms.Button();
             this.m_Redis = new System.Windows.Forms.CheckBox();
             this.m_CloudApi = new System.Windows.Forms.CheckBox();
-            this.timer1 = new System.Windows.Forms.Timer(this.components);
-            this.listViewNF1 = new Fleck_Forms.ListViewNF();
-            this.listView1 = new Fleck_Forms.ListViewNF();
-            this.listView2 = new Fleck_Forms.ListViewNF();
             this.listView3 = new Fleck_Forms.ListViewNF();
             this.listView4 = new Fleck_Forms.ListViewNF();
+            this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.panel1.SuspendLayout();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
@@ -98,6 +98,14 @@
             this.tabPage1.Text = "在线用户";
             this.tabPage1.UseVisualStyleBackColor = true;
             // 
+            // listViewNF1
+            // 
+            this.listViewNF1.Location = new System.Drawing.Point(214, 3);
+            this.listViewNF1.Name = "listViewNF1";
+            this.listViewNF1.Size = new System.Drawing.Size(510, 363);
+            this.listViewNF1.TabIndex = 36;
+            this.listViewNF1.UseCompatibleStateImageBehavior = false;
+            // 
             // m_port
             // 
             this.m_port.AutoSize = true;
@@ -115,6 +123,14 @@
             this.label2.Size = new System.Drawing.Size(41, 12);
             this.label2.TabIndex = 34;
             this.label2.Text = "端口：";
+            // 
+            // listView1
+            // 
+            this.listView1.Location = new System.Drawing.Point(105, 3);
+            this.listView1.Name = "listView1";
+            this.listView1.Size = new System.Drawing.Size(109, 363);
+            this.listView1.TabIndex = 33;
+            this.listView1.UseCompatibleStateImageBehavior = false;
             // 
             // treeView1
             // 
@@ -155,6 +171,14 @@
             this.tabPage2.Text = "输入";
             this.tabPage2.UseVisualStyleBackColor = true;
             // 
+            // listView2
+            // 
+            this.listView2.Location = new System.Drawing.Point(0, 0);
+            this.listView2.Name = "listView2";
+            this.listView2.Size = new System.Drawing.Size(727, 366);
+            this.listView2.TabIndex = 34;
+            this.listView2.UseCompatibleStateImageBehavior = false;
+            // 
             // tabPage3
             // 
             this.tabPage3.Controls.Add(this.button3);
@@ -182,6 +206,7 @@
             this.button3.TabIndex = 55;
             this.button3.Text = "删除第一个消息";
             this.button3.UseVisualStyleBackColor = true;
+            this.button3.Click += new System.EventHandler(this.button3_Click);
             // 
             // m_depth
             // 
@@ -189,6 +214,7 @@
             this.m_depth.Name = "m_depth";
             this.m_depth.Size = new System.Drawing.Size(38, 21);
             this.m_depth.TabIndex = 54;
+            this.m_depth.TextChanged += new System.EventHandler(this.m_depth_TextChanged);
             // 
             // btn_clear
             // 
@@ -208,6 +234,7 @@
             this.btn_reset.TabIndex = 49;
             this.btn_reset.Text = "重启";
             this.btn_reset.UseVisualStyleBackColor = true;
+            this.btn_reset.Click += new System.EventHandler(this.btn_reset_Click);
             // 
             // label1
             // 
@@ -226,6 +253,7 @@
             this.button1.TabIndex = 50;
             this.button1.Text = "停止";
             this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
             // m_Redis
             // 
@@ -238,6 +266,7 @@
             this.m_Redis.TabIndex = 51;
             this.m_Redis.Text = "Redis";
             this.m_Redis.UseVisualStyleBackColor = true;
+            this.m_Redis.CheckedChanged += new System.EventHandler(this.m_Redis_CheckedChanged);
             // 
             // m_CloudApi
             // 
@@ -250,36 +279,7 @@
             this.m_CloudApi.TabIndex = 52;
             this.m_CloudApi.Text = "云库";
             this.m_CloudApi.UseVisualStyleBackColor = true;
-            // 
-            // timer1
-            // 
-            this.timer1.Enabled = true;
-            this.timer1.Interval = 1000;
-            this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
-            // 
-            // listViewNF1
-            // 
-            this.listViewNF1.Location = new System.Drawing.Point(214, 3);
-            this.listViewNF1.Name = "listViewNF1";
-            this.listViewNF1.Size = new System.Drawing.Size(510, 363);
-            this.listViewNF1.TabIndex = 36;
-            this.listViewNF1.UseCompatibleStateImageBehavior = false;
-            // 
-            // listView1
-            // 
-            this.listView1.Location = new System.Drawing.Point(105, 3);
-            this.listView1.Name = "listView1";
-            this.listView1.Size = new System.Drawing.Size(109, 363);
-            this.listView1.TabIndex = 33;
-            this.listView1.UseCompatibleStateImageBehavior = false;
-            // 
-            // listView2
-            // 
-            this.listView2.Location = new System.Drawing.Point(0, 0);
-            this.listView2.Name = "listView2";
-            this.listView2.Size = new System.Drawing.Size(727, 366);
-            this.listView2.TabIndex = 34;
-            this.listView2.UseCompatibleStateImageBehavior = false;
+            this.m_CloudApi.CheckedChanged += new System.EventHandler(this.m_CloudApi_CheckedChanged);
             // 
             // listView3
             // 
@@ -297,6 +297,12 @@
             this.listView4.Size = new System.Drawing.Size(734, 33);
             this.listView4.TabIndex = 43;
             this.listView4.UseCompatibleStateImageBehavior = false;
+            // 
+            // timer1
+            // 
+            this.timer1.Enabled = true;
+            this.timer1.Interval = 1000;
+            this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
             // 
             // Form1
             // 

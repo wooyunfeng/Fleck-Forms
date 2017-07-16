@@ -187,6 +187,9 @@ namespace Fleck.aiplay
             KillPipeThread();
             //启动管道线程
             StartPipeThread();
+            Thread.Sleep(1000);
+            //启动消费者线程
+            StartCustomerThread();
         }
 
         public void StartCustomerThread()
@@ -224,7 +227,9 @@ namespace Fleck.aiplay
             //过滤命令
             if (message.IndexOf("queryall") != -1)
             {
-                string str = DealQueryallMessage(message);
+                NewMsg msg = new NewMsg(socket, message);
+
+                string str = DealQueryallMessage(msg.GetCommand());
                 OutputEngineQueueEnqueue(str);
                 socket.Send(str);
             }
@@ -247,7 +252,7 @@ namespace Fleck.aiplay
 
         public void CustomerThread()
         {            
-            while (true)
+            while (bEngineRun)
             {
                 try
                 {
