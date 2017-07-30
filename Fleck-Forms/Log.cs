@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.IO;
 
-namespace Fleck.aiplay
+namespace Fleck_Forms
 {
     class Log
     {

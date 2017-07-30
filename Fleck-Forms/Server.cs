@@ -5,9 +5,10 @@ using System.Threading;
 using System.Net.Sockets;
 using System.IO;
 using System.Text;
+using Fleck;
 
 
-namespace Fleck.aiplay
+namespace Fleck_Forms
 {    
     class Server
     {

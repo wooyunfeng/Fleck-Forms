@@ -4,166 +4,17 @@ using System.Linq;
 using System.Text;
 using System.Collections;
 using Newtonsoft.Json;
-using Fleck;
 
-namespace Fleck_Forms
+namespace NetRemotingClient
 {
-    class Role
-    {
-        public IWebSocketConnection connection { get; set; }
-        public Queue<Msg> MsgQueue { get; set; }
-        public Queue QueryallQueue { get; set; }
-        public Queue<Msg> FinishQueue { get; set; }
-        public Msg currentMsg { get; set; }
-        public DateTime createTime { get; set; }
-        public DateTime lastdealTime { get; set; }
-        public int MsgCount = 0;
-        public Role()
-        {
-            connection = null;
-            MsgQueue = new Queue<Msg>();
-            QueryallQueue = new Queue();
-            FinishQueue = new Queue<Msg>();
-            createTime = System.DateTime.Now;
-            lastdealTime = System.DateTime.Now;
-        }
-        public Role(IWebSocketConnection connection)
-        {
-            this.connection = connection;
-            MsgQueue = new Queue<Msg>();
-            FinishQueue = new Queue<Msg>();
-            QueryallQueue = new Queue();
-            createTime = System.DateTime.Now;
-            lastdealTime = System.DateTime.Now;
-        }
-        public void EnqueuePositionMessage(Msg msg)
-        {
-            lock (MsgQueue)
-            {
-                MsgQueue.Enqueue(msg);
-            }
-            MsgCount++;
-        }
-
-        public void EnqueueQueryMessage(string msg)
-        {
-//             lock (QueryallQueue)
-//             {
-//                 QueryallQueue.Enqueue(msg);
-//             }
-            MsgCount++;
-        }
-
-        public override string ToString()
-        {
-            return connection.ConnectionInfo.ClientIpAddress + ":" + connection.ConnectionInfo.ClientPort.ToString() + " createTime:" + createTime.ToString() + " lastdealTime:" + lastdealTime.ToString(); ;
-        }
-        public void Done(string line)
-        {
-            Send(line);
-            currentMsg.dealTime = System.DateTime.Now;
-            currentMsg.retval = line;
-            currentMsg.isreturn = true;
-            lastdealTime = currentMsg.dealTime;
-            lock (MsgQueue)
-            {
-                MsgQueue.Dequeue();
-            }
-          //  FinishQueue.Enqueue(currentMsg);
-        }
-
-        public string GetAddr()
-        {
-            return connection.ConnectionInfo.ClientIpAddress + ":" + connection.ConnectionInfo.ClientPort.ToString();
-        }
-
-        public Msg GetCurrentMsg()
-        {
-            currentMsg = MsgQueue.Peek();
-            return currentMsg;
-        }
-
-        public int GetMsgCount()
-        {
-            return MsgCount;
-        }
-
-        public void Send(string line)
-        {
-            connection.Send(line);
-        }
-        //检查用户活跃度，10分钟不操作认为离线
-        public bool isActive()
-        {
-            DateTime currentTime = System.DateTime.Now;
-            TimeSpan span = currentTime.Subtract(lastdealTime);
-            if (span.Minutes > 0)
-            {
-                return false;
-            }
-            return true;
-        }
-        //检查消息处理，20秒不操作认为离线
-        public bool Check()
-        {
-            DateTime currentTime = System.DateTime.Now;
-            Msg firstMsg = GetCurrentMsg();
-            TimeSpan span = currentTime.Subtract(firstMsg.createTime);
-            if (span.Seconds > 20)
-            {
-                return false;
-            }
-            return true;
-        }
-    }
-    class resultMsg
-    {
-        public string index { get; set; }
-        public string commandtype { get; set; }
-        public string result { get; set; }
-        public resultMsg()
-        {
-            index = "";
-            commandtype = "";
-            result = "";
-        }
-        // 对象--->JSON  
-        public string GetJson()
-        {
-            return JavaScriptConvert.SerializeObject(this);
-        }  
-    }
-
+    
     class NewMsg
     {
-        private IWebSocketConnection connection { get; set; }
         private string message { get; set; }
         private string index { get; set; }
         private string command { get; set; }
         private string commandtype { get; set; }
         private bool isJson { get; set; }
-        public NewMsg(IWebSocketConnection connection, string message)
-        {
-            if (JsonSplit.IsJson(message))//传入的json串
-            {
-                isJson = true;
-                JavaScriptObject jsonObj = JavaScriptConvert.DeserializeObject<JavaScriptObject>(message);
-                index = jsonObj["index"].ToString();
-                command = jsonObj["command"].ToString();
-                commandtype = command.Substring(0, 8);
-                if (command.IndexOf('K') < command.IndexOf('k'))
-                {
-                    command = null;
-                }
-            }
-            else
-            {
-                isJson = false;
-            }
-
-            this.connection = connection;
-            this.message = message;           
-        }
 
         public NewMsg(string message)
         {
@@ -185,23 +36,7 @@ namespace Fleck_Forms
             }
             this.message = message;
         }
-        internal void Send(string strmsg)
-        {
-            if (isJson)
-            {
-                resultMsg resultmsg = new resultMsg();
-                resultmsg.index = index;
-                resultmsg.commandtype = commandtype;
-                resultmsg.result = strmsg;
-                string resultJson = resultmsg.GetJson();
-                connection.Send(resultJson);
-            }
-            else
-            {
-                connection.Send(strmsg);
-            }            
-        }
-
+        
         internal string GetIndex()
         {
             return index;
@@ -221,6 +56,7 @@ namespace Fleck_Forms
         {
             string strdepth = null;
             string strpower;
+            string defaultdepth = null;
             string type;
             if (isJson)
             {
@@ -228,7 +64,7 @@ namespace Fleck_Forms
                 {
                     JavaScriptObject jsonObj = JavaScriptConvert.DeserializeObject<JavaScriptObject>(message);
                     type = jsonObj["type"].ToString();
-                    if (type == "1") return Setting.level;
+                    if (type == "1") return defaultdepth;
 
                     strpower = jsonObj["power"].ToString();
                     switch (strpower)
@@ -255,18 +91,18 @@ namespace Fleck_Forms
                             strdepth = "17";
                             break;
                         default:
-                            strdepth = Setting.level;
+                            strdepth = defaultdepth;
                             break;
                     }
                 }
-                catch 
+                catch (System.Exception ex)
                 {
-                    strdepth = Setting.level;
+                    strdepth = defaultdepth;
                 }                
             }
             else
             {
-                strdepth = Setting.level;
+                strdepth = defaultdepth;
             }
 
             return strdepth;
@@ -276,12 +112,7 @@ namespace Fleck_Forms
         internal string GetMessage()
         {
             return message;
-        }
-
-        internal string GetAddr()
-        {
-            return connection.ConnectionInfo.ClientIpAddress + ":" + connection.ConnectionInfo.ClientPort.ToString();
-        }
+        }        
     }
 
     internal class JsonSplit
@@ -731,53 +562,5 @@ namespace Fleck_Forms
             return true;
         }
     }
-
-    class User
-    {
-        public List<IWebSocketConnection> allSockets;
-        public List<Role> allRoles;
-        public Role currentRole { get; set; }
-        public User()
-        {
-            allSockets = new List<IWebSocketConnection>();
-            allRoles = new List<Role>();
-        }
-
-        public void Add(Role role)
-        {
-            allRoles.Add(role);
-            allSockets.Add(role.connection);
-        }
-
-        public void Add(IWebSocketConnection socket)
-        {
-            var role = new Role(socket);
-            allRoles.Add(role);
-            allSockets.Add(socket);
-        }
-
-        public void Remove(IWebSocketConnection socket)
-        {
-            foreach (var r in allRoles.ToList())
-            {
-                if (r.connection == socket)
-                {
-                    allRoles.Remove(r);
-                }
-            }
-            allSockets.Remove(socket);
-        }
-
-        public Role GetAt(IWebSocketConnection socket)
-        {
-            int index = allSockets.IndexOf(socket);
-            return allRoles[index];
-        }
-
-
-        public int getSize()
-        {
-            return allRoles.Count;
-        }
-    }
+  
 }

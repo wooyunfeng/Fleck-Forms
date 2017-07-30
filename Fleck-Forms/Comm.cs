@@ -13,9 +13,9 @@ using RedisStudy;
 using System.Timers;
 using Newtonsoft.Json;
 using System.Data.SQLite;
-using Fleck_Forms;
+using Fleck;
 
-namespace Fleck.aiplay
+namespace Fleck_Forms
 {    
     class Comm : SQLiteHelper
     {
@@ -235,4 +235,5 @@ namespace Fleck.aiplay
         }
        
     }
+
 }

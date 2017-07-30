@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Xml;
 
-namespace Fleck.aiplay
+namespace Fleck_Forms
 {
     class Setting
     {

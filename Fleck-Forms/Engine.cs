@@ -8,9 +8,15 @@ using System.Diagnostics;
 using System.Collections;
 using System.Text.RegularExpressions;
 using System.Collections.Concurrent;
-using Fleck_Forms;
+using System.Runtime.Remoting.Channels.Http;
+using System.Runtime.Remoting.Channels;
+using System.Runtime.Serialization.Formatters;
+using System.Runtime.Remoting;
+using Fleck;
+using System.Net.Sockets;
+using System.Net;  
 
-namespace Fleck.aiplay
+namespace Fleck_Forms
 {
     class Engine : Comm
     {
@@ -19,30 +25,26 @@ namespace Fleck.aiplay
         Process pProcess;
         Boolean bEngineRun;
         DateTime EngineRunTime;
-        public Queue<NewMsg> InputEngineQueue;
         public NewMsg currentMsg;
         public Queue OutputEngineQueue;
-        // 为保证线程安全，使用一个锁来保护_task的访问
-        readonly static object _locker = new object();
-        // 通过 _wh 给工作线程发信号
-        static EventWaitHandle _wh = new AutoResetEvent(false);
-
+        object container = null;
+        Producer producer = null;
+        HttpChannel _channel;
+        ConcurrentQueue<NewMsg> queueContainer;
         public bool bJson { get; set; }
+        public List<Consumer> customerlist { get; set; }
+        Thread myTCPThread;
+
         public int getMsgQueueCount()
         {
             int count = 0;
-            if (InputEngineQueue == null)
-            {
-                return 0;
-            }
-            lock (_locker)
-            {
-                count = InputEngineQueue.Count;
-            }
+
+            count = queueContainer.Count;
+
             return count;
         }
 
-        public void OutputEngineQueueEnqueue(string line, bool save = false)
+        public void OutputEngineQueueEnqueue(string[] line, bool save = false)
         {
             if (OutputEngineQueue == null || line == null || line.Length == 0)
             {
@@ -50,7 +52,7 @@ namespace Fleck.aiplay
             }
             if (save)
             {
-                WriteInfo(line);
+                WriteInfo(line.ToString());
             }
             lock (OutputEngineQueue)
             {
@@ -58,7 +60,7 @@ namespace Fleck.aiplay
             }
         }
 
-        public string OutputEngineQueueDequeue()
+        public object OutputEngineQueueDequeue()
         {
             if (OutputEngineQueue == null)
             {
@@ -66,53 +68,21 @@ namespace Fleck.aiplay
             }
             lock (OutputEngineQueue)
             {
-                return (string)OutputEngineQueue.Dequeue();
+                return (string [])OutputEngineQueue.Dequeue();
             }
         }
 
         public void Start()
         {
-            InputEngineQueue = new Queue<NewMsg>();
             OutputEngineQueue = new Queue();
+            queueContainer = new ConcurrentQueue<NewMsg>();
+            producer = new Producer(queueContainer);
             bLock = false;
             currentMsg = null;
             //启动引擎线程
-            Init();    
-            //启动管道线程
-            StartPipeThread();
-            Thread.Sleep(1000);
-            //启动消费者线程
-            StartCustomerThread();           
-        }
-
-        public void StartPipeThread()
-        {
-            Thread pipeThread = new Thread(new ThreadStart(PipeThread));
-            pipeThread.IsBackground = true;
-            pipeThread.Start();
-        }
-
-        private void PipeInit(string strFile, string arg)
-        {
-            pProcess = new System.Diagnostics.Process();
-            pProcess.StartInfo = new System.Diagnostics.ProcessStartInfo();
-            pProcess.StartInfo.FileName = strFile;
-            pProcess.StartInfo.Arguments = arg;
-            pProcess.StartInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
-            pProcess.StartInfo.RedirectStandardOutput = true;
-            pProcess.StartInfo.RedirectStandardInput = true;
-            pProcess.StartInfo.UseShellExecute = false;
-            pProcess.StartInfo.CreateNoWindow = true;
-            pProcess.EnableRaisingEvents = true;
-            pProcess.Exited += new EventHandler(exep_Exited);
-            pProcess.Start();           
-        }
-
-        //exep_Exited事件处理代码，这里外部程序退出后激活，可以执行你要的操作
-        void exep_Exited(object sender, EventArgs e)
-        {
-            OutputEngineQueueEnqueue("引擎已关闭，将自动重启");
-            resetEngine();
+            Init();        
+            //启动OnTCP
+            OnTCP();
         }
 
         //查找进程、结束进程
@@ -128,106 +98,7 @@ namespace Fleck.aiplay
                     pro[i].Kill();//结束进程
                 }
             }
-        }
-
-        private void KillPipeThread()
-        {
-            bEngineRun = false;
-            try
-            {
-                if (pProcess != null)
-                {
-                    pProcess.Kill();
-                    pProcess.Close();
-                }                
-                PipeWriter = null;
-            }
-            catch (System.Exception ex)
-            {                
-                OutputEngineQueueEnqueue("[error] KillPipeThread " + ex.Message, true);
-            }
-            Thread.Sleep(100);
-        }
-
-        public void PipeThread()
-        {            
-            EngineRunTime = System.DateTime.Now;
-            int intDepth = 0;
-            string line = "";
-            try
-            {
-                //管道参数初始化
-                PipeInit(Setting.engine, "");
-                //截取输出流
-                StreamReader reader = pProcess.StandardOutput;
-                //截取输入流
-                PipeWriter = pProcess.StandardInput;
-                //每次读取一行
-                line = reader.ReadLine();
-                OutputEngineQueueEnqueue(line); 
-                line = reader.ReadLine();
-                OutputEngineQueueEnqueue(line);
-                bEngineRun = true;
-
-                while (bEngineRun && PipeWriter!= null)
-                {
-                    line = reader.ReadLine();
-
-                    if (line != null)
-                    {
-                        string[] sArray = line.Split(' ');
-                        /* 消息过滤
-                         * info depth 14 seldepth 35 multipv 1 score 19 nodes 243960507 nps 6738309 hashfull 974 tbhits 0 time 36205 
-                         * pv h2e2 h9g7 h0g2 i9h9 i0h0 b9c7 h0h4 h7i7 h4h9 g7h9 c3c4 b7a7 b2c2 c9e7 c2c6 a9b9 b0c2 g6g5 a0a1 h9g7 
-                         */
-                        if (sArray.Length > 3 && sArray[1] == "depth" && sArray[3] == "seldepth")
-                        {
-                            intDepth = Int32.Parse(sArray[2]);
-                            currentMsg.Send(line);
-                        //    redisPushItemToList(currentRole.GetCurrentMsg().message, line);
-                        }
-
-                        if (line.IndexOf("bestmove") != -1)
-                        {
-                            currentMsg.Send(line);
-                            OutputEngineQueueEnqueue(currentMsg.GetAddr() + " depth " + intDepth.ToString() + " " + line);
-                            SQLite_UpdateCommand(1, line, currentMsg.GetAddr(), currentMsg.GetMessage());
-                            _wh.Set();  // 给工作线程发信号
-                        }
-                        Thread.Sleep(10);
-                    }
-                }
-            }
-            catch (System.Exception ex)
-            {
-                _wh.Set();  // 给工作线程发信号
-                OutputEngineQueueEnqueue("[error] PipeThread " + ex.Message, true);
-                resetEngine();                
-            }
-        }
-        
-        public void resetEngine()
-        {
-            bLock = false;
-            KillPipeThread();
-            //启动管道线程
-            StartPipeThread();
-            Thread.Sleep(1000);
-            //启动消费者线程
-            StartCustomerThread();
-        }
-
-        public void StartCustomerThread()
-        {
-            Thread customerThread = new Thread(new ThreadStart(CustomerThread));
-            customerThread.IsBackground = true;
-            customerThread.Start();
-        }
-
-        public Role GetRoleAt(IWebSocketConnection socket)
-        {
-            return user.GetAt(socket);
-        }
+        }        
 
         public void OnOpen(IWebSocketConnection socket)
         {
@@ -255,7 +126,8 @@ namespace Fleck.aiplay
                 NewMsg msg = new NewMsg(socket, message);
 
                 string str = DealQueryallMessage(msg.GetCommand());
-                OutputEngineQueueEnqueue(strAddr + " " + str);
+                string[] msgs = { strAddr, str };
+                OutputEngineQueueEnqueue(msgs);
                 socket.Send(str);
             }
             else if (message.IndexOf("position") != -1)
@@ -268,70 +140,121 @@ namespace Fleck.aiplay
         {
             //记录每个用户的消息队列
             NewMsg msg = new NewMsg(socket,message);
-            lock (_locker)
-            {
-                InputEngineQueue.Enqueue(msg);
-            }      
-        }
-
-        public void CustomerThread()
-        {
-             try
-             {
-                while (bEngineRun && PipeWriter!= null)
-                {
-                    currentMsg = null;
-                    lock (_locker)
-                    {
-                        if (InputEngineQueue.Count > 0)
-                        {
-                            currentMsg = InputEngineQueue.Dequeue();
-                        }
-                    }
-
-                    if (currentMsg != null && currentMsg.GetCommand().Length > 0)
-                    {
-                        EngineDeal(currentMsg);  // 任务不为null时，处理并保存数据     
-                        _wh.WaitOne();   //等待信号
-                    }
-
-                    Thread.Sleep(100);
-                }
-             }
-             catch (System.Exception ex)
-             {
-                 OutputEngineQueueEnqueue("[error] GetFromEngine " + ex.Message, true);
-                 resetEngine();
-             }
-        }
-
-        public void EngineDeal(NewMsg msg)
-        {
-            if (redisContainsKey(msg.GetCommand()))
-            {
-                //OutputEngineQueueEnqueue("getFromList");
-                OutputEngineQueueEnqueue(msg.GetAddr() + " " + getFromList(msg));
-                _wh.Set();  // 给工作线程发信号
-            }
-            else
-            {
-                //OutputEngineQueueEnqueue("getFromEngine");
-                PipeWriter.Write(msg.GetCommand() + "\r\n");
-                PipeWriter.Write("go depth " + msg.GetDepth() + "\r\n");
-                Thread.Sleep(50);
-            }
-        }
-
-        public void stopEngine()
-        {
-            bLock = false;
-            KillPipeThread();
-            OutputEngineQueueEnqueue("引擎停止！");
+            producer.Product(msg);
         }
 
         internal object getUserCount()
         {
             return user.allRoles.Count;
+        }
+
+        private static byte[] result = new byte[4096];  
+        private static int myProt = 8885;   //端口  
+        static Socket serverSocket;  
+
+        private void OnTCP()  
+        {
+            customerlist = new List<Consumer>();     
+            //服务器IP地址  
+            IPAddress ip = IPAddress.Parse("118.190.46.210");  
+            serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);  
+            serverSocket.Bind(new IPEndPoint(ip, myProt));  //绑定IP地址：端口  
+            serverSocket.Listen(10);    //设定最多10个排队连接请求  
+            //Console.WriteLine("启动监听{0}成功", serverSocket.LocalEndPoint.ToString());  
+            //通过Clientsoket发送数据  
+            myTCPThread = new Thread(ListenClientConnect);  
+            myTCPThread.Start();  
+        }  
+  
+        /// <summary>  
+        /// 监听客户端连接  
+        /// </summary>  
+        private  void ListenClientConnect()  
+        {  
+            while (true)  
+            {
+                Socket clientSocket = serverSocket.Accept();  
+                Consumer consumer = new Consumer(queueContainer, clientSocket);
+                Thread.Sleep(100);
+                consumer.Consume();                
+                Thread receiveThread = new Thread(ReceiveMessage);  
+                receiveThread.Start(clientSocket);
+                consumer.receiveThread = receiveThread;
+                customerlist.Add(consumer);
+            }  
+        }
+
+        /// <summary>  
+        /// 接收消息  
+        /// </summary>  
+        /// <param name="clientSocket"></param>  
+        private void ReceiveMessage(object clientSocket)
+        {
+            Socket myClientSocket = (Socket)clientSocket;
+            while (true)
+            {
+                try
+                {
+                    //通过clientSocket接收数据  
+                    int receiveNumber = myClientSocket.Receive(result);
+                    string info = Encoding.ASCII.GetString(result, 0, receiveNumber);
+
+                    foreach (var r in customerlist.ToList())
+                    {
+                        if (r.socket == myClientSocket)
+                        {
+                            if (info == "exit")
+                            {
+                                customerlist.Remove(r);
+                                break;
+                            }
+                            currentMsg = (NewMsg)r.currentMsg;
+                            reciveRemoting(info);
+                            r.Recive(info);
+                            break;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                    myClientSocket.Shutdown(SocketShutdown.Both);
+                    myClientSocket.Close();
+                    break;
+                }
+            }
+        }  
+        
+        private void reciveRemoting(object info)
+        {
+            string line = info.ToString();
+            string[] sArray = line.Split(' ');
+            if (currentMsg != null)
+            {
+                currentMsg.Send(line);
+                if (line.IndexOf("bestmove") != -1)
+                {
+                    string[] msgs = { currentMsg.GetAddr(), line };
+                    OutputEngineQueueEnqueue(msgs);
+                    SQLite_UpdateCommand(1, line, currentMsg.GetAddr(), currentMsg.GetMessage());
+                }
+            }                                    
+        }
+
+
+        internal void Close()
+        {
+            if (myTCPThread != null)
+            {
+                serverSocket.Close();
+                myTCPThread.Abort();
+            }
+            foreach (var r in customerlist.ToList())
+            {
+                r.receiveThread.Abort();
+                r.consumethread.Abort();
+                r.bRun = false;
+            }
         }
     }
 }

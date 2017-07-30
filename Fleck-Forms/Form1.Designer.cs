@@ -32,32 +32,30 @@
             this.panel1 = new System.Windows.Forms.Panel();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
-            this.listViewNF1 = new Fleck_Forms.ListViewNF();
             this.m_port = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
-            this.listView1 = new Fleck_Forms.ListViewNF();
             this.treeView1 = new System.Windows.Forms.TreeView();
             this.btn_expend = new System.Windows.Forms.Button();
             this.btn_closeall = new System.Windows.Forms.Button();
             this.tabPage2 = new System.Windows.Forms.TabPage();
-            this.listView2 = new Fleck_Forms.ListViewNF();
             this.tabPage3 = new System.Windows.Forms.TabPage();
-            this.button3 = new System.Windows.Forms.Button();
-            this.m_depth = new System.Windows.Forms.TextBox();
-            this.btn_clear = new System.Windows.Forms.Button();
-            this.btn_reset = new System.Windows.Forms.Button();
-            this.label1 = new System.Windows.Forms.Label();
-            this.button1 = new System.Windows.Forms.Button();
-            this.m_Redis = new System.Windows.Forms.CheckBox();
-            this.m_CloudApi = new System.Windows.Forms.CheckBox();
+            this.timer1 = new System.Windows.Forms.Timer(this.components);
+            this.listViewNF1 = new Fleck_Forms.ListViewNF();
+            this.listView1 = new Fleck_Forms.ListViewNF();
+            this.listView2 = new Fleck_Forms.ListViewNF();
+            this.listViewNF2 = new Fleck_Forms.ListViewNF();
             this.listView3 = new Fleck_Forms.ListViewNF();
             this.listView4 = new Fleck_Forms.ListViewNF();
-            this.timer1 = new System.Windows.Forms.Timer(this.components);
+            this.tabPage4 = new System.Windows.Forms.TabPage();
+            this.btn_clear = new System.Windows.Forms.Button();
+            this.m_Redis = new System.Windows.Forms.CheckBox();
+            this.m_CloudApi = new System.Windows.Forms.CheckBox();
             this.panel1.SuspendLayout();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
             this.tabPage3.SuspendLayout();
+            this.tabPage4.SuspendLayout();
             this.SuspendLayout();
             // 
             // panel1
@@ -75,6 +73,7 @@
             this.tabControl1.Controls.Add(this.tabPage1);
             this.tabControl1.Controls.Add(this.tabPage2);
             this.tabControl1.Controls.Add(this.tabPage3);
+            this.tabControl1.Controls.Add(this.tabPage4);
             this.tabControl1.Location = new System.Drawing.Point(3, 0);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
@@ -98,14 +97,6 @@
             this.tabPage1.Text = "在线用户";
             this.tabPage1.UseVisualStyleBackColor = true;
             // 
-            // listViewNF1
-            // 
-            this.listViewNF1.Location = new System.Drawing.Point(214, 3);
-            this.listViewNF1.Name = "listViewNF1";
-            this.listViewNF1.Size = new System.Drawing.Size(510, 363);
-            this.listViewNF1.TabIndex = 36;
-            this.listViewNF1.UseCompatibleStateImageBehavior = false;
-            // 
             // m_port
             // 
             this.m_port.AutoSize = true;
@@ -123,14 +114,6 @@
             this.label2.Size = new System.Drawing.Size(41, 12);
             this.label2.TabIndex = 34;
             this.label2.Text = "端口：";
-            // 
-            // listView1
-            // 
-            this.listView1.Location = new System.Drawing.Point(105, 3);
-            this.listView1.Name = "listView1";
-            this.listView1.Size = new System.Drawing.Size(109, 363);
-            this.listView1.TabIndex = 33;
-            this.listView1.UseCompatibleStateImageBehavior = false;
             // 
             // treeView1
             // 
@@ -171,24 +154,9 @@
             this.tabPage2.Text = "输入";
             this.tabPage2.UseVisualStyleBackColor = true;
             // 
-            // listView2
-            // 
-            this.listView2.Location = new System.Drawing.Point(0, 0);
-            this.listView2.Name = "listView2";
-            this.listView2.Size = new System.Drawing.Size(727, 366);
-            this.listView2.TabIndex = 34;
-            this.listView2.UseCompatibleStateImageBehavior = false;
-            // 
             // tabPage3
             // 
-            this.tabPage3.Controls.Add(this.button3);
-            this.tabPage3.Controls.Add(this.m_depth);
-            this.tabPage3.Controls.Add(this.btn_clear);
-            this.tabPage3.Controls.Add(this.btn_reset);
-            this.tabPage3.Controls.Add(this.label1);
-            this.tabPage3.Controls.Add(this.button1);
-            this.tabPage3.Controls.Add(this.m_Redis);
-            this.tabPage3.Controls.Add(this.m_CloudApi);
+            this.tabPage3.Controls.Add(this.listViewNF2);
             this.tabPage3.Controls.Add(this.listView3);
             this.tabPage3.Location = new System.Drawing.Point(4, 22);
             this.tabPage3.Name = "tabPage3";
@@ -198,94 +166,49 @@
             this.tabPage3.Text = "引擎";
             this.tabPage3.UseVisualStyleBackColor = true;
             // 
-            // button3
+            // timer1
             // 
-            this.button3.Location = new System.Drawing.Point(89, 5);
-            this.button3.Name = "button3";
-            this.button3.Size = new System.Drawing.Size(121, 23);
-            this.button3.TabIndex = 55;
-            this.button3.Text = "删除第一个队列消息";
-            this.button3.UseVisualStyleBackColor = true;
-            this.button3.Click += new System.EventHandler(this.button3_Click);
+            this.timer1.Enabled = true;
+            this.timer1.Interval = 1000;
+            this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
             // 
-            // m_depth
+            // listViewNF1
             // 
-            this.m_depth.Location = new System.Drawing.Point(450, 6);
-            this.m_depth.Name = "m_depth";
-            this.m_depth.Size = new System.Drawing.Size(38, 21);
-            this.m_depth.TabIndex = 54;
-            this.m_depth.TextChanged += new System.EventHandler(this.m_depth_TextChanged);
+            this.listViewNF1.Location = new System.Drawing.Point(214, 3);
+            this.listViewNF1.Name = "listViewNF1";
+            this.listViewNF1.Size = new System.Drawing.Size(510, 363);
+            this.listViewNF1.TabIndex = 36;
+            this.listViewNF1.UseCompatibleStateImageBehavior = false;
             // 
-            // btn_clear
+            // listView1
             // 
-            this.btn_clear.Location = new System.Drawing.Point(4, 5);
-            this.btn_clear.Name = "btn_clear";
-            this.btn_clear.Size = new System.Drawing.Size(75, 23);
-            this.btn_clear.TabIndex = 37;
-            this.btn_clear.Text = "清空消息";
-            this.btn_clear.UseVisualStyleBackColor = true;
-            this.btn_clear.Click += new System.EventHandler(this.btn_clear_Click);
+            this.listView1.Location = new System.Drawing.Point(105, 3);
+            this.listView1.Name = "listView1";
+            this.listView1.Size = new System.Drawing.Size(109, 363);
+            this.listView1.TabIndex = 33;
+            this.listView1.UseCompatibleStateImageBehavior = false;
             // 
-            // btn_reset
+            // listView2
             // 
-            this.btn_reset.Location = new System.Drawing.Point(512, 5);
-            this.btn_reset.Name = "btn_reset";
-            this.btn_reset.Size = new System.Drawing.Size(75, 23);
-            this.btn_reset.TabIndex = 49;
-            this.btn_reset.Text = "重启";
-            this.btn_reset.UseVisualStyleBackColor = true;
-            this.btn_reset.Click += new System.EventHandler(this.btn_reset_Click);
+            this.listView2.Location = new System.Drawing.Point(0, 0);
+            this.listView2.Name = "listView2";
+            this.listView2.Size = new System.Drawing.Size(727, 366);
+            this.listView2.TabIndex = 34;
+            this.listView2.UseCompatibleStateImageBehavior = false;
             // 
-            // label1
+            // listViewNF2
             // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(385, 10);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(41, 12);
-            this.label1.TabIndex = 53;
-            this.label1.Text = "深度：";
-            // 
-            // button1
-            // 
-            this.button1.Location = new System.Drawing.Point(611, 5);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(75, 23);
-            this.button1.TabIndex = 50;
-            this.button1.Text = "停止";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
-            // 
-            // m_Redis
-            // 
-            this.m_Redis.AutoSize = true;
-            this.m_Redis.Checked = true;
-            this.m_Redis.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.m_Redis.Location = new System.Drawing.Point(307, 8);
-            this.m_Redis.Name = "m_Redis";
-            this.m_Redis.Size = new System.Drawing.Size(54, 16);
-            this.m_Redis.TabIndex = 51;
-            this.m_Redis.Text = "Redis";
-            this.m_Redis.UseVisualStyleBackColor = true;
-            this.m_Redis.CheckedChanged += new System.EventHandler(this.m_Redis_CheckedChanged);
-            // 
-            // m_CloudApi
-            // 
-            this.m_CloudApi.AutoSize = true;
-            this.m_CloudApi.Checked = true;
-            this.m_CloudApi.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.m_CloudApi.Location = new System.Drawing.Point(235, 8);
-            this.m_CloudApi.Name = "m_CloudApi";
-            this.m_CloudApi.Size = new System.Drawing.Size(48, 16);
-            this.m_CloudApi.TabIndex = 52;
-            this.m_CloudApi.Text = "云库";
-            this.m_CloudApi.UseVisualStyleBackColor = true;
-            this.m_CloudApi.CheckedChanged += new System.EventHandler(this.m_CloudApi_CheckedChanged);
+            this.listViewNF2.Location = new System.Drawing.Point(2, 2);
+            this.listViewNF2.Name = "listViewNF2";
+            this.listViewNF2.Size = new System.Drawing.Size(727, 103);
+            this.listViewNF2.TabIndex = 35;
+            this.listViewNF2.UseCompatibleStateImageBehavior = false;
             // 
             // listView3
             // 
-            this.listView3.Location = new System.Drawing.Point(3, 34);
+            this.listView3.Location = new System.Drawing.Point(3, 111);
             this.listView3.Name = "listView3";
-            this.listView3.Size = new System.Drawing.Size(727, 326);
+            this.listView3.Size = new System.Drawing.Size(727, 249);
             this.listView3.TabIndex = 35;
             this.listView3.UseCompatibleStateImageBehavior = false;
             // 
@@ -298,11 +221,51 @@
             this.listView4.TabIndex = 43;
             this.listView4.UseCompatibleStateImageBehavior = false;
             // 
-            // timer1
+            // tabPage4
             // 
-            this.timer1.Enabled = true;
-            this.timer1.Interval = 1000;
-            this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
+            this.tabPage4.Controls.Add(this.btn_clear);
+            this.tabPage4.Controls.Add(this.m_Redis);
+            this.tabPage4.Controls.Add(this.m_CloudApi);
+            this.tabPage4.Location = new System.Drawing.Point(4, 22);
+            this.tabPage4.Name = "tabPage4";
+            this.tabPage4.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage4.Size = new System.Drawing.Size(723, 366);
+            this.tabPage4.TabIndex = 3;
+            this.tabPage4.Text = "设置";
+            this.tabPage4.UseVisualStyleBackColor = true;
+            // 
+            // btn_clear
+            // 
+            this.btn_clear.Location = new System.Drawing.Point(183, 172);
+            this.btn_clear.Name = "btn_clear";
+            this.btn_clear.Size = new System.Drawing.Size(75, 23);
+            this.btn_clear.TabIndex = 53;
+            this.btn_clear.Text = "清空消息";
+            this.btn_clear.UseVisualStyleBackColor = true;
+            // 
+            // m_Redis
+            // 
+            this.m_Redis.AutoSize = true;
+            this.m_Redis.Checked = true;
+            this.m_Redis.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.m_Redis.Location = new System.Drawing.Point(486, 175);
+            this.m_Redis.Name = "m_Redis";
+            this.m_Redis.Size = new System.Drawing.Size(54, 16);
+            this.m_Redis.TabIndex = 54;
+            this.m_Redis.Text = "Redis";
+            this.m_Redis.UseVisualStyleBackColor = true;
+            // 
+            // m_CloudApi
+            // 
+            this.m_CloudApi.AutoSize = true;
+            this.m_CloudApi.Checked = true;
+            this.m_CloudApi.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.m_CloudApi.Location = new System.Drawing.Point(414, 175);
+            this.m_CloudApi.Name = "m_CloudApi";
+            this.m_CloudApi.Size = new System.Drawing.Size(48, 16);
+            this.m_CloudApi.TabIndex = 55;
+            this.m_CloudApi.Text = "云库";
+            this.m_CloudApi.UseVisualStyleBackColor = true;
             // 
             // Form1
             // 
@@ -312,6 +275,7 @@
             this.Controls.Add(this.panel1);
             this.Name = "Form1";
             this.Text = "Form1";
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
             this.Load += new System.EventHandler(this.Form1_Load);
             this.SizeChanged += new System.EventHandler(this.Form1_SizeChanged);
             this.panel1.ResumeLayout(false);
@@ -320,7 +284,8 @@
             this.tabPage1.PerformLayout();
             this.tabPage2.ResumeLayout(false);
             this.tabPage3.ResumeLayout(false);
-            this.tabPage3.PerformLayout();
+            this.tabPage4.ResumeLayout(false);
+            this.tabPage4.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -329,7 +294,6 @@
 
         private System.Windows.Forms.Panel panel1;
         private ListViewNF listView4;
-        private System.Windows.Forms.Button btn_clear;
         private ListViewNF listView3;
         private ListViewNF listView2;
         private ListViewNF listView1;
@@ -341,16 +305,14 @@
         private System.Windows.Forms.TabPage tabPage1;
         private System.Windows.Forms.TabPage tabPage2;
         private System.Windows.Forms.TabPage tabPage3;
-        private System.Windows.Forms.Button button3;
-        private System.Windows.Forms.TextBox m_depth;
-        private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.CheckBox m_Redis;
-        private System.Windows.Forms.CheckBox m_CloudApi;
-        private System.Windows.Forms.Button button1;
-        private System.Windows.Forms.Button btn_reset;
         private System.Windows.Forms.Label m_port;
         private System.Windows.Forms.Label label2;
         private ListViewNF listViewNF1;
+        private ListViewNF listViewNF2;
+        private System.Windows.Forms.TabPage tabPage4;
+        private System.Windows.Forms.Button btn_clear;
+        private System.Windows.Forms.CheckBox m_Redis;
+        private System.Windows.Forms.CheckBox m_CloudApi;
 
     }
 }
