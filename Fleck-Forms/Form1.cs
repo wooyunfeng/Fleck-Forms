@@ -49,9 +49,8 @@ namespace Fleck_Forms
             asc.controllInitializeSize(this);
             InitListView();
             engine = new Engine();
-            engine.Port = Port;
             engine.Start();
-            engine.bRedis = m_Redis.Checked;
+            engine.comm.bRedis = m_Redis.Checked;
             countQueue = new Queue();
             MsgCount = 0;
             RunTime = System.DateTime.Now;
@@ -128,28 +127,24 @@ namespace Fleck_Forms
                 TimeSpan span = currentTime.Subtract(RunTime);
                 string m_span = span.Days + "天" + span.Hours + "时" + span.Minutes + "分" + span.Seconds + "秒";
 
-                string m_CPU = engine.getCurrentCpuUsage();
-                string m_Memory = engine.getAvailableRAM();
+                string m_CPU = engine.comm.getCurrentCpuUsage();
+                string m_Memory = engine.comm.getAvailableRAM();
 
                 string[] names = { DateTime.Now.ToLongTimeString(),m_online, m_msg, m_speed, m_undo, m_CPU, m_Memory, m_time, m_span };
                 AddListViewItem(listView4, names, 0);
 
                 //显示引擎信息
-                if (engine.OutputEngineQueue != null)
+                int num = engine.getOutputContainerCount();
+                for (int i = 0; i < num; i++)
                 {
-                    lock (engine.OutputEngineQueue)
-                    {
-                        int num = engine.OutputEngineQueue.Count;
-                        for (int i = 0; i < num; i++ )
-                        {
-                            string[] msg = (string[])engine.OutputEngineQueueDequeue();
-                            string[] str = { DateTime.Now.ToLongTimeString(), msg[0], msg[1] };
-                            AddListViewItem(listView3, str);
-                        }
-                    }          
+                    string[] msg = (string[])engine.OutputEngineQueueDequeue();
+                    string[] info = new string[msg.Length + 1];
+                    info[0] = DateTime.Now.ToLongTimeString();
+                    msg.CopyTo(info, 1);
+/*                    string[] str = { DateTime.Now.ToLongTimeString(), msg[0], msg[1], msg[2] };*/
+                    AddListViewItem(listView3, info);
                 }
-                //监视werfault.exe
-                engine.checkwerfault();
+           
                 //显示选择用户的历史命令
                 showUserCommand();
                 //显示引擎信息
@@ -160,10 +155,18 @@ namespace Fleck_Forms
         private void showEngineInfo()
         {
             listViewNF2.Items.Clear();
-            foreach (var engineer in engine.customerlist.ToList())
+            foreach (var customer in engine.customerlist.ToList())
             {
-                string[] str = { engineer.name, engineer.logintime.ToString(), engineer.getlastdealtime(), engineer.getDealCount().ToString(), engineer.getCount().ToString()};
-                AddListViewItem(listViewNF2, str);
+                if (customer.check())
+                {
+                    string[] str = { customer.getName(), customer.logintime.ToString(), customer.getlastdealtime(), customer.getDealCount().ToString(), customer.getCount().ToString() };
+                    AddListViewItem(listViewNF2, str);
+                }
+                else
+                {
+                    engine.customerlist.Remove(customer);
+                }
+                
             }
         }
 
@@ -212,7 +215,8 @@ namespace Fleck_Forms
             listView3.View = View.Details;
             listView3.Columns.Add("时间", 60);
             listView3.Columns.Add("用户", 132);
-            listView3.Columns.Add("结果", 1400);
+            listView3.Columns.Add("引擎", 132);
+            listView3.Columns.Add("消息", 1400);
 
             listView4.GridLines = true;
             //单选时,选择整行
@@ -321,11 +325,11 @@ namespace Fleck_Forms
             string[] names = { DateTime.Now.ToLongTimeString(), str, "connected!" };
             AddListViewItem(listView1,names);
 
-            add(address, port);
+            add2Tree(address, port);
 
         }
 
-        public void add(string address, string port)
+        public void add2Tree(string address, string port)
         {
             TreeNode tn;
             string str;
@@ -366,10 +370,10 @@ namespace Fleck_Forms
             string[] names = { DateTime.Now.ToLongTimeString(), str, "closed!" };
             AddListViewItem(listView1,names);
 
-            remove(address, port);            
+            remove4Tree(address, port);            
         }
 
-        public void remove(string address, string port)
+        public void remove4Tree(string address, string port)
         {
             TreeNode tn;
             string str;
@@ -475,7 +479,7 @@ namespace Fleck_Forms
 
         private void m_Redis_CheckedChanged(object sender, EventArgs e)
         {
-            engine.bRedis = m_Redis.Checked;
+            engine.comm.bRedis = m_Redis.Checked;
         }
 
         private void m_CloudApi_CheckedChanged(object sender, EventArgs e)
@@ -499,7 +503,7 @@ namespace Fleck_Forms
             if (treeView1.SelectedNode != null && treeView1.SelectedNode.Parent != null)
             {
                 string addr = treeView1.SelectedNode.Parent.Text + ":" + treeView1.SelectedNode.Text;
-                SQLiteDataReader reader = engine.SQLite_Query(addr);
+                SQLiteDataReader reader = engine.comm.SQLite_Query(addr);
                 listViewNF1.Items.Clear();
                 while (reader.Read())
                 {
@@ -511,6 +515,7 @@ namespace Fleck_Forms
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
+
             engine.Close();
         }     
 

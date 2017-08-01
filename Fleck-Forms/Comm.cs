@@ -24,7 +24,6 @@ namespace Fleck_Forms
         public Queue DealSpeedQueue;
         public RedisHelper redis;
         public User user;
-        public string Port { get; set; }
         private static int nMsgQueuecount { get; set; }
         public bool bRedis { get; set; }
         public void WriteInfo(string message, bool isOutConsole = false)

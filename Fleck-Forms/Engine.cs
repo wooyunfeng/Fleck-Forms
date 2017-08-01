@@ -18,117 +18,87 @@ using System.Net;
 
 namespace Fleck_Forms
 {
-    class Engine : Comm
+    class Engine 
     {
-        private static StreamWriter PipeWriter { get; set; }
-        private static bool bLock { get; set; }
-        Process pProcess;
-        Boolean bEngineRun;
-        DateTime EngineRunTime;
-        public NewMsg currentMsg;
-        public Queue OutputEngineQueue;
-        object container = null;
-        Producer producer = null;
-        HttpChannel _channel;
-        ConcurrentQueue<NewMsg> queueContainer;
-        public bool bJson { get; set; }
+        Producer producer;
+        ConcurrentQueue<NewMsg> inputContainer;
+        ConcurrentQueue<string[]> outputContainer;
+        public Comm comm;
         public List<Consumer> customerlist { get; set; }
-        Thread myTCPThread;
+        bool bRun = true;
 
         public int getMsgQueueCount()
         {
             int count = 0;
 
-            count = queueContainer.Count;
+            count = inputContainer.Count;
 
             return count;
         }
 
+        public int getOutputContainerCount()
+        {
+            return outputContainer.Count;
+        }
+
         public void OutputEngineQueueEnqueue(string[] line, bool save = false)
         {
-            if (OutputEngineQueue == null || line == null || line.Length == 0)
-            {
-                return;
-            }
             if (save)
             {
-                WriteInfo(line.ToString());
+                comm.WriteInfo(line.ToString());
             }
-            lock (OutputEngineQueue)
-            {
-                OutputEngineQueue.Enqueue(line);
-            }
+            outputContainer.Enqueue(line);
         }
 
         public object OutputEngineQueueDequeue()
         {
-            if (OutputEngineQueue == null)
-            {
-                return null;
-            }
-            lock (OutputEngineQueue)
-            {
-                return (string [])OutputEngineQueue.Dequeue();
-            }
+            string[] re;
+            outputContainer.TryDequeue(out re);
+            return re;
         }
 
         public void Start()
         {
-            OutputEngineQueue = new Queue();
-            queueContainer = new ConcurrentQueue<NewMsg>();
-            producer = new Producer(queueContainer);
-            bLock = false;
-            currentMsg = null;
-            //启动引擎线程
-            Init();        
-            //启动OnTCP
+            inputContainer = new ConcurrentQueue<NewMsg>();
+            outputContainer = new ConcurrentQueue<string[]>();
+            producer = new Producer(inputContainer);
+            comm = new Comm();
+            comm.Init();
+            //启动OnTCP,处理引擎信息
             OnTCP();
         }
-
-        //查找进程、结束进程
-        public void checkwerfault()
-        {
-            Process[] pro = Process.GetProcesses();//获取已开启的所有进程
-            //遍历所有查找到的进程
-            for (int i = 0; i < pro.Length; i++)
-            {
-                //判断此进程是否是要查找的进程
-                if (pro[i].ProcessName.ToString().ToLower() == "werfault")
-                {
-                    pro[i].Kill();//结束进程
-                }
-            }
-        }        
 
         public void OnOpen(IWebSocketConnection socket)
         {
             var role = new Role(socket);
-            SQLite_Login(role.GetAddr());
-            user.Add(role);
+            comm.SQLite_Login(role.GetAddr());
+            comm.user.Add(role);
         }
 
         public void OnClose(IWebSocketConnection socket)
         {
-            var role = user.GetAt(socket);
-            SQLite_Logout(role.GetAddr());
-            user.Remove(socket);
+            var role = comm.user.GetAt(socket);
+            comm.SQLite_Logout(role.GetAddr());
+            comm.user.Remove(socket);
         }
 
         public void OnMessage(IWebSocketConnection socket, string message)
         {
             string strAddr = socket.ConnectionInfo.ClientIpAddress + ":" + socket.ConnectionInfo.ClientPort.ToString();
             string[] param = { DateTime.Now.ToLongTimeString(), strAddr, message };
-            SQLite_InsertCommand(param);
+            comm.SQLite_InsertCommand(param);
 
             //过滤命令
             if (message.IndexOf("queryall") != -1)
             {
                 NewMsg msg = new NewMsg(socket, message);
 
-                string str = DealQueryallMessage(msg.GetCommand());
-                string[] msgs = { strAddr, str };
+                string strQueryall = comm.DealQueryallMessage(msg.GetCommand());
+                socket.Send(strQueryall);
+
+                string[] msgs = { strAddr, "redis",strQueryall };
                 OutputEngineQueueEnqueue(msgs);
-                socket.Send(str);
+                
             }
             else if (message.IndexOf("position") != -1)
             {
@@ -138,123 +108,75 @@ namespace Fleck_Forms
 
         private void DealPositionMessage(IWebSocketConnection socket, string message)
         {
-            //记录每个用户的消息队列
-            NewMsg msg = new NewMsg(socket,message);
-            producer.Product(msg);
+            NewMsg msg = new NewMsg(socket, message);
+            //查库
+            if (comm.redisContainsKey(msg.GetCommand()))
+            {
+                string[] msgs = { msg.GetAddr(), "reids", comm.getFromList(msg) };
+                OutputEngineQueueEnqueue(msgs);
+            }
+            else//查库没有，加入队列
+            {
+                producer.Product(msg);
+            }
         }
 
         internal object getUserCount()
         {
-            return user.allRoles.Count;
+            return comm.user.allRoles.Count;
         }
 
-        private static byte[] result = new byte[4096];  
+        private static byte[] result = new byte[4096];
         private static int myProt = 8885;   //端口  
-        static Socket serverSocket;  
+        static Socket serverSocket;
 
-        private void OnTCP()  
+        private void OnTCP()
         {
-            customerlist = new List<Consumer>();     
+            customerlist = new List<Consumer>();
             //服务器IP地址  
-            IPAddress ip = IPAddress.Parse("118.190.46.210");  
-            serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);  
+            IPAddress ip = IPAddress.Parse("118.190.46.210");
+            serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             serverSocket.Bind(new IPEndPoint(ip, myProt));  //绑定IP地址：端口  
             serverSocket.Listen(10);    //设定最多10个排队连接请求  
             //Console.WriteLine("启动监听{0}成功", serverSocket.LocalEndPoint.ToString());  
             //通过Clientsoket发送数据  
-            myTCPThread = new Thread(ListenClientConnect);  
-            myTCPThread.Start();  
-        }  
-  
+            Thread thread = new Thread(ListenClientConnect);
+            thread.Start();
+        }
+
         /// <summary>  
         /// 监听客户端连接  
         /// </summary>  
-        private  void ListenClientConnect()  
-        {  
-            while (true)  
-            {
-                Socket clientSocket = serverSocket.Accept();  
-                Consumer consumer = new Consumer(queueContainer, clientSocket);
-                Thread.Sleep(100);
-                consumer.Consume();                
-                Thread receiveThread = new Thread(ReceiveMessage);  
-                receiveThread.Start(clientSocket);
-                consumer.receiveThread = receiveThread;
-                customerlist.Add(consumer);
-            }  
-        }
-
-        /// <summary>  
-        /// 接收消息  
-        /// </summary>  
-        /// <param name="clientSocket"></param>  
-        private void ReceiveMessage(object clientSocket)
+        private void ListenClientConnect()
         {
-            Socket myClientSocket = (Socket)clientSocket;
-            while (true)
+            while (bRun)  
             {
                 try
                 {
-                    //通过clientSocket接收数据  
-                    int receiveNumber = myClientSocket.Receive(result);
-                    string info = Encoding.ASCII.GetString(result, 0, receiveNumber);
+                    Socket clientSocket = serverSocket.Accept();
+                    Consumer consumer = new Consumer(inputContainer, outputContainer, comm, clientSocket);
+                    consumer.Start();
+                    customerlist.Add(consumer);
+                }
+                catch (System.Exception ex)
+                {
 
-                    foreach (var r in customerlist.ToList())
-                    {
-                        if (r.socket == myClientSocket)
-                        {
-                            if (info == "exit")
-                            {
-                                customerlist.Remove(r);
-                                break;
-                            }
-                            currentMsg = (NewMsg)r.currentMsg;
-                            reciveRemoting(info);
-                            r.Recive(info);
-                            break;
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.Message);
-                    myClientSocket.Shutdown(SocketShutdown.Both);
-                    myClientSocket.Close();
-                    break;
-                }
-            }
-        }  
-        
-        private void reciveRemoting(object info)
-        {
-            string line = info.ToString();
-            string[] sArray = line.Split(' ');
-            if (currentMsg != null)
-            {
-                currentMsg.Send(line);
-                if (line.IndexOf("bestmove") != -1)
-                {
-                    string[] msgs = { currentMsg.GetAddr(), line };
-                    OutputEngineQueueEnqueue(msgs);
-                    SQLite_UpdateCommand(1, line, currentMsg.GetAddr(), currentMsg.GetMessage());
-                }
-            }                                    
+                }                
+            }  
         }
 
-
-        internal void Close()
+        public void Close()
         {
-            if (myTCPThread != null)
+            foreach (var customer in customerlist.ToList())
             {
-                serverSocket.Close();
-                myTCPThread.Abort();
+                if (customer.bRun)
+                {
+                    customer.SendToClient("exit");
+                }
             }
-            foreach (var r in customerlist.ToList())
-            {
-                r.receiveThread.Abort();
-                r.consumethread.Abort();
-                r.bRun = false;
-            }
+            serverSocket.Close();
+            bRun = false;
         }
+
     }
 }

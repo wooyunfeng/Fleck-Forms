@@ -11,38 +11,48 @@ namespace Fleck_Forms
 {
     public class Consumer
     {
-        object container = null;
-        // 通过 _wh 给工作线程发信号
-        EventWaitHandle _wh = new AutoResetEvent(false);
-        public string name = "";
-        public object currentMsg;
-        bool bLock = false;
+        ConcurrentQueue<NewMsg> inputcontainer = null;
+        ConcurrentQueue<string[]> outputcontainer = null;
+        Comm comm = null;
+        NewMsg currentMsg;
         public bool bRun = true;
 
         int dealCount = 0;
         public Socket socket = null;
         public DateTime logintime = new DateTime();
         public DateTime lastdealtime = new DateTime();
-        public Thread consumethread { get; set; }
-        public Thread receiveThread { get; set; }
         private static byte[] result = new byte[4096];  
-        //得到一个容器
-        public Consumer(object container, string name)
-        {
-            this.container = container;
-            this.name = name;
-            logintime = DateTime.Now;
-        }
 
         //得到一个容器
-        public Consumer(object container, Socket socket)
+        public Consumer(object containerI, object containerO, object comm, Socket socket)
         {
-            this.container = container;
-            this.name = socket.RemoteEndPoint.ToString();
-            logintime = DateTime.Now;
+            this.inputcontainer = (ConcurrentQueue < NewMsg > )containerI;
+            this.outputcontainer = (ConcurrentQueue < string [] > )containerO;
+            this.comm = (Comm)comm;
+            this.logintime = DateTime.Now;
             this.socket = socket;
         }
 
+        public string getName()
+        {
+            try
+            {
+                return socket.RemoteEndPoint.ToString();
+            }
+            catch (System.Exception ex)
+            {
+            	
+            }
+            return "";
+        }
+        /// <summary>  
+        /// 监听客户端连接  
+        /// </summary>  
+        public void Start()
+        {
+            Thread receiveThread = new Thread(ReceiveMessage);
+            receiveThread.Start(socket);
+        }
         /// <summary>  
         /// 接收消息  
         /// </summary>  
@@ -50,19 +60,19 @@ namespace Fleck_Forms
         private void ReceiveMessage(object clientSocket)
         {
             Socket myClientSocket = (Socket)clientSocket;
-            while (true)
+            string info;
+            int receiveNumber;
+            while (bRun)
             {
                 try
                 {
                     //通过clientSocket接收数据  
-                    int receiveNumber = myClientSocket.Receive(result);
-                    string info = Encoding.ASCII.GetString(result, 0, receiveNumber);
+                    receiveNumber = myClientSocket.Receive(result);
+                    info = Encoding.ASCII.GetString(result, 0, receiveNumber);
                     Recive(info);
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine(ex.Message);
-                    myClientSocket.Shutdown(SocketShutdown.Both);
                     myClientSocket.Close();
                     break;
                 }
@@ -73,25 +83,13 @@ namespace Fleck_Forms
         public void Consumption()
         {
             //消费掉容器中的一个物品
-            ConcurrentQueue<NewMsg> queue = (ConcurrentQueue<NewMsg>)container;
-            NewMsg msg;
-            queue.TryDequeue(out msg);
-            currentMsg = msg;
-//             if (redisContainsKey(currentMsg.GetCommand()))
-//             {
-//                // OutputEngineQueueEnqueue(currentMsg.GetAddr() + " " + getFromList(currentMsg));
-//                 _wh.Set();  // 给工作线程发信号
-//             }
-//             else
+            inputcontainer.TryDequeue(out currentMsg);
+            if (currentMsg != null)
             {
-                if (msg != null)
-                {
-                    SendToClient(msg.GetMessage());
-                }                
-            }
-
-            dealCount++;
-            lastdealtime = DateTime.Now;
+                SendToClient(currentMsg.GetMessage());
+                dealCount++;
+                lastdealtime = DateTime.Now;
+            }                           
         }
 
         public int getDealCount()
@@ -109,69 +107,50 @@ namespace Fleck_Forms
             throw new NotImplementedException();
         }
 
-        private void SendToClient(string info)
+        public void SendToClient(string info)
         {
             socket.Send(Encoding.ASCII.GetBytes(info));  
         }
 
         public int getCount()
         {
-            ConcurrentQueue<NewMsg> queue = (ConcurrentQueue<NewMsg>)container;
-            return queue.Count;
-        }
-
-        public void Consume()
-        {
-            consumethread = new Thread(new ThreadStart(ThreadConsumption));
-            consumethread.IsBackground = true;
-            consumethread.Start();
+            return inputcontainer.Count;
         }
 
         public void Recive(string message)
         {
-            NewMsg Msg = (NewMsg)currentMsg;
-            Msg.Send(message);
-            if (message.IndexOf("bestmove") != -1)
+            //接收请求list命令，进行消费
+            if (message.IndexOf("list") != -1 && getCount() > 0)
             {
-                ThreadSet();
+                Consumption();
             }
-            if (message.IndexOf("restart") != -1)
+            else if (message.IndexOf("exit") != -1)
             {
-                consumethread.Abort();
-                ThreadSet();
-                Thread.Sleep(100);
-                Consume();
+                bRun = false;
             }
-        }
-
-        public void ThreadConsumption()
-        {
-            while (bRun)
+            else if (message.IndexOf("restart") != -1)
             {
-                //如果容器中有商品就进行消费
-                if (getCount() != 0 && !bLock)
+                SendToClient(currentMsg.GetMessage());
+            }
+            else
+            {
+                currentMsg.Send(message);
+                if (message.IndexOf("bestmove") != -1)
                 {
-                    lock (this)
-                    {
-                        bLock = true;
-                    }
-                       
-                    //调用方法进行消费
-                    Consumption();
+                    string[] msgs = { currentMsg.GetAddr(),getName(), message };
+                    outputcontainer.Enqueue(msgs);
+                    comm.SQLite_UpdateCommand(1, message, currentMsg.GetAddr(), currentMsg.GetMessage());
                 }
-                Thread.Sleep(100);
-                //容器中没有商品通知消费者消费
-                //_wh.WaitOne();   //等待信号
-            }
+            }            
         }
 
-        public void ThreadSet()
+        internal bool check()
         {
-            lock (this)
+            if (getName() == "")
             {
-                bLock = false;
+                return false;
             }
-            //_wh.Set();  // 给工作线程发信号
+            return bRun;
         }
     }
 

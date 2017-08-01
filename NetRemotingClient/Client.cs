@@ -29,13 +29,22 @@ namespace NetRemotingClient
         static public bool isSupportCloudApi { get; set; }
         static public string engine { get; set; }
         NewMsg currentMsg;
-
+        DateTime starttime;
+        bool bConnect;
         public Client()
         {
             LoadXml();          
             addMsgDelegate = new AddMsgItem(AddMsgItemMethod);
             InitializeComponent();
             InitListView();
+            starttime = DateTime.Now;
+            cpuCounter = new PerformanceCounter();
+
+            cpuCounter.CategoryName = "Processor";
+            cpuCounter.CounterName = "% Processor Time";
+            cpuCounter.InstanceName = "_Total";
+
+            ramCounter = new PerformanceCounter("Memory", "Available MBytes");
         }
 
          public void AddMsgItemMethod(string  message)
@@ -45,8 +54,7 @@ namespace NetRemotingClient
             System.Threading.Thread.Sleep(1);
         }
 
-
-         private void AddListViewItem(ListView listView, string[] array, int showLines = 28)
+         private void AddListViewItem(ListView listView, string[] array, int showLines = 20)
          {
              if (listView.Items.Count > showLines)
              {
@@ -95,7 +103,7 @@ namespace NetRemotingClient
              }
              catch (System.Exception ex)
              {
-                 MessageBox.Show(ex.Message);
+                 strInfo = ex.Message;
              }
          }
         /// <summary>
@@ -108,32 +116,59 @@ namespace NetRemotingClient
             try
             {
                 textDepth.Text = level;
-               
+                labelstarttime.Text = starttime.ToString();
+                DateTime currentTime = System.DateTime.Now;
+                TimeSpan span = currentTime.Subtract(starttime);
+                labelruntime.Text = span.Days + "天" + span.Hours + "时" + span.Minutes + "分" + span.Seconds + "秒";
+                labelCPU.Text = getCurrentCpuUsage();
+                labelMemory.Text = getAvailableRAM();
+                strInfo = labelinfo.Text;
                 StartPipeThread();
-                Thread.Sleep(1000);
-                OnTCP();
+                Thread thread = new Thread(OnTCP);
+                thread.IsBackground = true;
+                thread.Start(); 
             }
             catch (Exception ex)
-            { 
-                MessageBox.Show(ex.Message); 
+            {
+                strInfo = ex.Message; 
             }
         }
 
-        private static byte[] result = new byte[1024];
+        private static byte[] result = new byte[4096];
         Socket serverSocket;
+        bool bRun;
+        string strInfo;
+        bool bdealing = false;
+        DateTime startdeal;
+
         private void OnTCP()  
         {  
             //设定服务器IP地址  
             IPAddress ip = IPAddress.Parse("118.190.46.210");  
-            serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);  
+            Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            bRun = true;
             try  
-            {  
-                serverSocket.Connect(new IPEndPoint(ip, 8885)); //配置服务器IP与端口  
-                Console.WriteLine("连接服务器成功");  
+            {
+                socket.Connect(new IPEndPoint(ip, 8885)); //配置服务器IP与端口  
+                strInfo = ("连接服务器成功");
+                serverSocket = socket;
+                Thread.Sleep(100);
+                bConnect = true;
+               
             }  
             catch  
-            {  
-                Console.WriteLine("连接服务器失败，请按回车键退出！");  
+            {
+                bConnect = false;
+                for (int i = 10; i > 0 && bRun; i--)
+                {
+                    strInfo = ("连接服务器失败，" + i + "秒后将重连！");
+                    Thread.Sleep(1000);
+                }
+                if (bRun)
+                {
+                    OnTCP();
+                }
+               
                 return;  
             }  
             //通过clientSocket接收数据  
@@ -148,20 +183,27 @@ namespace NetRemotingClient
         private void ReceiveMessage(object clientSocket)
         {
             Socket myClientSocket = (Socket)clientSocket;
-            while (serverSocket != null)
+            while (bRun)
             {
                 try
                 {
                     //通过clientSocket接收数据  
                     int receiveNumber = myClientSocket.Receive(result);
                     string info = Encoding.ASCII.GetString(result, 0, receiveNumber);
-                    currentMsg = new NewMsg(info);
-                    deal(currentMsg);
-                   
+                    if (info.IndexOf("exit") != -1)
+                    {
+                        strInfo = "服务器退出！";
+                        bRun = false;
+                        break;
+                    }
+                    else
+                    {
+                        currentMsg = new NewMsg(info);
+                        deal(currentMsg);  
+                    }                                     
                 }
                 catch (Exception ex)
                 {
-   //                 myClientSocket.Shutdown(SocketShutdown.Both);
                     myClientSocket.Close();
                     break;
                 }
@@ -172,6 +214,8 @@ namespace NetRemotingClient
         {
             if (currentMsg.GetCommand().IndexOf("position") != -1)
             {
+                bdealing = true;
+                startdeal = DateTime.Now;
                 PipeWriter.Write(currentMsg.GetCommand() + "\r\n");
                 string depth = currentMsg.GetDepth();
                 if (depth == null)
@@ -184,8 +228,7 @@ namespace NetRemotingClient
                 }
             }
         }  
-
-      
+  
         /// <summary>
         /// 退出
         /// </summary>
@@ -195,24 +238,56 @@ namespace NetRemotingClient
         {
             try
             {
-                serverSocket.Send(Encoding.ASCII.GetBytes("exit"));   
-                serverSocket.Shutdown(SocketShutdown.Both);
-                serverSocket.Close();
-                serverSocket = null;
+                if (bConnect)
+                {
+                    serverSocket.Send(Encoding.ASCII.GetBytes("exit"));
+                    serverSocket.Close();
+                }
+                
+                bRun = false;
+                KillPipeThread();
             }
-            catch
-            { }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
         }
-
+        // 检查一个Socket是否可连接  
+        private bool IsSocketConnected(Socket client)
+        {
+            bool blockingState = client.Blocking;
+            try
+            {
+                byte[] tmp = new byte[1];
+                client.Blocking = false;
+                client.Send(tmp, 0, 0);
+                return false;
+            }
+            catch (SocketException e)
+            {
+                // 产生 10035 == WSAEWOULDBLOCK 错误，说明被阻止了，但是还是连接的  
+                if (e.NativeErrorCode.Equals(10035))
+                    return false;
+                else
+                    return true;
+            }
+            finally
+            {
+                client.Blocking = blockingState;    // 恢复状态  
+            }
+        }  
         Process pProcess;
         DateTime EngineRunTime;
         private static StreamWriter PipeWriter { get; set; }
-
+        Thread pipeThread;
+        StreamReader reader;
+        bool bPipeRun;
         public void StartPipeThread()
         {
-            Thread pipeThread = new Thread(new ThreadStart(PipeThread));
+            pipeThread = new Thread(new ThreadStart(PipeThread));
             pipeThread.IsBackground = true;
             pipeThread.Start();
+            bPipeRun = true;
         }
 
         private void PipeInit(string strFile, string arg)
@@ -239,8 +314,7 @@ namespace NetRemotingClient
 
         public void resetEngine()
         {
-            OutputEngineQueueEnqueue("restart");
-            deal(currentMsg);
+            SendtoServer("restart");
             KillPipeThread();
             //启动管道线程
             StartPipeThread();
@@ -256,13 +330,14 @@ namespace NetRemotingClient
                     pProcess.Kill();
                     pProcess.Close();
                 }
-                PipeWriter = null;
+                PipeWriter.Close();
+                reader.Close();
+                bPipeRun = false;
             }
             catch (System.Exception ex)
             {
-               // MessageBox.Show(ex.Message);
+               strInfo = ex.Message;
             }
-            Thread.Sleep(100);
         }
 
         public void PipeThread()
@@ -277,7 +352,7 @@ namespace NetRemotingClient
                 //管道参数初始化
                 PipeInit(EnginePath, "");
                 //截取输出流
-                StreamReader reader = pProcess.StandardOutput;
+                reader = pProcess.StandardOutput;
                 //截取输入流
                 PipeWriter = pProcess.StandardInput;
                 //每次读取一行
@@ -300,14 +375,17 @@ namespace NetRemotingClient
                         if (sArray.Length > 3 && sArray[1] == "depth" && sArray[3] == "seldepth")
                         {
                             intDepth = Int32.Parse(sArray[2]);
-                            OutputEngineQueueEnqueue(line);
+                            if (bdealing)
+                            {
+                                SendtoServer(line);
+                            }                           
                         }
 
                         if (line.IndexOf("bestmove") != -1)
                         {
-                            OutputEngineQueueEnqueue(line);
+                            bdealing = false;
+                            SendtoServer(line);
                             AddMsg(" depth " + intDepth.ToString() + " " + line);
-
                         }
                         Thread.Sleep(10);
                     }
@@ -315,13 +393,27 @@ namespace NetRemotingClient
             }
             catch (System.Exception ex)
             {
-                MessageBox.Show(ex.Message);
+                strInfo = ex.Message;
             }
         }
 
-        private void OutputEngineQueueEnqueue(string line)
+        private void SendtoServer(string line)
         {
-            serverSocket.Send(Encoding.ASCII.GetBytes(line));        
+            try
+            {
+                if (bConnect)
+                {
+                    serverSocket.Send(Encoding.ASCII.GetBytes(line));
+                    Thread.Sleep(100);
+                }  
+            }
+            catch (System.Exception ex)
+            {
+                strInfo = ex.Message;
+                bRun = false;
+                Thread.Sleep(100);
+                OnTCP();                
+            }                       
         }
 
         private void textDepth_TextChanged(object sender, EventArgs e)
@@ -372,5 +464,83 @@ namespace NetRemotingClient
             }
         }
 
+        PerformanceCounter cpuCounter;
+        PerformanceCounter ramCounter;
+
+        public string getCurrentCpuUsage()
+        {
+            return (int)cpuCounter.NextValue() + "%";
+        }
+
+        public string getAvailableRAM()
+        {
+            return ramCounter.NextValue() / 1024 + " GB";
+        } 
+
+        private void timer1_Tick(object sender, EventArgs e)
+        {
+            //监视werfault.exe
+            checkwerfault();
+
+            labelstarttime.Text = starttime.ToString();
+
+            DateTime currentTime = System.DateTime.Now;
+            TimeSpan span = currentTime.Subtract(starttime);
+            labelruntime.Text = span.Days + "天" + span.Hours + "时" + span.Minutes + "分" + span.Seconds + "秒";
+
+            labelCPU.Text = getCurrentCpuUsage();
+            labelMemory.Text = getAvailableRAM();
+            labelinfo.Text = strInfo;
+
+            //监视超时
+            checkTimeOut();
+        }
+
+        private void timer2_Tick(object sender, EventArgs e)
+        {
+            if (bRun &&  bConnect && !bdealing)
+            {
+                SendtoServer("list");
+            }
+        }
+
+        private bool checkTimeOut()
+        {
+            if (bdealing)
+            {
+                DateTime currentTime = System.DateTime.Now;
+                TimeSpan span = currentTime.Subtract(startdeal);
+                if (span.Seconds > 30)
+                {
+                    bdealing = false;
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            strInfo = "重连服务器";
+            OnTCP();
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            strInfo = "断开连接";
+            serverSocket.Close();
+            bRun = false;
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            strInfo = "重启引擎";
+            resetEngine();
+        }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            listView1.Items.Clear();
+        }
     }
 }
