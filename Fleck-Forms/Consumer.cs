@@ -41,9 +41,8 @@ namespace Fleck_Forms
             }
             catch (System.Exception ex)
             {
-            	
+                return "";
             }
-            return "";
         }
         /// <summary>  
         /// 监听客户端连接  
@@ -146,7 +145,7 @@ namespace Fleck_Forms
 
         internal bool check()
         {
-            if (getName() == "")
+            if (getName() == "" || dealCount == 0)
             {
                 return false;
             }

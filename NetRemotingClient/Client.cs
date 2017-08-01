@@ -123,6 +123,7 @@ namespace NetRemotingClient
                 labelCPU.Text = getCurrentCpuUsage();
                 labelMemory.Text = getAvailableRAM();
                 strInfo = labelinfo.Text;
+                labelcount.Text = dealcount.ToString();
                 StartPipeThread();
                 Thread thread = new Thread(OnTCP);
                 thread.IsBackground = true;
@@ -139,6 +140,7 @@ namespace NetRemotingClient
         bool bRun;
         string strInfo;
         bool bdealing = false;
+        int dealcount = 0;
         DateTime startdeal;
 
         private void OnTCP()  
@@ -384,6 +386,7 @@ namespace NetRemotingClient
                         if (line.IndexOf("bestmove") != -1)
                         {
                             bdealing = false;
+                            dealcount++;
                             SendtoServer(line);
                             AddMsg(" depth " + intDepth.ToString() + " " + line);
                         }
@@ -404,7 +407,6 @@ namespace NetRemotingClient
                 if (bConnect)
                 {
                     serverSocket.Send(Encoding.ASCII.GetBytes(line));
-                    Thread.Sleep(100);
                 }  
             }
             catch (System.Exception ex)
@@ -492,6 +494,7 @@ namespace NetRemotingClient
             labelMemory.Text = getAvailableRAM();
             labelinfo.Text = strInfo;
 
+            labelcount.Text = dealcount.ToString();
             //监视超时
             checkTimeOut();
         }

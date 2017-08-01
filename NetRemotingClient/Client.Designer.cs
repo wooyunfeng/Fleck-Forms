@@ -46,8 +46,10 @@ namespace NetRemotingClient
             this.labelMemory = new System.Windows.Forms.Label();
             this.button2 = new System.Windows.Forms.Button();
             this.button3 = new System.Windows.Forms.Button();
-            this.listView1 = new Fleck_Forms.ListViewNF();
             this.button4 = new System.Windows.Forms.Button();
+            this.listView1 = new Fleck_Forms.ListViewNF();
+            this.label5 = new System.Windows.Forms.Label();
+            this.labelcount = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // label1
@@ -190,14 +192,6 @@ namespace NetRemotingClient
             this.button3.UseVisualStyleBackColor = true;
             this.button3.Click += new System.EventHandler(this.button3_Click);
             // 
-            // listView1
-            // 
-            this.listView1.Location = new System.Drawing.Point(12, 32);
-            this.listView1.Name = "listView1";
-            this.listView1.Size = new System.Drawing.Size(866, 368);
-            this.listView1.TabIndex = 11;
-            this.listView1.UseCompatibleStateImageBehavior = false;
-            // 
             // button4
             // 
             this.button4.Location = new System.Drawing.Point(297, 3);
@@ -207,6 +201,32 @@ namespace NetRemotingClient
             this.button4.Text = "清空消息";
             this.button4.UseVisualStyleBackColor = true;
             this.button4.Click += new System.EventHandler(this.button4_Click);
+            // 
+            // listView1
+            // 
+            this.listView1.Location = new System.Drawing.Point(12, 32);
+            this.listView1.Name = "listView1";
+            this.listView1.Size = new System.Drawing.Size(866, 368);
+            this.listView1.TabIndex = 11;
+            this.listView1.UseCompatibleStateImageBehavior = false;
+            // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(532, 409);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(65, 12);
+            this.label5.TabIndex = 12;
+            this.label5.Text = "处理数量：";
+            // 
+            // labelcount
+            // 
+            this.labelcount.AutoSize = true;
+            this.labelcount.Location = new System.Drawing.Point(596, 409);
+            this.labelcount.Name = "labelcount";
+            this.labelcount.Size = new System.Drawing.Size(41, 12);
+            this.labelcount.TabIndex = 12;
+            this.labelcount.Text = "label2";
             // 
             // Client
             // 
@@ -218,8 +238,10 @@ namespace NetRemotingClient
             this.Controls.Add(this.button2);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.labelinfo);
+            this.Controls.Add(this.labelcount);
             this.Controls.Add(this.labelMemory);
             this.Controls.Add(this.labelCPU);
+            this.Controls.Add(this.label5);
             this.Controls.Add(this.labelruntime);
             this.Controls.Add(this.label6);
             this.Controls.Add(this.label3);
@@ -262,6 +284,8 @@ namespace NetRemotingClient
         private System.Windows.Forms.Button button2;
         private System.Windows.Forms.Button button3;
         private System.Windows.Forms.Button button4;
+        private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.Label labelcount;
     }
 }
 
