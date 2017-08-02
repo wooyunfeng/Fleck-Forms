@@ -28,6 +28,7 @@ namespace NetRemotingClient
         static public string level { get; set; }
         static public bool isSupportCloudApi { get; set; }
         static public string engine { get; set; }
+        static public string serveraddress { get; set; }
         NewMsg currentMsg;
         DateTime starttime;
         bool bConnect;
@@ -146,7 +147,7 @@ namespace NetRemotingClient
         private void OnTCP()  
         {  
             //设定服务器IP地址  
-            IPAddress ip = IPAddress.Parse("118.190.46.210");  
+            IPAddress ip = IPAddress.Parse(serveraddress);  
             Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             bRun = true;
             try  
@@ -462,6 +463,10 @@ namespace NetRemotingClient
                 if (xe.GetAttribute("key").ToString() == "EnginePath")
                 {
                     engine = xe.GetAttribute("value").ToString();
+                }
+                if (xe.GetAttribute("key").ToString() == "ServerAddress")
+                {
+                    serveraddress = xe.GetAttribute("value").ToString();
                 }
             }
         }

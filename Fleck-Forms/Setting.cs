@@ -12,6 +12,7 @@ namespace Fleck_Forms
         static public string level { get; set; }
         static public bool isSupportCloudApi { get; set; }
         static public string engine { get; set; }
+        static public string serveraddress { get; set; }
         static public int thinktimeout { get; set; }
 
         public Setting()
@@ -47,6 +48,10 @@ namespace Fleck_Forms
                 if (xe.GetAttribute("key").ToString() == "EnginePath")
                 {
                     Setting.engine = xe.GetAttribute("value").ToString();
+                }
+                if (xe.GetAttribute("key").ToString() == "ServerAddress")
+                {
+                    Setting.serveraddress = xe.GetAttribute("value").ToString();
                 }
             }
         }
