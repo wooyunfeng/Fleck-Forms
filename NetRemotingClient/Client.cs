@@ -153,7 +153,7 @@ namespace NetRemotingClient
             try  
             {
                 socket.Connect(new IPEndPoint(ip, 8885)); //配置服务器IP与端口  
-                strInfo = ("连接服务器成功");
+                strInfo = serveraddress + ("连接服务器成功");
                 serverSocket = socket;
                 Thread.Sleep(100);
                 bConnect = true;
@@ -164,7 +164,7 @@ namespace NetRemotingClient
                 bConnect = false;
                 for (int i = 10; i > 0 && bRun; i--)
                 {
-                    strInfo = ("连接服务器失败，" + i + "秒后将重连！");
+                    strInfo = serveraddress + ("连接服务器失败，" + i + "秒后将重连！");
                     Thread.Sleep(1000);
                 }
                 if (bRun)
@@ -195,7 +195,7 @@ namespace NetRemotingClient
                     string info = Encoding.ASCII.GetString(result, 0, receiveNumber);
                     if (info.IndexOf("exit") != -1)
                     {
-                        strInfo = "服务器退出！";
+                        strInfo = serveraddress + "服务器退出！";
                         bRun = false;
                         break;
                     }
