@@ -5,4 +5,5 @@
   <add key="CloudAPI" value="true"></add>
   <add key="TimeOut" value="10"></add>
   <add key="EnginePath" value="D:\ccyclone\ccyclone.exe"></add>
+  <add key="ServerAddress" value="127.0.0.1"></add>
 </configuration>

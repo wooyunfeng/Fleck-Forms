@@ -16,6 +16,7 @@ namespace Fleck_Forms
         Comm comm = null;
         NewMsg currentMsg;
         public bool bRun = true;
+        bool bdealing = false;
 
         int dealCount = 0;
         public Socket socket = null;
@@ -68,7 +69,14 @@ namespace Fleck_Forms
                     //通过clientSocket接收数据  
                     receiveNumber = myClientSocket.Receive(result);
                     info = Encoding.ASCII.GetString(result, 0, receiveNumber);
-                    Recive(info);
+                    string[] reviceMsg = info.Split('#');
+                    foreach (string s in reviceMsg)
+                    {
+                        if (s.Length > 0)
+                        {
+                            Recive(s);
+                        }
+                    }                    
                 }
                 catch (Exception ex)
                 {
@@ -88,6 +96,7 @@ namespace Fleck_Forms
                 SendToClient(currentMsg.GetMessage());
                 dealCount++;
                 lastdealtime = DateTime.Now;
+                bdealing = true;
             }                           
         }
 
@@ -116,31 +125,60 @@ namespace Fleck_Forms
             return inputcontainer.Count;
         }
 
+        private bool checkTimeOut()
+        {
+            if (bdealing)
+            {
+                DateTime currentTime = System.DateTime.Now;
+                TimeSpan span = currentTime.Subtract(lastdealtime);
+                if (span.Seconds > 30)
+                {
+                    bdealing = false;
+                    return true;
+                }
+            }
+            return false;
+        }
         public void Recive(string message)
         {
-            //接收请求list命令，进行消费
-            if (message.IndexOf("list") != -1 && getCount() > 0)
+            switch (message)
             {
-                Consumption();
-            }
-            else if (message.IndexOf("exit") != -1)
-            {
-                bRun = false;
-            }
-            else if (message.IndexOf("restart") != -1)
-            {
-                SendToClient(currentMsg.GetMessage());
-            }
-            else
-            {
-                currentMsg.Send(message);
-                if (message.IndexOf("bestmove") != -1)
-                {
-                    string[] msgs = { currentMsg.GetAddr(),getName(), message };
-                    outputcontainer.Enqueue(msgs);
-                    comm.SQLite_UpdateCommand(1, message, currentMsg.GetAddr(), currentMsg.GetMessage());
-                }
-            }            
+                case "list":
+                    {
+                        //如果正在处理进行超时判断，否则进行新的请求
+                        if (bdealing)
+                        {
+                            checkTimeOut();
+                        }
+                        else
+                        {
+                            Consumption();
+                        }                       
+                    }
+                    break;
+                case "exit":
+                    {
+                        bRun = false;                        
+                    }
+                    break;
+                case "restart":
+                    {
+                        SendToClient(currentMsg.GetMessage());                        
+                    }
+                    break;
+                default:
+                    {
+                        currentMsg.Send(message);
+                        if (message.IndexOf("bestmove") != -1)
+                        {
+                            string[] msgs = { currentMsg.GetAddr(), getName(), message };
+                            outputcontainer.Enqueue(msgs);
+                            comm.SQLite_UpdateCommand(1, message, currentMsg.GetAddr(), currentMsg.GetMessage());
+                            bdealing = false;
+                        }
+                    }
+                    break;
+            } 
         }
 
         internal bool check()

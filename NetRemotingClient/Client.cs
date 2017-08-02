@@ -407,6 +407,7 @@ namespace NetRemotingClient
             {
                 if (bConnect)
                 {
+                    line += "#";
                     serverSocket.Send(Encoding.ASCII.GetBytes(line));
                 }  
             }
