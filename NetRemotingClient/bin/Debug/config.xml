@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<configuration>
+  <add key="Port" value="9001"></add>
+  <add key="Level" value="17"></add>
+  <add key="CloudAPI" value="true"></add>
+  <add key="TimeOut" value="10"></add>
+  <add key="EnginePath" value="D:\ccyclone\ccyclone.exe"></add>
+  <add key="ServerAddress" value="120.55.37.210"></add>
+</configuration>
