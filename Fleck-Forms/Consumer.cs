@@ -168,17 +168,17 @@ namespace Fleck_Forms
                     break;
                 default:
                     {
-                        currentMsg.Send(message);
+                        string sendmsg = currentMsg.Send(message);
                         if (message.IndexOf("bestmove") != -1)
                         {
-                            string[] msgs = { currentMsg.GetAddr(), getName(), message };
+                            string[] msgs = { currentMsg.GetAddr(), getName(), sendmsg };
                             outputcontainer.Enqueue(msgs);
                             comm.SQLite_UpdateCommand(1, message, currentMsg.GetAddr(), currentMsg.GetMessage());
                             bdealing = false;
                         }
                         else
                         {
-                            comm.setItemToList(currentMsg.GetCommand(), message);                            
+                            comm.setItemToList(currentMsg.GetBoard(), message);                            
                         }
                     }
                     break;

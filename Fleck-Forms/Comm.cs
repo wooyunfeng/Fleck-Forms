@@ -85,27 +85,14 @@ namespace Fleck_Forms
             SQLite_Init();
          }
 
-        public string DealQueryallMessage(string message)
+        public string DealQueryallMessage(string board)
         {
             string str = "";
-            if (message.Length > 0 && Setting.isSupportCloudApi)
+            if (board.Length > 0 && Setting.isSupportCloudApi)
             {
-                str = cloudredis.QueryallFromCloud(message);
+                str = QueryallFromCloud(board);
             }
             return str;
-        }
-
-        public void DealQueryallMessage(IWebSocketConnection socket, string message)
-        {
-            if (!bRedis)
-            {
-                return;
-            }
-            string str = cloudredis.QueryallFromCloud(message);
-            if (str != null)
-            {
-                socket.Send(str);
-            }
         }
 
         public bool getItemFromList(string list, int index)
@@ -222,6 +209,114 @@ namespace Fleck_Forms
                     }
                 }
             }
+        }
+
+//         public string QuerybestFromCloud(string board)
+//         {
+//             if (!Setting.isSupportCloudApi)
+//             {
+//                 return null;
+//             }
+//             string serverResult = "";
+//             try
+//             {
+//                 serverResult = cloudredis.getValueString("Querybest:" + board);
+//                 if (serverResult == null)
+//                 {
+//                     string serverUrl = "http://api.chessdb.cn:81/chessdb.php?action=querybest&board=" + board;
+//                     string postData = "";
+//                     serverResult = HttpPostConnectToServer(serverUrl, postData);
+//                     if (serverResult != null)
+//                     {
+//                         cloudredis.setValueString("Querybest:" + board, serverResult);
+//                     }
+//                     else
+//                     {
+//                         serverResult = "";
+//                     }
+//                 }
+//             }
+//             catch (System.Exception ex)
+//             {
+//                 Console.WriteLine("[error] QuerybestFromCloud " + ex.Message);
+//             }
+//             return serverResult;
+//         }
+
+        public string QueryallFromCloud(string board)
+        {
+            string serverResult = "";
+            try
+            {
+                serverResult = cloudredis.getValueString(board);
+                if (serverResult == null)
+                {
+                    string serverUrl = "http://api.chessdb.cn:81/chessdb.php?action=queryall&board=" + board;
+                    string postData = "";
+                    serverResult = HttpPostConnectToServer(serverUrl, postData);
+                    
+                    if (serverResult != null)
+                    {
+                        serverResult = serverResult.Replace("move:", "");//替换为空
+                        serverResult = serverResult.Replace("score:", "");//替换为空
+                        serverResult = serverResult.Replace("rank:", "");//替换为空
+                        serverResult = serverResult.Replace("note:", "");//替换为空
+                        serverResult = serverResult.Replace("\0", "");//替换为空                       
+                        cloudredis.setValueString( board, serverResult);
+                    }
+                    else
+                    {
+                        serverResult = "null";
+                    }
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Console.WriteLine("[error] QueryallFromCloud " + ex.Message);
+            }
+            return serverResult;
+        }
+
+        public string HttpPostConnectToServer(string serverUrl, string postData)
+        {
+            var dataArray = Encoding.UTF8.GetBytes(postData);
+            //创建请求  
+            var request = (HttpWebRequest)HttpWebRequest.Create(serverUrl);
+            request.Method = "POST";
+            request.ContentLength = dataArray.Length;
+            //设置上传服务的数据格式  
+            request.ContentType = "application/x-www-form-urlencoded";
+            //请求的身份验证信息为默认  
+            request.Credentials = CredentialCache.DefaultCredentials;
+            //请求超时时间  
+            request.Timeout = 10000;
+            //创建输入流  
+            Stream dataStream;
+            try
+            {
+                dataStream = request.GetRequestStream();
+            }
+            catch (Exception)
+            {
+                return null;//连接服务器失败  
+            }
+            //发送请求  
+            dataStream.Write(dataArray, 0, dataArray.Length);
+            dataStream.Close();
+            //读取返回消息  
+            string res = "";
+            try
+            {
+                var response = (HttpWebResponse)request.GetResponse();
+                var reader = new StreamReader(response.GetResponseStream(), Encoding.UTF8);
+                res = reader.ReadToEnd();
+                reader.Close();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("[error] HttpPostConnectToServer " + ex.Message);
+            }
+            return res;
         }
 
         public Msg Json2Msg(string jsonStr)

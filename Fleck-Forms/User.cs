@@ -185,21 +185,20 @@ namespace Fleck_Forms
             }
             this.message = message;
         }
-        internal void Send(string strmsg)
+        internal string Send(string strmsg)
         {
+            string result = strmsg;
             if (isJson)
             {
                 resultMsg resultmsg = new resultMsg();
                 resultmsg.index = index;
                 resultmsg.commandtype = commandtype;
                 resultmsg.result = strmsg;
-                string resultJson = resultmsg.GetJson();
-                connection.Send(resultJson);
+                result = resultmsg.GetJson();               
             }
-            else
-            {
-                connection.Send(strmsg);
-            }            
+
+            connection.Send(result);
+            return result;
         }
 
         internal string GetIndex()
@@ -215,6 +214,20 @@ namespace Fleck_Forms
         internal string GetCommand()
         {
             return command;
+        }
+
+        internal string GetBoard()
+        {
+            if (command.IndexOf("position") != -1)
+            {
+                return command.Substring(13,command.Length-13);
+
+            }
+            else if (command.IndexOf("queryall") != -1)
+            {
+                return command.Substring(9, command.Length - 9);
+            }
+            return "";
         }
 
         internal string GetDepth()

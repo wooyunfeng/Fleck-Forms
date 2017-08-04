@@ -93,10 +93,10 @@ namespace Fleck_Forms
             {
                 NewMsg msg = new NewMsg(socket, message);
 
-                string strQueryall = comm.DealQueryallMessage(msg.GetCommand());
-                socket.Send(strQueryall);
+                string strQueryall = comm.DealQueryallMessage(msg.GetBoard());
+                string sendmsg = msg.Send(strQueryall);
 
-                string[] msgs = { strAddr, "redis",strQueryall };
+                string[] msgs = { strAddr, "redis", sendmsg };
                 OutputEngineQueueEnqueue(msgs);
                 
             }
@@ -110,7 +110,7 @@ namespace Fleck_Forms
         {
             NewMsg msg = new NewMsg(socket, message);
             //查库
-            if (comm.getItemFromList(msg.GetCommand(), Int32.Parse(msg.GetDepth())))
+            if (comm.getItemFromList(msg.GetBoard(), Int32.Parse(msg.GetDepth())))
             {
                 string[] msgs = { msg.GetAddr(), "reids", comm.getbestmoveFromList(msg) };
                 OutputEngineQueueEnqueue(msgs);
