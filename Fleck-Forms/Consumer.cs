@@ -176,6 +176,10 @@ namespace Fleck_Forms
                             comm.SQLite_UpdateCommand(1, message, currentMsg.GetAddr(), currentMsg.GetMessage());
                             bdealing = false;
                         }
+                        else
+                        {
+                            comm.setItemToList(currentMsg.GetCommand(), message);                            
+                        }
                     }
                     break;
             } 

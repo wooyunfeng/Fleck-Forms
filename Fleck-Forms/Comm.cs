@@ -22,7 +22,9 @@ namespace Fleck_Forms
         public Log log;
         public Setting setting;
         public Queue DealSpeedQueue;
-        public RedisHelper redis;
+        public RedisHelper cloudredis;
+        public RedisHelper engineredis;
+
         public User user;
         private static int nMsgQueuecount { get; set; }
         public bool bRedis { get; set; }
@@ -77,8 +79,9 @@ namespace Fleck_Forms
             user = new User();
             setting = new Setting();
             log = new Log();
-            DealSpeedQueue = new Queue();                
-            redis = new RedisHelper();
+            DealSpeedQueue = new Queue();
+            engineredis = new RedisHelper(Setting.engineredispath,"jiao19890228");
+            cloudredis = new RedisHelper(Setting.cloudredispath,"jiao19890228");
             SQLite_Init();
          }
 
@@ -87,28 +90,9 @@ namespace Fleck_Forms
             string str = "";
             if (message.Length > 0 && Setting.isSupportCloudApi)
             {
-                str = redis.QueryallFromCloud(message);
+                str = cloudredis.QueryallFromCloud(message);
             }
             return str;
-        }
-
-        public void redisPushItemToList(string p, string line)
-        {
-            if (!bRedis)
-            {
-                return;
-            }
-            redis.PushItemToList(p, line);
-        }
-
-
-        public bool redisContainsKey(string p)
-        {
-            if (!bRedis)
-            {
-                return false;
-            }
-            return redis.ContainsKey(p);
         }
 
         public void DealQueryallMessage(IWebSocketConnection socket, string message)
@@ -117,20 +101,68 @@ namespace Fleck_Forms
             {
                 return;
             }
-            string str = redis.QueryallFromCloud(message);
+            string str = cloudredis.QueryallFromCloud(message);
             if (str != null)
             {
                 socket.Send(str);
             }
         }
 
-        public string getFromList(NewMsg msg)
+        public bool getItemFromList(string list, int index)
+        {
+            if (!bRedis)
+            {
+                return false;
+            }
+            if (engineredis.ContainsKey(list))
+            {
+                string value = engineredis.getItemFromList(list, index);
+                if (value != null && value.Length > 0)
+                {
+                    return true;
+                }
+            }
+            else
+            {
+                //初始化list
+                for (int i = 0; i < 20; i++)
+                {
+                    engineredis.addItemToListRight(list, "");
+                }
+            }
+            return false;
+        }
+
+        public void setItemToList(string list, string message)
+        {
+            if (!bRedis)
+            {
+                return;
+            }
+            string[] sArray = message.Split(' ');
+            /* 消息过滤
+             * info depth 14 seldepth 35 multipv 1 score 19 nodes 243960507 nps 6738309 hashfull 974 tbhits 0 time 36205 
+             * pv h2e2 h9g7 h0g2 i9h9 i0h0 b9c7 h0h4 h7i7 h4h9 g7h9 c3c4 b7a7 b2c2 c9e7 c2c6 a9b9 b0c2 g6g5 a0a1 h9g7 
+             */
+            if (sArray.Length > 3 && sArray[1] == "depth" && sArray[3] == "seldepth")
+            {
+                int intDepth = Int32.Parse(sArray[2]);
+                for (int i = engineredis.getAllItems(list).Count; i < intDepth; i++)
+                {
+                    engineredis.addItemToListRight(list, "");
+                }
+
+                engineredis.setItemToList(list, intDepth - 1, message);
+            }
+        }
+       
+        public string getbestmoveFromList(NewMsg msg)
         {
             if (!bRedis)
             {
                 return "";
             }
-            List<string> list = redis.GetAllItemsFromList(msg.GetCommand());
+            List<string> list = engineredis.getAllItems(msg.GetCommand());
             string strmsg = "";
             int nlevel = Int32.Parse(Setting.level);
             if (list.Count >= nlevel)
@@ -162,10 +194,10 @@ namespace Fleck_Forms
             return "";
         }
 
-        public void getFromList(string message)
+        public void getbestmoveFromList(string message)
         {
             Console.Write("0");
-            List<string> list = redis.GetAllItemsFromList(message);
+            List<string> list = engineredis.getAllItems(message);
             string strmsg = "";
             int nlevel = Int32.Parse(Setting.level);
             if (list.Count >= nlevel)
@@ -185,7 +217,6 @@ namespace Fleck_Forms
                     {
                         if (infoArray[j] == "pv")
                         {
-                            //Console.WriteLine("depth " + infoArray[2] + " bestmove " + infoArray[j + 1]);
                             return;
                         }
                     }
@@ -231,8 +262,7 @@ namespace Fleck_Forms
             {
                 Console.WriteLine(line.ToString());
             }
-        }
-       
+        }     
     }
 
 }

@@ -14,6 +14,8 @@ namespace Fleck_Forms
         static public string engine { get; set; }
         static public string serveraddress { get; set; }
         static public int thinktimeout { get; set; }
+        static public string cloudredispath { get; set; }
+        static public string engineredispath { get; set; }
 
         public Setting()
         {
@@ -52,6 +54,14 @@ namespace Fleck_Forms
                 if (xe.GetAttribute("key").ToString() == "ServerAddress")
                 {
                     Setting.serveraddress = xe.GetAttribute("value").ToString();
+                }
+                if (xe.GetAttribute("key").ToString() == "CloudRedisPath")
+                {
+                    Setting.cloudredispath = xe.GetAttribute("value").ToString();
+                }
+                if (xe.GetAttribute("key").ToString() == "EngineRedisPath")
+                {
+                    Setting.engineredispath = xe.GetAttribute("value").ToString();
                 }
             }
         }
