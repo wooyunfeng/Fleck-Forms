@@ -52,6 +52,20 @@ namespace NetRemotingClient
             return command;
         }
 
+        internal string GetBoard()
+        {
+            if (command.IndexOf("position") != -1)
+            {
+                return command.Substring(13, command.Length - 13);
+
+            }
+            else if (command.IndexOf("queryall") != -1)
+            {
+                return command.Substring(9, command.Length - 9);
+            }
+            return "";
+        }
+
         internal string GetDepth()
         {
             string strdepth = null;

@@ -101,22 +101,29 @@ namespace Fleck_Forms
             {
                 return false;
             }
-            if (engineredis.ContainsKey(list))
+            try
             {
-                string value = engineredis.getItemFromList(list, index);
-                if (value != null && value.Length > 0)
+                if (engineredis.ContainsKey(list))
                 {
-                    return true;
+                    string value = engineredis.getItemFromList(list, index);
+                    if (value != null && value.Length > 0)
+                    {
+                        return true;
+                    }
+                }
+                else
+                {
+                    //初始化list
+                    for (int i = 0; i < 20; i++)
+                    {
+                        engineredis.addItemToListRight(list, "");
+                    }
                 }
             }
-            else
+            catch (System.Exception ex)
             {
-                //初始化list
-                for (int i = 0; i < 20; i++)
-                {
-                    engineredis.addItemToListRight(list, "");
-                }
-            }
+            	 return false;
+            }            
             return false;
         }
 

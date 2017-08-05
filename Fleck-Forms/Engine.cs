@@ -160,7 +160,8 @@ namespace Fleck_Forms
                 }
                 catch (System.Exception ex)
                 {
-
+                    string[] msgs = { "", "", ex.Message };
+                    OutputEngineQueueEnqueue(msgs);
                 }                
             }  
         }

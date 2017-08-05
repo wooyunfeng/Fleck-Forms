@@ -141,53 +141,61 @@ namespace Fleck_Forms
         }
         public void Recive(string message)
         {
-            switch (message)
+            try
             {
-                case "list":
-                    {
-                        //如果正在处理进行超时判断，否则进行新的请求
-                        if (bdealing)
+                switch (message)
+                {
+                    case "list":
                         {
-                            checkTimeOut();
+                            //如果正在处理进行超时判断，否则进行新的请求
+                       
+//                         {
+//                             checkTimeOut();
+//                         }
+                            if (!bdealing)
+                            {
+                                Consumption();
+                            }
                         }
-                        else
+                        break;
+                    case "exit":
                         {
-                            Consumption();
-                        }                       
-                    }
-                    break;
-                case "exit":
-                    {
-                        bRun = false;                        
-                    }
-                    break;
-                case "restart":
-                    {
-                        SendToClient(currentMsg.GetMessage());                        
-                    }
-                    break;
-                default:
-                    {
-                        string sendmsg = currentMsg.Send(message);
-                        if (message.IndexOf("bestmove") != -1)
-                        {
-                            string[] msgs = { currentMsg.GetAddr(), getName(), sendmsg };
-                            outputcontainer.Enqueue(msgs);
-                            comm.SQLite_UpdateCommand(1, message, currentMsg.GetAddr(), currentMsg.GetMessage());
-                            bdealing = false;
+                            bRun = false;
                         }
-                        else
+                        break;
+                    case "restart":
                         {
-                            comm.setItemToList(currentMsg.GetBoard(), message);                            
+                            SendToClient(currentMsg.GetMessage());
                         }
-                    }
-                    break;
-            } 
+                        break;
+                    default:
+                        {
+                            string sendmsg = currentMsg.Send(message);
+                            if (message.IndexOf("bestmove") != -1)
+                            {
+                                string[] msgs = { currentMsg.GetAddr(), getName(), sendmsg };
+                                outputcontainer.Enqueue(msgs);
+                                comm.SQLite_UpdateCommand(1, message, currentMsg.GetAddr(), currentMsg.GetMessage());
+                                bdealing = false;
+                            }
+                            else
+                            {
+                                comm.setItemToList(currentMsg.GetBoard(), message);
+                            }
+                        }
+                        break;
+                } 
+            }
+            catch (System.Exception ex)
+            {
+                string err = ex.Message;
+            }
+            
         }
 
         internal bool check()
         {
-            if (getName() == "" || dealCount == 0)
+            if (getName() == "")
             {
                 return false;
             }

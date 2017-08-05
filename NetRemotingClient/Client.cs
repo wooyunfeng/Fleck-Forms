@@ -22,7 +22,7 @@ namespace NetRemotingClient
 {   
     public  partial class Client : Form
     {
-        public delegate void AddMsgItem(string message);
+        public delegate void AddMsgItem(string[] message);
         public AddMsgItem addMsgDelegate;
         static public string port { get; set; }
         static public string level { get; set; }
@@ -48,11 +48,14 @@ namespace NetRemotingClient
             ramCounter = new PerformanceCounter("Memory", "Available MBytes");
         }
 
-         public void AddMsgItemMethod(string  message)
+         public void AddMsgItemMethod(string[] message)
         {
-            string[] names = { DateTime.Now.ToLongTimeString(), message, "" };
-            AddListViewItem(listView1, names);
-            System.Threading.Thread.Sleep(1);
+            string[] info = new string[message.Length + 1];
+            info[0] = DateTime.Now.ToLongTimeString();
+            message.CopyTo(info, 1);
+
+            AddListViewItem(listView1, info);
+            Thread.Sleep(1);
         }
 
          private void AddListViewItem(ListView listView, string[] array, int showLines = 20)
@@ -92,11 +95,11 @@ namespace NetRemotingClient
 
             listView1.View = View.Details;
             listView1.Columns.Add("时间", 60);
-            listView1.Columns.Add("结果", 500);
-            listView1.Columns.Add("状态", 73);
+            listView1.Columns.Add("输入", 500);
+            listView1.Columns.Add("输出", 250);
         }
 
-         private void AddMsg(string  param)
+         private void AddMsg(string[]  param)
          {
              try
              {
@@ -208,6 +211,7 @@ namespace NetRemotingClient
                 catch (Exception ex)
                 {
                     myClientSocket.Close();
+                    strInfo = ex.Message;
                     break;
                 }
             }
@@ -348,8 +352,9 @@ namespace NetRemotingClient
             EngineRunTime = System.DateTime.Now;
             int intDepth = 0;
             string EnginePath = engine;
-
+            
             string line = "";
+            string[] linearray = new string[3];
             try
             {
                 //管道参数初始化
@@ -360,9 +365,11 @@ namespace NetRemotingClient
                 PipeWriter = pProcess.StandardInput;
                 //每次读取一行
                 line = reader.ReadLine();
-                AddMsg(line);
+                linearray[0] = line;
+                AddMsg(linearray);
                 line = reader.ReadLine();
-                AddMsg(line);
+                linearray[0] = line;
+                AddMsg(linearray);
 
                 while (true)
                 {
@@ -389,7 +396,11 @@ namespace NetRemotingClient
                             bdealing = false;
                             dealcount++;
                             SendtoServer(line);
-                            AddMsg(" depth " + intDepth.ToString() + " " + line);
+                            Thread.Sleep(100);
+                            SendtoServer("list");
+                            linearray[0] = currentMsg.GetBoard();
+                            linearray[1] = " depth " + intDepth.ToString() + " " + line;
+                            AddMsg(linearray);
                         }
                         Thread.Sleep(10);
                     }
@@ -408,7 +419,10 @@ namespace NetRemotingClient
                 if (bConnect)
                 {
                     line += "#";
-                    serverSocket.Send(Encoding.ASCII.GetBytes(line));
+                    lock (serverSocket)
+                    {
+                        serverSocket.Send(Encoding.ASCII.GetBytes(line));
+                    }
                 }  
             }
             catch (System.Exception ex)
@@ -502,7 +516,7 @@ namespace NetRemotingClient
 
             labelcount.Text = dealcount.ToString();
             //监视超时
-            checkTimeOut();
+            //checkTimeOut();
         }
 
         private void timer2_Tick(object sender, EventArgs e)
