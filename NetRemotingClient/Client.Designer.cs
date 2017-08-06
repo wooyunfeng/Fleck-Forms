@@ -257,7 +257,7 @@ namespace NetRemotingClient
             this.MinimizeBox = false;
             this.Name = "Client";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "Client";
+            this.Text = "象棋微学堂引擎";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Client_FormClosing);
             this.Load += new System.EventHandler(this.Client_Load);
             this.ResumeLayout(false);
