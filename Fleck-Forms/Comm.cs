@@ -80,8 +80,8 @@ namespace Fleck_Forms
             setting = new Setting();
             log = new Log();
             DealSpeedQueue = new Queue();
-            engineredis = new RedisHelper(Setting.engineredispath,"jiao19890228");
-            cloudredis = new RedisHelper(Setting.cloudredispath,"jiao19890228");
+            engineredis = new RedisHelper(Setting.engineRedisPath,"jiao19890228");
+            cloudredis = new RedisHelper(Setting.cloudRedisPath,"jiao19890228");
             SQLite_Init();
          }
 

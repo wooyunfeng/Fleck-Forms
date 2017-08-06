@@ -18,7 +18,7 @@ namespace Fleck_Forms
             comm.Start();
             
             FleckLog.Level = LogLevel.Debug;            
-            var server = new WebSocketServer("ws://0.0.0.0:"+Setting.port);
+            var server = new WebSocketServer("ws://0.0.0.0:"+Setting.websocketPort);
 
             server.Start(socket =>
                 {

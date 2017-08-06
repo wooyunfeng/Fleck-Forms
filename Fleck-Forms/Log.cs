@@ -20,7 +20,7 @@ namespace Fleck_Forms
             }
 
             LogPath = DateTime.Now.ToLongDateString();
-            log = new StreamWriter(spath + "/" + LogPath + "-" + Setting.port + ".log", true);
+            log = new StreamWriter(spath + "/" + LogPath + "-" + Setting.websocketPort + ".log", true);
         }
 
         public Log(string name)
@@ -39,7 +39,7 @@ namespace Fleck_Forms
             {
                 log.Close();
                 LogPath = DateTime.Now.ToLongDateString();
-                log = new StreamWriter(spath + "/" + LogPath + "-" + Setting.port + ".log", true);
+                log = new StreamWriter(spath + "/" + LogPath + "-" + Setting.websocketPort + ".log", true);
             }
             WriteInfo("{0}", message);
         }

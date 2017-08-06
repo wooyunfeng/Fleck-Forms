@@ -135,9 +135,9 @@ namespace Fleck_Forms
         {
             customerlist = new List<Consumer>();
             //服务器IP地址  
-            IPAddress ip = IPAddress.Parse(Setting.serveraddress);
+            IPAddress ip = IPAddress.Parse(Setting.tcpServerAddress);
             serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            serverSocket.Bind(new IPEndPoint(ip, myProt));  //绑定IP地址：端口  
+            serverSocket.Bind(new IPEndPoint(ip, Setting.tcpServeraPort));  //绑定IP地址：端口  
             serverSocket.Listen(10);    //设定最多10个排队连接请求  
             //Console.WriteLine("启动监听{0}成功", serverSocket.LocalEndPoint.ToString());  
             //通过Clientsoket发送数据  

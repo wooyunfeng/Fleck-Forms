@@ -18,7 +18,7 @@ namespace Fleck_Forms
 
             try
             {
-                string dbPath = "Data Source=" + strSQLiteDB + "\\"+Setting.port+"history.db";
+                string dbPath = "Data Source=" + strSQLiteDB + "\\"+Setting.websocketPort+"history.db";
                 conn = new SQLiteConnection(dbPath);//创建数据库实例，指定文件位置    
                 conn.Open();                        //打开数据库，若文件不存在会自动创建   
                 DateString = DateTime.Now.ToString("yyyyMMdd");

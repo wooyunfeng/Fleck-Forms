@@ -55,9 +55,9 @@ namespace Fleck_Forms
             MsgCount = 0;
             RunTime = System.DateTime.Now;
             m_CloudApi.Checked = Setting.isSupportCloudApi;
-            m_port.Text = Setting.port;
+            m_port.Text = Setting.websocketPort;
             FleckLog.Level = LogLevel.Info;
-            OnWebSocketServer(Setting.port);
+            OnWebSocketServer(Setting.websocketPort);
         }
 
         public void OnWebSocketServer(string port)

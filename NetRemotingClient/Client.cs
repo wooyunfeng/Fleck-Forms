@@ -29,6 +29,7 @@ namespace NetRemotingClient
         static public bool isSupportCloudApi { get; set; }
         static public string engine { get; set; }
         static public string serveraddress { get; set; }
+        static public int serverport { get; set; }
         NewMsg currentMsg;
         DateTime starttime;
         bool bConnect;
@@ -155,7 +156,7 @@ namespace NetRemotingClient
             bRun = true;
             try  
             {
-                socket.Connect(new IPEndPoint(ip, 8885)); //配置服务器IP与端口  
+                socket.Connect(new IPEndPoint(ip, serverport)); //配置服务器IP与端口  
                 strInfo = "连接服务器" + serveraddress + "成功! 本机地址" + socket.LocalEndPoint.ToString();
                 serverSocket = socket;
                 Thread.Sleep(100);
@@ -482,6 +483,10 @@ namespace NetRemotingClient
                 if (xe.GetAttribute("key").ToString() == "ServerAddress")
                 {
                     serveraddress = xe.GetAttribute("value").ToString();
+                } 
+                if (xe.GetAttribute("key").ToString() == "ServerPort")
+                {
+                    serverport = Int32.Parse(xe.GetAttribute("value").ToString());
                 }
             }
         }
