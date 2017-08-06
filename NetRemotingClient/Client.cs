@@ -397,7 +397,6 @@ namespace NetRemotingClient
                             bdealing = false;
                             dealcount++;
                             SendtoServer(line);
-                            Thread.Sleep(100);
                             SendtoServer("list");
                             linearray[0] = currentMsg.GetBoard();
                             linearray[1] = " depth " + intDepth.ToString() + " " + line;
