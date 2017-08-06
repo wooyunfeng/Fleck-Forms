@@ -167,7 +167,7 @@ namespace Fleck_Forms
             }
             List<string> list = engineredis.getAllItems(msg.GetBoard());
             string strmsg = "";
-            int nlevel = Int32.Parse(Setting.level);
+            int nlevel = Int32.Parse(msg.GetDepth());
             if (list.Count >= nlevel)
             {
                 //过滤空消息
