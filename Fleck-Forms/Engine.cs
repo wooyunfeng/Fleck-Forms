@@ -110,9 +110,10 @@ namespace Fleck_Forms
         {
             NewMsg msg = new NewMsg(socket, message);
             //查库
-            if (comm.getItemFromList(msg.GetBoard(), Int32.Parse(msg.GetDepth())))
+            if (comm.getItemFromList(msg))
             {
-                string[] msgs = { msg.GetAddr(), "reids", comm.getbestmoveFromList(msg) };
+                string sendmsg = comm.getbestmoveFromList(msg);
+                string[] msgs = { msg.GetAddr(), "reids", sendmsg };
                 OutputEngineQueueEnqueue(msgs);
             }
             else//查库没有，加入队列

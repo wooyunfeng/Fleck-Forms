@@ -94,6 +94,14 @@ namespace Fleck_Forms
             }
             return str;
         }
+        
+        public bool getItemFromList(NewMsg msg)
+        {
+            string list =  msg.GetBoard();
+            int index = Int32.Parse(msg.GetDepth());
+            
+            return getItemFromList(list,index);
+        }
 
         public bool getItemFromList(string list, int index)
         {
@@ -105,7 +113,8 @@ namespace Fleck_Forms
             {
                 if (engineredis.ContainsKey(list))
                 {
-                    string value = engineredis.getItemFromList(list, index);
+                    List<string> listarray = engineredis.getAllItems(list);
+                    string value = engineredis.getItemFromList(list, index-1);
                     if (value != null && value.Length > 0)
                     {
                         return true;
@@ -156,7 +165,7 @@ namespace Fleck_Forms
             {
                 return "";
             }
-            List<string> list = engineredis.getAllItems(msg.GetCommand());
+            List<string> list = engineredis.getAllItems(msg.GetBoard());
             string strmsg = "";
             int nlevel = Int32.Parse(Setting.level);
             if (list.Count >= nlevel)
@@ -179,7 +188,7 @@ namespace Fleck_Forms
                         {
                             string line = "bestmove " + infoArray[j + 1];
                             SQLite_UpdateCommand(0, line, msg.GetAddr(), msg.GetMessage());
-                            return line;
+                            return msg.Send(line);
                         }
                     }
                 }
@@ -364,7 +373,7 @@ namespace Fleck_Forms
             {
                 Console.WriteLine(line.ToString());
             }
-        }     
+        }        
     }
 
 }
