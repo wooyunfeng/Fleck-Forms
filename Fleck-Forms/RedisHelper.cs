@@ -54,8 +54,11 @@ namespace Fleck_Forms
         /// <returns></returns>
         public bool setValueString(string key,string value)
         {
-            bool re = redisCli.SetEntryIfNotExists(key, value);
-            return re;          
+            lock (redisCli)
+            {
+                bool re = redisCli.SetEntryIfNotExists(key, value);
+                return re;        
+            } 
         }
         /// <summary>
         /// 获取key,返回string格式
@@ -64,8 +67,11 @@ namespace Fleck_Forms
         /// <returns></returns>
         public string getValueString(string key)
         {
-            string value = redisCli.GetValue(key);
-            return value;
+            lock (redisCli)
+            {
+                string value = redisCli.GetValue(key);
+                return value;
+            } 
         }
         /// <summary>
         /// 获取key,返回byte[]格式
@@ -74,8 +80,11 @@ namespace Fleck_Forms
         /// <returns></returns>
         public byte[] getValueByte(string key)
         {
-            byte[] value = redisCli.Get(key);
-            return value;
+            lock (redisCli)
+            {
+                byte[] value = redisCli.Get(key);
+                return value;
+            } 
         }
         /// <summary>
         /// 获得某个hash型key下的所有字段
@@ -84,8 +93,11 @@ namespace Fleck_Forms
         /// <returns></returns>
         public List<string> getHashFields(string hashId)
         {
-            List<string> hashFields = redisCli.GetHashKeys(hashId);
-            return hashFields;
+            lock (redisCli)
+            {
+                List<string> hashFields = redisCli.GetHashKeys(hashId);
+                return hashFields;
+            } 
         }
         /// <summary>
         /// 获得某个hash型key下的所有值
@@ -94,8 +106,11 @@ namespace Fleck_Forms
         /// <returns></returns>
         public List<string> getHashValues(string hashId)
         {
-            List<string> hashValues = redisCli.GetHashKeys(hashId);
-            return hashValues;
+            lock (redisCli)
+            {
+                List<string> hashValues = redisCli.GetHashKeys(hashId);
+                return hashValues;
+            } 
         }
         /// <summary>
         /// 获得hash型key某个字段的值
@@ -104,8 +119,11 @@ namespace Fleck_Forms
         /// <param name="field"></param>
         public string getHashField(string key, string field)
         {
-            string value = redisCli.GetValueFromHash(key, field);
-            return value;
+            lock (redisCli)
+            {
+                string value = redisCli.GetValueFromHash(key, field);
+                return value;
+            } 
         }
         /// <summary>
         /// 设置hash型key某个字段的值
@@ -115,7 +133,10 @@ namespace Fleck_Forms
         /// <param name="value"></param>
         public void setHashField(string key, string field, string value)
         {
-            redisCli.SetEntryInHash(key, field, value);
+            lock (redisCli)
+            {
+                redisCli.SetEntryInHash(key, field, value);
+            }             
         }
         /// <summary>
         ///使某个字段增加
@@ -125,7 +146,10 @@ namespace Fleck_Forms
         /// <returns></returns>
         public void setHashIncr(string key, string field, long incre)
         {
-            redisCli.IncrementValueInHash(key, field, incre);
+            lock (redisCli)
+            {
+                redisCli.IncrementValueInHash(key, field, incre);
+            }  
 
         }
         /// <summary>
@@ -135,7 +159,10 @@ namespace Fleck_Forms
         /// <param name="list"></param>
         public void addItemToListRight(string list, string item)
         {
-            redisCli.AddItemToList(list, item);
+            lock (redisCli)
+            {
+                redisCli.AddItemToList(list, item);
+            }           
         }
         /// <summary>
         /// 向list类型数据添加成员，向列表顶部(左侧)添加
@@ -144,15 +171,21 @@ namespace Fleck_Forms
         /// <param name="item"></param>
         public void addItemToListLeft(string list, string item)
         {
-            redisCli.LPush(list, Encoding.Default.GetBytes(item));
+            lock (redisCli)
+            {
+                redisCli.LPush(list, Encoding.Default.GetBytes(item));               
+            }   
         }
         /// <summary>
         /// 从list类型数据读取所有成员
         /// </summary>
         public List<string> getAllItems(string list)
         {
-            List<string> listMembers = redisCli.GetAllItemsFromList(list);
-            return listMembers;
+            lock (redisCli)
+            {
+                List<string> listMembers = redisCli.GetAllItemsFromList(list);
+                return listMembers;
+            }   
         }
         /// <summary>
         /// 从list类型数据指定索引处获取数据，支持正索引和负索引
@@ -161,8 +194,11 @@ namespace Fleck_Forms
         /// <returns></returns>
         public string getItemFromList(string list, int index)
         {
-            string item = redisCli.GetItemFromList(list, index);
-            return item;
+            lock (redisCli)
+            {
+                string item = redisCli.GetItemFromList(list, index);
+                return item;
+            }   
         }
         /// <summary>
         /// 向列表底部（右侧）批量添加数据
@@ -171,7 +207,10 @@ namespace Fleck_Forms
         /// <param name="values"></param>
         public void getRangeToList(string list, List<string> values)
         {
-            redisCli.AddRangeToList(list, values);
+            lock (redisCli)
+            {
+                redisCli.AddRangeToList(list, values);
+            }   
         }
         /// <summary>
         /// 向集合中添加数据
@@ -180,7 +219,10 @@ namespace Fleck_Forms
         /// <param name="set"></param>
         public void getItemToSet(string item, string set)
         {
-            redisCli.AddItemToSet(item, set);
+            lock (redisCli)
+            {
+                redisCli.AddItemToSet(item, set);
+            }   
         }
         /// <summary>
         /// 获得集合中所有数据
@@ -189,8 +231,11 @@ namespace Fleck_Forms
         /// <returns></returns>
         public HashSet<string> getAllItemsFromSet(string set)
         {
-            HashSet<string> items = redisCli.GetAllItemsFromSet(set);
-            return items;
+            lock (redisCli)
+            {
+                HashSet<string> items = redisCli.GetAllItemsFromSet(set);
+                return items;
+            }   
         }
         /// <summary>
         /// 获取fromSet集合和其他集合不同的数据
@@ -200,8 +245,11 @@ namespace Fleck_Forms
         /// <returns></returns>
         public HashSet<string> getSetDiff(string fromSet, params string[] toSet)
         {
-            HashSet<string> diff = redisCli.GetDifferencesFromSet(fromSet, toSet);
-            return diff;
+            lock (redisCli)
+            {
+                HashSet<string> diff = redisCli.GetDifferencesFromSet(fromSet, toSet);
+                return diff;
+            } 
         }
         /// <summary>
         /// 获得所有集合的并集
@@ -210,8 +258,11 @@ namespace Fleck_Forms
         /// <returns></returns>
         public HashSet<string> getSetUnion(params string[] set)
         {
-            HashSet<string> union = redisCli.GetUnionFromSets(set);
-            return union;
+            lock (redisCli)
+            {
+                HashSet<string> union = redisCli.GetUnionFromSets(set);
+                return union;
+            }   
         }
         /// <summary>
         /// 获得所有集合的交集
@@ -220,8 +271,11 @@ namespace Fleck_Forms
         /// <returns></returns>
         public HashSet<string> getSetInter(params string[] set)
         {
-            HashSet<string> inter = redisCli.GetIntersectFromSets(set);
-            return inter;
+            lock (redisCli)
+            {
+                HashSet<string> inter = redisCli.GetIntersectFromSets(set);
+                return inter;
+            }              
         }
         /// <summary>
         /// 向有序集合中添加元素
@@ -231,7 +285,10 @@ namespace Fleck_Forms
         /// <param name="score"></param>
         public void addItemToSortedSet(string set,string value,long score)
         {
-            redisCli.AddItemToSortedSet(set,value,score);
+            lock (redisCli)
+            {
+                redisCli.AddItemToSortedSet(set, value, score);
+            }   
         }
         /// <summary>
         /// 获得某个值在有序集合中的排名，按分数的降序排列
@@ -241,8 +298,11 @@ namespace Fleck_Forms
         /// <returns></returns>
         public long getItemIndexInSortedSetDesc(string set, string value)
         {
-            long index = redisCli.GetItemIndexInSortedSetDesc(set, value);
-            return index;
+            lock (redisCli)
+            {
+                long index = redisCli.GetItemIndexInSortedSetDesc(set, value);
+                return index;
+            }               
         }
         /// <summary>
         /// 获得某个值在有序集合中的排名，按分数的升序排列
@@ -252,8 +312,11 @@ namespace Fleck_Forms
         /// <returns></returns>
         public long getItemIndexInSortedSet(string set, string value)
         {
-            long index = redisCli.GetItemIndexInSortedSet(set, value);
-            return index;
+            lock (redisCli)
+            {
+                long index = redisCli.GetItemIndexInSortedSet(set, value);
+                return index;
+            }               
         }
         /// <summary>
         /// 获得有序集合中某个值得分数
@@ -263,8 +326,11 @@ namespace Fleck_Forms
         /// <returns></returns>
         public double getItemScoreInSortedSet(string set, string value)
         {
-            double score = redisCli.GetItemScoreInSortedSet(set, value);
-            return score;
+            lock (redisCli)
+            {
+                double score = redisCli.GetItemScoreInSortedSet(set, value);
+                return score;
+            }              
         }
         /// <summary>
         /// 获得有序集合中，某个排名范围的所有值
@@ -275,8 +341,11 @@ namespace Fleck_Forms
         /// <returns></returns>
         public List<string> getRangeFromSortedSet(string set,int beginRank, int endRank)
         {
-            List<string> valueList=redisCli.GetRangeFromSortedSet(set,beginRank,endRank);
-            return valueList;
+            lock (redisCli)
+            {
+                List<string> valueList = redisCli.GetRangeFromSortedSet(set, beginRank, endRank);
+                return valueList;
+            }             
         }
         /// <summary>
         /// 获得有序集合中，某个分数范围内的所有值，升序
@@ -287,8 +356,11 @@ namespace Fleck_Forms
         /// <returns></returns>
         public List<string> getRangeFromSortedSet(string set, double beginScore, double endScore)
         {
-            List<string> valueList = redisCli.GetRangeFromSortedSetByHighestScore(set, beginScore, endScore);
-            return valueList;
+            lock (redisCli)
+            {
+                List<string> valueList = redisCli.GetRangeFromSortedSetByHighestScore(set, beginScore, endScore);
+                return valueList;
+            }               
         }
         /// <summary>
         /// 获得有序集合中，某个分数范围内的所有值，降序
@@ -299,126 +371,34 @@ namespace Fleck_Forms
         /// <returns></returns>
         public List<string> getRangeFromSortedSetDesc(string set, double beginScore, double endScore)
         {
-            List<string> vlaueList=redisCli.GetRangeFromSortedSetByLowestScore(set,beginScore,endScore);
-            return vlaueList;
+            lock (redisCli)
+            {
+                List<string> vlaueList = redisCli.GetRangeFromSortedSetByLowestScore(set, beginScore, endScore);
+                return vlaueList;
+            }              
         }
         public void dispose()
         {
-            redisCli.Dispose();
+            lock (redisCli)
+            {
+                redisCli.Dispose();
+            }   
         }
- 
-// 
-//         IRedisClient Redis;
-//         HashOperator operators;
-// 
-//         public RedisHelper()
-//         {
-//             InitRedis();
-//         }
-// 
-//         public void InitRedis()
-//         {
-//             //获取Redis操作接口
-//             Redis = RedisManager.GetClient();
-//             //Hash表操作
-//             operators = new HashOperator();
-// 
-//             Redis.Password = "jiao19890228";
-//         }
-// 
-//         public string getFromRedis(string key)
-//         {
-//             lock (Redis)
-//             {
-//                 return Redis.GetValue(key);
-//             }
-// 
-//         }
-// 
-//         public bool ContainsKey(string key)
-//         {
-//             lock (Redis)
-//             {
-//                 if (GetListCount(key) >= Int32.Parse(Setting.level))
-//                 {
-//                     return true;
-//                 }
-//                 Redis.RemoveAllFromList(key);
-//                 return false;
-//             }
-// 
-//         }
-// 
-//         public void setToRedis(string key, string value)
-//         {
-//             lock (Redis)
-//             {
-//                 Redis.SetEntryIfNotExists(key, value);
-//             }
-//         }
-// 
-//         public long GetListCount(string listId)
-//         {
-//             lock (Redis)
-//             {
-//                 return Redis.GetListCount(listId);
-//             }
-//         }
-// 
-//         public List<string> GetAllItemsFromList(string listId)
-//         {
-//             lock (Redis)
-//             {
-//                 return Redis.GetAllItemsFromList(listId);
-//             }
-//         }
-//         
-//         public string GetItemFromList(string listId, int listIndex)
-//         {
-//             lock (Redis)
-//             {
-//                 return Redis.GetItemFromList(listId, listIndex);
-//             }
-//         }
-//         
-//         public void CheckItemInList(string listId, int count)
-//         {
-//             lock (Redis)
-//             {
-//                 for (long i = Redis.GetListCount(listId)-1; i < count; i++)
-//                 {
-//                     Redis.AddItemToList(listId, "");
-//                 }
-//             }
-//         }
-// 
-//         public void PushItemToList(string listId, string value)
-//         {
-//             lock (Redis)
-//             {
-//                 Redis.PushItemToList(listId, value);
-//             }
-//         }
-//         
-//         public void SetItemInList(string listId, int listIndex, string value)
-//         {
-//             lock (Redis)
-//             {
-//                 if (listIndex > 0 && listIndex <= Int32.Parse(Setting.level))
-//                 {
-//                     Redis.SetItemInList(listId, listIndex, value);
-//                 }                
-//             }
-//         }
         
         internal void setItemToList(string listId, int listIndex, string value)
         {
-            redisCli.SetItemInList(listId, listIndex,value);
+            lock (redisCli)
+            {
+                redisCli.SetItemInList(listId, listIndex, value);
+            }   
         }
 
         internal bool ContainsKey(string p)
         {
-            return redisCli.ContainsKey(p);
+            lock (redisCli)
+            {
+                return redisCli.ContainsKey(p);
+            }   
         }
     }
 }
