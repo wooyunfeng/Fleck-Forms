@@ -148,11 +148,7 @@ namespace Fleck_Forms
                     case "list":
                         {
                             //如果正在处理进行超时判断，否则进行新的请求
-                       
-//                         {
-//                             checkTimeOut();
-//                         }
-                            if (!bdealing)
+                            if (!checkTimeOut())
                             {
                                 Consumption();
                             }
