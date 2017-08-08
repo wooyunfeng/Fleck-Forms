@@ -10,7 +10,12 @@ namespace Fleck_Forms
     {
         public SQLiteConnection conn;
         private string DateString;
-        public void SQLite_Init()
+        public SQLiteHelper(string filename)
+        {
+            SQLite_Init(filename);
+        }
+
+        public void SQLite_Init(string filename)
         {
             string strSQLiteDB = Environment.CurrentDirectory;
             //             strSQLiteDB = strSQLiteDB.Substring(0, strSQLiteDB.LastIndexOf("\\"));
@@ -18,22 +23,30 @@ namespace Fleck_Forms
 
             try
             {
-                string dbPath = "Data Source=" + strSQLiteDB + "\\"+Setting.websocketPort+"history.db";
+                string dbPath = "Data Source=" + strSQLiteDB + "\\"+filename;
                 conn = new SQLiteConnection(dbPath);//创建数据库实例，指定文件位置    
-                conn.Open();                        //打开数据库，若文件不存在会自动创建   
-                DateString = DateTime.Now.ToString("yyyyMMdd");
-                string sql = "CREATE TABLE IF NOT EXISTS chess" + DateString + "(id integer PRIMARY KEY UNIQUE, revTime varchar(20),Address varchar(20), command varchar(255), dealTime varchar(20), dealType integer(1),result varchar(50));";//建表语句    
-                SQLiteCommand cmdCreateTable = new SQLiteCommand(sql, conn);
-                cmdCreateTable.ExecuteNonQuery();//如果表不存在，创建数据表     
-                string sqlLogin = "CREATE TABLE IF NOT EXISTS Login (id integer PRIMARY KEY UNIQUE, Address varchar(20), Connected DATETIME(20), Closed DATETIME(20));";//建表语句    
-                SQLiteCommand cmdCreateTable1 = new SQLiteCommand(sqlLogin, conn);
-                cmdCreateTable1.ExecuteNonQuery();//如果表不存在，创建数据表   
+                conn.Open();                        //打开数据库，若文件不存在会自动创建    
+                DateString = DateTime.Now.ToString("yyyyMMdd"); 
             }
             catch
             {
                 throw;
             }
         }
+
+        public void SQLite_CreateTable(string sql)
+        {
+            try
+            {
+                SQLiteCommand cmdCreateTable = new SQLiteCommand(sql, conn);
+                cmdCreateTable.ExecuteNonQuery();//如果表不存在，创建数据表 
+            }
+            catch (System.Exception ex)
+            {
+                throw;
+            }
+        }
+
         public int SQLite_InsertCommand(string[] param)
         {
             if (DateString != DateTime.Now.ToString("yyyyMMdd"))

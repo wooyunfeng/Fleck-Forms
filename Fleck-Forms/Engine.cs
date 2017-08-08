@@ -71,14 +71,14 @@ namespace Fleck_Forms
         public void OnOpen(IWebSocketConnection socket)
         {
             var role = new Role(socket);
-            comm.SQLite_Login(role.GetAddr());
+            comm.historySQLite.SQLite_Login(role.GetAddr());
             comm.user.Add(role);
         }
 
         public void OnClose(IWebSocketConnection socket)
         {
             var role = comm.user.GetAt(socket);
-            comm.SQLite_Logout(role.GetAddr());
+            comm.historySQLite.SQLite_Logout(role.GetAddr());
             comm.user.Remove(socket);
         }
 
@@ -86,7 +86,7 @@ namespace Fleck_Forms
         {
             string strAddr = socket.ConnectionInfo.ClientIpAddress + ":" + socket.ConnectionInfo.ClientPort.ToString();
             string[] param = { DateTime.Now.ToLongTimeString(), strAddr, message };
-            comm.SQLite_InsertCommand(param);
+            comm.historySQLite.SQLite_InsertCommand(param);
 
             //过滤命令
             if (message.IndexOf("queryall") != -1)
