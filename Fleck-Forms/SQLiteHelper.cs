@@ -18,9 +18,6 @@ namespace Fleck_Forms
         public void SQLite_Init(string filename)
         {
             string strSQLiteDB = Environment.CurrentDirectory;
-            //             strSQLiteDB = strSQLiteDB.Substring(0, strSQLiteDB.LastIndexOf("\\"));
-            //             strSQLiteDB = strSQLiteDB.Substring(0, strSQLiteDB.LastIndexOf("\\"));// 这里获取到了Bin目录  
-
             try
             {
                 string dbPath = "Data Source=" + strSQLiteDB + "\\"+filename;
@@ -119,7 +116,6 @@ namespace Fleck_Forms
                 Console.WriteLine(ex.Message);
                 throw;
             }
-
         }
 
         public SQLiteDataReader SQLite_Query(string address)

@@ -171,7 +171,7 @@ namespace Fleck_Forms
                             {
                                 string[] msgs = { currentMsg.GetAddr(), getName(), sendmsg };
                                 outputcontainer.Enqueue(msgs);
-                                comm.historySQLite.SQLite_UpdateCommand(1, message, currentMsg.GetAddr(), currentMsg.GetMessage());
+                                comm.mysqlite.historySQLite.SQLite_UpdateCommand(1, message, currentMsg.GetAddr(), currentMsg.GetMessage());
                                 bdealing = false;
                             }
                             else

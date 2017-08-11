@@ -22,13 +22,13 @@ namespace Fleck_Forms
         public Log log;
         public Setting setting;
         public Queue DealSpeedQueue;
-        public RedisHelper cloudredis;
-        public RedisHelper engineredis;
-        public SQLiteHelper historySQLite;
-        public SQLiteHelper positionSQLite;
+        public RedisManage redis;        
+        public SQLiteManage mysqlite;        
+        public MySqlManage mysql;
         public User user;
         private static int nMsgQueuecount { get; set; }
         public bool bRedis { get; set; }
+
         public void WriteInfo(string message, bool isOutConsole = false)
         {
             if (log == null)
@@ -66,45 +66,30 @@ namespace Fleck_Forms
         {
             setting.LoadXml();
         }
-
       
         public void Init()
         {
             cpuCounter = new PerformanceCounter();
-
             cpuCounter.CategoryName = "Processor";
             cpuCounter.CounterName = "% Processor Time";
-            cpuCounter.InstanceName = "_Total";
+            cpuCounter.InstanceName = "_Total";            
 
             ramCounter = new PerformanceCounter("Memory", "Available MBytes");
             user = new User();
             setting = new Setting();
             log = new Log();
             DealSpeedQueue = new Queue();
-            engineredis = new RedisHelper(Setting.engineRedisPath,"jiao19890228");
-            cloudredis = new RedisHelper(Setting.cloudRedisPath,"jiao19890228");
-
-            historySQLite = new SQLiteHelper(Setting.websocketPort + "history.db");
-            string DateString = DateTime.Now.ToString("yyyyMMdd");
-            string sql = "CREATE TABLE IF NOT EXISTS chess" + DateString + "(id integer PRIMARY KEY UNIQUE, revTime varchar(20),Address varchar(20), command varchar(255), dealTime varchar(20), dealType integer(1),result varchar(50));";//建表语句    
-            historySQLite.SQLite_CreateTable(sql);
-            string sqlLogin = "CREATE TABLE IF NOT EXISTS Login (id integer PRIMARY KEY UNIQUE, Address varchar(20), Connected DATETIME(20), Closed DATETIME(20));";//建表语句    
-            historySQLite.SQLite_CreateTable(sqlLogin);
-            positionSQLite = new SQLiteHelper("position.db");
-            string sqlPosiotion = "CREATE TABLE IF NOT EXISTS Position (id integer PRIMARY KEY UNIQUE, Board varchar(255), visit integer);";//建表语句    
-            positionSQLite.SQLite_CreateTable(sqlPosiotion);
-            string sqlEngine = "CREATE TABLE IF NOT EXISTS Engine (id integer, depth integer, seldepth integer,multipv integer,score integer,nodes integer,nps integer,hashfull integer,tbhits integer,time integer,pv varchar(255));";//建表语句    
-            positionSQLite.SQLite_CreateTable(sqlEngine);
-            string sqlQueryall = "CREATE TABLE IF NOT EXISTS ChessDB (id integer, result varchar(4096), visit integer);";//建表语句    
-            positionSQLite.SQLite_CreateTable(sqlQueryall);
-         }
+            redis = new RedisManage();
+            mysqlite = new SQLiteManage();
+            mysql = new MySqlManage();
+        }
 
         public string DealQueryallMessage(string board)
         {
             string str = "";
             if (board.Length > 0 && Setting.isSupportCloudApi)
             {
-                str = QueryallFromCloud(board);
+                str = redis.QueryallFromCloud(board);
             }
             return str;
         }
@@ -125,29 +110,13 @@ namespace Fleck_Forms
             }
             try
             {
-                if (engineredis.ContainsKey(list))
-                {
-                    List<string> listarray = engineredis.getAllItems(list);
-                    string value = engineredis.getItemFromList(list, index-1);
-                    if (value != null && value.Length > 0)
-                    {
-                        return true;
-                    }
-                }
-                else
-                {
-                    //初始化list
-                    for (int i = 0; i < 20; i++)
-                    {
-                        engineredis.addItemToListRight(list, "");
-                    }
-                }
+                return redis.getItemFromList(list, index);
+               
             }
             catch (System.Exception ex)
             {
             	 return false;
             }            
-            return false;
         }
 
         public void setItemToList(string list, string message)
@@ -156,21 +125,7 @@ namespace Fleck_Forms
             {
                 return;
             }
-            string[] sArray = message.Split(' ');
-            /* 消息过滤
-             * info depth 14 seldepth 35 multipv 1 score 19 nodes 243960507 nps 6738309 hashfull 974 tbhits 0 time 36205 
-             * pv h2e2 h9g7 h0g2 i9h9 i0h0 b9c7 h0h4 h7i7 h4h9 g7h9 c3c4 b7a7 b2c2 c9e7 c2c6 a9b9 b0c2 g6g5 a0a1 h9g7 
-             */
-            if (sArray.Length > 3 && sArray[1] == "depth" && sArray[3] == "seldepth")
-            {
-                int intDepth = Int32.Parse(sArray[2]);
-                for (int i = engineredis.getAllItems(list).Count; i < intDepth; i++)
-                {
-                    engineredis.addItemToListRight(list, "");
-                }
-
-                engineredis.setItemToList(list, intDepth - 1, message);
-            }
+            redis.setItemToList(list, message);            
         }
        
         public string getbestmoveFromList(NewMsg msg)
@@ -179,174 +134,9 @@ namespace Fleck_Forms
             {
                 return "";
             }
-            List<string> list = engineredis.getAllItems(msg.GetBoard());
-            string strmsg = "";
-            int nlevel = Int32.Parse(msg.GetDepth());
-            if (list.Count >= nlevel)
-            {
-                //过滤空消息
-                for (int i = 0; i < nlevel; i++)
-                {
-                    if (list[i].Length > 0)
-                    {
-                        strmsg = list[i];
-                        msg.Send(strmsg);
-                    }
-                }
-                if (strmsg.Length > 0)
-                {
-                    string[] infoArray = strmsg.Split(' ');
-                    for (int j = 0; j < infoArray.Length; j++)
-                    {
-                        if (infoArray[j] == "pv")
-                        {
-                            string line = "bestmove " + infoArray[j + 1];
-                            historySQLite.SQLite_UpdateCommand(0, line, msg.GetAddr(), msg.GetMessage());
-                            return msg.Send(line);
-                        }
-                    }
-                }
-            }
-
-            return "";
-        }
-
-        public void getbestmoveFromList(string message)
-        {
-            Console.Write("0");
-            List<string> list = engineredis.getAllItems(message);
-            string strmsg = "";
-            int nlevel = Int32.Parse(Setting.level);
-            if (list.Count >= nlevel)
-            {
-                //过滤空消息
-                for (int i = 0; i < nlevel; i++)
-                {
-                    if (list[i].Length > 0)
-                    {
-                        strmsg = list[i];
-                    }
-                }
-                if (strmsg.Length > 0)
-                {
-                    string[] infoArray = strmsg.Split(' ');
-                    for (int j = 0; j < infoArray.Length; j++)
-                    {
-                        if (infoArray[j] == "pv")
-                        {
-                            return;
-                        }
-                    }
-                }
-            }
-        }
-
-//         public string QuerybestFromCloud(string board)
-//         {
-//             if (!Setting.isSupportCloudApi)
-//             {
-//                 return null;
-//             }
-//             string serverResult = "";
-//             try
-//             {
-//                 serverResult = cloudredis.getValueString("Querybest:" + board);
-//                 if (serverResult == null)
-//                 {
-//                     string serverUrl = "http://api.chessdb.cn:81/chessdb.php?action=querybest&board=" + board;
-//                     string postData = "";
-//                     serverResult = HttpPostConnectToServer(serverUrl, postData);
-//                     if (serverResult != null)
-//                     {
-//                         cloudredis.setValueString("Querybest:" + board, serverResult);
-//                     }
-//                     else
-//                     {
-//                         serverResult = "";
-//                     }
-//                 }
-//             }
-//             catch (System.Exception ex)
-//             {
-//                 Console.WriteLine("[error] QuerybestFromCloud " + ex.Message);
-//             }
-//             return serverResult;
-//         }
-
-        public string QueryallFromCloud(string board)
-        {
-            string serverResult = "";
-            try
-            {
-                serverResult = cloudredis.getValueString(board);
-                if (serverResult == null)
-                {
-                    string serverUrl = "http://api.chessdb.cn:81/chessdb.php?action=queryall&board=" + board;
-                    string postData = "";
-                    serverResult = HttpPostConnectToServer(serverUrl, postData);
-                    
-                    if (serverResult != null)
-                    {
-                        serverResult = serverResult.Replace("move:", "");//替换为空
-                        serverResult = serverResult.Replace("score:", "");//替换为空
-                        serverResult = serverResult.Replace("rank:", "");//替换为空
-                        serverResult = serverResult.Replace("note:", "");//替换为空
-                        serverResult = serverResult.Replace("\0", "");//替换为空                       
-                        cloudredis.setValueString( board, serverResult);
-                    }
-                    else
-                    {
-                        serverResult = "null";
-                    }
-                }
-            }
-            catch (System.Exception ex)
-            {
-                Console.WriteLine("[error] QueryallFromCloud " + ex.Message);
-            }
-            return serverResult;
-        }
-
-        public string HttpPostConnectToServer(string serverUrl, string postData)
-        {
-            var dataArray = Encoding.UTF8.GetBytes(postData);
-            //创建请求  
-            var request = (HttpWebRequest)HttpWebRequest.Create(serverUrl);
-            request.Method = "POST";
-            request.ContentLength = dataArray.Length;
-            //设置上传服务的数据格式  
-            request.ContentType = "application/x-www-form-urlencoded";
-            //请求的身份验证信息为默认  
-            request.Credentials = CredentialCache.DefaultCredentials;
-            //请求超时时间  
-            request.Timeout = 10000;
-            //创建输入流  
-            Stream dataStream;
-            try
-            {
-                dataStream = request.GetRequestStream();
-            }
-            catch (Exception)
-            {
-                return null;//连接服务器失败  
-            }
-            //发送请求  
-            dataStream.Write(dataArray, 0, dataArray.Length);
-            dataStream.Close();
-            //读取返回消息  
-            string res = "";
-            try
-            {
-                var response = (HttpWebResponse)request.GetResponse();
-                var reader = new StreamReader(response.GetResponseStream(), Encoding.UTF8);
-                res = reader.ReadToEnd();
-                reader.Close();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("[error] HttpPostConnectToServer " + ex.Message);
-            }
-            return res;
+            string bestmove = redis.getbestmoveFromList(msg);
+            mysqlite.SQLite_UpdateCommand(0, bestmove, msg.GetAddr(), msg.GetMessage());
+            return bestmove;
         }
 
         public Msg Json2Msg(string jsonStr)
@@ -378,16 +168,6 @@ namespace Fleck_Forms
         {
             return ramCounter.NextValue()/1024 + " GB";
         } 
-
-        public void ReadFile(string path)
-        {
-            StreamReader sr = new StreamReader(path, Encoding.Default);
-            String line;
-            while ((line = sr.ReadLine()) != null)
-            {
-                Console.WriteLine(line.ToString());
-            }
-        }        
     }
 
 }
