@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using MySql.Data.MySqlClient;
 
 namespace Fleck_Forms
 {
@@ -62,6 +63,64 @@ namespace Fleck_Forms
             try
             {
                 string sql = String.Format("INSERT INTO chess" + DateString + "(revTime, address, command) VALUES('{0}', '{1}','{2}')", param[0], param[1], param[2]);//插入几条数据    
+                mychessdb.ExecuteCommand(sql);                
+            }
+            catch (System.Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                throw;
+            }
+        }
+
+        public void InsertBoard(string board)
+        {
+            try
+            {
+                string sqlquery = String.Format("select * from board where `key`='{0}'", board);
+                MySqlDataReader reader = mychessdb.GetReader(sqlquery);
+                
+                string sql;
+                int visit = 1;
+                if (reader.Read())
+                {
+                    int id = (int)reader["id"];
+                    visit = (int)reader["visit"]+1;
+                    sql = String.Format("update board  set `visit` = {0} where `id` = {1}", visit, id);  
+                }
+                else
+                {
+                    sql = String.Format("INSERT INTO board (`key`, `visit`) VALUES('{0}', {1})", board, visit);  
+                }
+                reader.Close();
+                mychessdb.ExecuteCommand(sql);
+            }
+            catch (System.Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                throw;
+            }
+        }
+
+        public void InsertQuery(string board, string strQueryall)
+        {
+            try
+            {
+                string sqlquery = String.Format("select * from queryall where `key`='{0}'", board);
+                MySqlDataReader reader = mychessdb.GetReader(sqlquery);
+
+                string sql;
+                int visit = 1;
+                if (reader.Read())
+                {
+                    int id = (int)reader["id"];
+                    visit = (int)reader["visit"] + 1;
+                    sql = String.Format("update queryall  set `visit` = {0} where `id` = {1}", visit, id);
+                }
+                else
+                {
+                    sql = String.Format("insert into queryall (`key`, `value`, `visit`) VALUES('{0}', '{1}', {2})", board, strQueryall, visit);
+                }
+                reader.Close();
                 mychessdb.ExecuteCommand(sql);
             }
             catch (System.Exception ex)

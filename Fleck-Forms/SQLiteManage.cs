@@ -41,7 +41,10 @@ namespace Fleck_Forms
         {
             historySQLite.SQLite_InsertCommand(param);
         }
+        public void InsertBoard(string board)
+        {
 
+        }
         public void Update(int dealType, string result, string address, string command)
         {
             historySQLite.SQLite_UpdateCommand(dealType, result, address, command);
@@ -50,6 +53,10 @@ namespace Fleck_Forms
         public object Query(string addr)
         {
             return historySQLite.SQLite_Query(addr);
+        }
+
+        public void InsertQuery(string board, string strQueryall)
+        {
         }
     }
 }

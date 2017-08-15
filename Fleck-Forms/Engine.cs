@@ -89,21 +89,29 @@ namespace Fleck_Forms
             comm.sqlOperate.Insert(param);
 
             //过滤命令
-            if (message.IndexOf("queryall") != -1)
+            try
             {
-                NewMsg msg = new NewMsg(socket, message);
+                if (message.IndexOf("queryall") != -1)
+                {
+                    NewMsg msg = new NewMsg(socket, message);
 
-                string strQueryall = comm.DealQueryallMessage(msg.GetBoard());
-                string sendmsg = msg.Send(strQueryall);
+                    string strQueryall = comm.DealQueryallMessage(msg.GetBoard());
+                    string sendmsg = msg.Send(strQueryall);
 
-                string[] msgs = { strAddr, "redis", sendmsg };
-                OutputEngineQueueEnqueue(msgs);
-                
+                    string[] msgs = { strAddr, "redis", sendmsg };
+                    OutputEngineQueueEnqueue(msgs);
+                    comm.sqlOperate.InsertQuery(msg.GetBoard(), strQueryall);
+                }
+                else if (message.IndexOf("position") != -1)
+                {
+                    DealPositionMessage(socket, message);
+                }
             }
-            else if (message.IndexOf("position") != -1)
+            catch (System.Exception ex)
             {
-                DealPositionMessage(socket, message);
+                Console.WriteLine(ex.Message);
             }
+           
         }
 
         private void DealPositionMessage(IWebSocketConnection socket, string message)
@@ -114,6 +122,10 @@ namespace Fleck_Forms
             {
                 comm.WriteInfo(message);
                 return;
+            }
+            else
+            {
+                comm.sqlOperate.InsertBoard(msg.GetBoard());
             }
             //查库
             if (comm.getItemFromList(msg))
