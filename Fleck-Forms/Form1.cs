@@ -155,19 +155,22 @@ namespace Fleck_Forms
         private void showEngineInfo()
         {
             listViewNF2.Items.Clear();
-            foreach (var customer in engine.customerlist.ToList())
+            if (engine.customerlist != null)
             {
-                if (customer.check())
+                foreach (var customer in engine.customerlist.ToList())
                 {
-                    string[] str = { customer.getName(), customer.logintime.ToString(), customer.getlastdealtime(), customer.getDealCount().ToString(), customer.getCount().ToString() };
-                    AddListViewItem(listViewNF2, str);
+                    if (customer.check())
+                    {
+                        string[] str = { customer.getName(), customer.logintime.ToString(), customer.getlastdealtime(), customer.getDealCount().ToString(), customer.getCount().ToString() };
+                        AddListViewItem(listViewNF2, str);
+                    }
+                    else
+                    {
+                        engine.customerlist.Remove(customer);
+                    }
+
                 }
-                else
-                {
-                    engine.customerlist.Remove(customer);
-                }
-                
-            }
+            }           
         }
 
         private void InitListView()
@@ -503,7 +506,7 @@ namespace Fleck_Forms
             if (treeView1.SelectedNode != null && treeView1.SelectedNode.Parent != null)
             {
                 string addr = treeView1.SelectedNode.Parent.Text + ":" + treeView1.SelectedNode.Text;
-                SQLiteDataReader reader = engine.comm.mysqlite.historySQLite.SQLite_Query(addr);
+                SQLiteDataReader reader = (SQLiteDataReader)engine.comm.sqlOperate.Query(addr);
                 listViewNF1.Items.Clear();
                 while (reader.Read())
                 {

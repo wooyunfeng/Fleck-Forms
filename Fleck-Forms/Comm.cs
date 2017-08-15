@@ -23,8 +23,7 @@ namespace Fleck_Forms
         public Setting setting;
         public Queue DealSpeedQueue;
         public RedisManage redis;        
-        public SQLiteManage mysqlite;        
-        public MySqlManage mysql;
+        public IDataOperate sqlOperate;        
         public User user;
         private static int nMsgQueuecount { get; set; }
         public bool bRedis { get; set; }
@@ -52,11 +51,6 @@ namespace Fleck_Forms
             return Setting.level;
         }
 
-        public string getThinktimeout()
-        {
-            return Setting.thinktimeout.ToString();
-        }
-
         public bool getSupportCloudApi()
         {
             return Setting.isSupportCloudApi;
@@ -80,8 +74,7 @@ namespace Fleck_Forms
             log = new Log();
             DealSpeedQueue = new Queue();
             redis = new RedisManage();
-            mysqlite = new SQLiteManage();
-            mysql = new MySqlManage();
+            sqlOperate = new MySqlManage();
         }
 
         public string DealQueryallMessage(string board)
@@ -135,7 +128,7 @@ namespace Fleck_Forms
                 return "";
             }
             string bestmove = redis.getbestmoveFromList(msg);
-            mysqlite.SQLite_UpdateCommand(0, bestmove, msg.GetAddr(), msg.GetMessage());
+            sqlOperate.Update(0, bestmove, msg.GetAddr(), msg.GetMessage());
             return bestmove;
         }
 

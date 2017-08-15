@@ -5,13 +5,91 @@ using System.Text;
 
 namespace Fleck_Forms
 {
-    class MySqlManage
+    class MySqlManage : IDataOperate
     {
         private MySqlHelper mychessdb;
+        private string DateString;
         public MySqlManage()
         {
             String connectionString = "server = rm-bp17csiteni8i84o3.mysql.rds.aliyuncs.com; database = mychessdb; user id = root; password = Jiao19890228;";
             mychessdb = new MySqlHelper(connectionString);
+            DateString = DateTime.Now.ToString("yyyyMMdd");
+            string sql = "CREATE TABLE IF NOT EXISTS chess" + DateString + "(id int(11) NOT NULL AUTO_INCREMENT, revTime varchar(20) DEFAULT NULL, address varchar(20) DEFAULT NULL,command varchar(255) DEFAULT NULL,dealTime varchar(20) DEFAULT NULL,dealType int(1) DEFAULT NULL,result varchar(50) DEFAULT NULL, PRIMARY KEY (id)) ENGINE=InnoDB DEFAULT CHARSET=utf8";
+            mychessdb.ExecuteCommand(sql);//如果表不存在，创建数据表  
+        }
+
+        public void Login(string address)
+        {
+            try
+            {
+                DateTime dealTime = DateTime.Now;
+                int result;
+                String sql = String.Format("INSERT INTO login(address, login) VALUES('{0}', '{1}')", address, dealTime);//   
+                result = mychessdb.ExecuteCommand(sql);
+            }
+            catch (System.Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                throw;
+            }
+        }
+
+        public void Logout(string address)
+        {
+            try
+            {
+                DateTime dealTime = DateTime.Now;
+                int result;
+                String sql = String.Format("UPDATE  login set logout = '{0}' where address = '{1}'", dealTime, address);
+                result = mychessdb.ExecuteCommand(sql);                
+            }
+            catch (System.Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                throw;
+            }
+        }
+
+        public void Insert(string[] param)
+        {
+            if (DateString != DateTime.Now.ToString("yyyyMMdd"))
+            {
+                DateString = DateTime.Now.ToString("yyyyMMdd");
+                string sql = "CREATE TABLE IF NOT EXISTS chess" + DateString + "(id int(11) NOT NULL AUTO_INCREMENT, revTime varchar(20) DEFAULT NULL, address varchar(20) DEFAULT NULL,command varchar(255) DEFAULT NULL,dealTime varchar(20) DEFAULT NULL,dealType int(1) DEFAULT NULL,result varchar(50) DEFAULT NULL, PRIMARY KEY (id)) ENGINE=InnoDB DEFAULT CHARSET=utf8";
+                mychessdb.ExecuteCommand(sql);//如果表不存在，创建数据表  
+            }
+
+            try
+            {
+                string sql = String.Format("INSERT INTO chess" + DateString + "(revTime, address, command) VALUES('{0}', '{1}','{2}')", param[0], param[1], param[2]);//插入几条数据    
+                mychessdb.ExecuteCommand(sql);
+            }
+            catch (System.Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                throw;
+            }
+        }
+
+        public void Update(int dealType, string result, string address, string command)
+        {
+            try
+            {
+                string dealTime = DateTime.Now.ToLongTimeString();
+                String sql = String.Format("UPDATE  chess{0} set dealType = {1},result = '{2}' , dealTime = '{3}' where address = '{4}' and command = '{5}'", DateString, dealType, result, dealTime, address, command);
+                mychessdb.ExecuteCommand(sql);    
+            }
+            catch (System.Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                throw;
+            }
+            
+        }
+
+        public object Query(string addr)
+        {
+            return null;
         }
     }
 }

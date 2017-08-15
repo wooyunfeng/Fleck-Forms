@@ -5,11 +5,10 @@ using System.Text;
 
 namespace Fleck_Forms
 {
-    class SQLiteManage
+    class SQLiteManage : IDataOperate
     {
         public SQLiteHelper historySQLite;
         public SQLiteHelper positionSQLite;
-
         public SQLiteManage()
         {
             historySQLite = new SQLiteHelper(Setting.websocketPort + "history.db");
@@ -28,24 +27,29 @@ namespace Fleck_Forms
         }
 
 
-        internal void SQLite_Login(string p)
+        public void Login(string p)
         {
             historySQLite.SQLite_Login(p);
         }
 
-        internal void SQLite_Logout(string p)
+        public void Logout(string p)
         {
             historySQLite.SQLite_Logout(p);
         }
 
-        internal void SQLite_InsertCommand(string[] param)
+        public void Insert(string[] param)
         {
             historySQLite.SQLite_InsertCommand(param);
         }
 
-        internal void SQLite_UpdateCommand(int dealType, string result, string address, string command)
+        public void Update(int dealType, string result, string address, string command)
         {
             historySQLite.SQLite_UpdateCommand(dealType, result, address, command);
+        }
+
+        public object Query(string addr)
+        {
+            return historySQLite.SQLite_Query(addr);
         }
     }
 }

@@ -167,9 +167,5 @@ namespace Fleck_Forms
             return res;
         }
 
-        internal void SQLite_UpdateCommand(int p, string bestmove, string p_2, string p_3)
-        {
-            throw new NotImplementedException();
-        }
     }
 }

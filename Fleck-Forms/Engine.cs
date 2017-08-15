@@ -71,14 +71,14 @@ namespace Fleck_Forms
         public void OnOpen(IWebSocketConnection socket)
         {
             var role = new Role(socket);
-            comm.mysqlite.SQLite_Login(role.GetAddr());
+            comm.sqlOperate.Login(role.GetAddr());
             comm.user.Add(role);
         }
 
         public void OnClose(IWebSocketConnection socket)
         {
             var role = comm.user.GetAt(socket);
-            comm.mysqlite.SQLite_Logout(role.GetAddr());
+            comm.sqlOperate.Logout(role.GetAddr());
             comm.user.Remove(socket);
         }
 
@@ -86,7 +86,7 @@ namespace Fleck_Forms
         {
             string strAddr = socket.ConnectionInfo.ClientIpAddress + ":" + socket.ConnectionInfo.ClientPort.ToString();
             string[] param = { DateTime.Now.ToLongTimeString(), strAddr, message };
-            comm.mysqlite.SQLite_InsertCommand(param);
+            comm.sqlOperate.Insert(param);
 
             //过滤命令
             if (message.IndexOf("queryall") != -1)
@@ -109,6 +109,12 @@ namespace Fleck_Forms
         private void DealPositionMessage(IWebSocketConnection socket, string message)
         {
             NewMsg msg = new NewMsg(socket, message);
+
+            if (msg.GetCommand() == null)
+            {
+                comm.WriteInfo(message);
+                return;
+            }
             //查库
             if (comm.getItemFromList(msg))
             {
