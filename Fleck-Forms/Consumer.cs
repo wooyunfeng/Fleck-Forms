@@ -176,7 +176,8 @@ namespace Fleck_Forms
                             }
                             else
                             {
-                                comm.setItemToList(currentMsg.GetBoard(), message);
+                                comm.sqlOperate.setItemToDepthinfo(currentMsg.boardID, message);
+                                comm.setItemToList(currentMsg.GetBoard(), message);                                
                             }
                         }
                         break;

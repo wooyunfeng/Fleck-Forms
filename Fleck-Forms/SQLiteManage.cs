@@ -55,8 +55,17 @@ namespace Fleck_Forms
             return historySQLite.SQLite_Query(addr);
         }
 
-        public void InsertQuery(string board, string strQueryall)
+        public void InsertQueryall(string board, string strQueryall)
         {
+        }
+
+        public void setItemToDepthinfo(int id, string message)
+        {
+
+        }
+        public int getBoardID(string board)
+        {
+            return 0;
         }
     }
 }

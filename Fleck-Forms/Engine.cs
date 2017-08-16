@@ -100,7 +100,7 @@ namespace Fleck_Forms
 
                     string[] msgs = { strAddr, "redis", sendmsg };
                     OutputEngineQueueEnqueue(msgs);
-                    comm.sqlOperate.InsertQuery(msg.GetBoard(), strQueryall);
+                    comm.sqlOperate.InsertQueryall(msg.GetBoard(), strQueryall);
                 }
                 else if (message.IndexOf("position") != -1)
                 {
@@ -126,6 +126,7 @@ namespace Fleck_Forms
             else
             {
                 comm.sqlOperate.InsertBoard(msg.GetBoard());
+                msg.boardID = comm.sqlOperate.getBoardID(msg.GetBoard());
             }
             //查库
             if (comm.getItemFromList(msg))

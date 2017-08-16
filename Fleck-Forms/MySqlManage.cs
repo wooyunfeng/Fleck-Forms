@@ -101,7 +101,29 @@ namespace Fleck_Forms
             }
         }
 
-        public void InsertQuery(string board, string strQueryall)
+        public int getBoardID(string board)
+        {
+            try
+            {
+                string sqlquery = String.Format("select * from board where `key`='{0}'", board);
+                MySqlDataReader reader = mychessdb.GetReader(sqlquery);
+
+                int id = 0;
+                if (reader.Read())
+                {
+                    id = (int)reader["id"];
+                }
+                reader.Close();
+                return id;
+            }
+            catch (System.Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                throw;
+            }
+        }
+
+        public void InsertQueryall(string board, string strQueryall)
         {
             try
             {
@@ -119,6 +141,35 @@ namespace Fleck_Forms
                 else
                 {
                     sql = String.Format("insert into queryall (`key`, `value`, `visit`) VALUES('{0}', '{1}', {2})", board, strQueryall, visit);
+                }
+                reader.Close();
+                mychessdb.ExecuteCommand(sql);
+            }
+            catch (System.Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                throw;
+            }
+        }
+
+        public void setItemToDepthinfo(int board_id, string message)
+        {
+            try
+            {
+                depthInfo depthinfo = new depthInfo(message);
+                string sqlquery = String.Format("select * from depthinfo where `board_id`='{0}' and `depth` = {1}", board_id, depthinfo.depth);
+                MySqlDataReader reader = mychessdb.GetReader(sqlquery);
+
+                string sql = "";
+                if (reader.Read())
+                {
+                    reader.Close();
+                    return;
+                }
+                else
+                {
+                    sql = String.Format("insert into depthinfo (`board_id`,`depth`, `seldepth`, `multipv`, `score`, `nodes`, `nps`, `hashfull`, `tbhits`, `time`, `pv`) VALUES({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9},'{10}')",
+                    board_id, depthinfo.depth, depthinfo.seldepth, depthinfo.multipv, depthinfo.score, depthinfo.nodes, depthinfo.nps, depthinfo.hashfull, depthinfo.tbhits, depthinfo.time, depthinfo.pv);
                 }
                 reader.Close();
                 mychessdb.ExecuteCommand(sql);

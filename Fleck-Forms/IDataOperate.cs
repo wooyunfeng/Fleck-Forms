@@ -13,8 +13,9 @@ namespace Fleck_Forms
         void Update(int dealType, string result, string address, string command);
         void InsertBoard(string board);
         object Query(string addr);
-
-        void InsertQuery(string board, string strQueryall);
+        int getBoardID(string board);        
+        void InsertQueryall(string board, string strQueryall);
+        void setItemToDepthinfo(int id, string message);
     }
     //类封装，接口作为成员字段，实现接口统一访问
     //工厂模式
