@@ -120,7 +120,7 @@ namespace Fleck_Forms
 
             if (msg.GetCommand() == null)
             {
-                comm.WriteInfo(message);
+                comm.WriteInfo(msg.GetAddr()+"  "+message);
                 return;
             }
             else
