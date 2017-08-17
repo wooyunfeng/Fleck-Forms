@@ -1,10 +1,11 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <configuration>
-  <add key="WebSocketPort" value="9001"></add>
+  <add key="WebSocketPort" value="9011"></add>
   <add key="Level" value="17"></add>
   <add key="CloudAPI" value="true"></add>
-  <add key="ServerAddress" value="120.55.37.210"></add>
+  <add key="ServerAddress" value="118.190.46.210"></add>
   <add key="ServerPort" value="8885"></add>
-  <add key="CloudRedisPath" value="120.55.37.210:8639"></add>
-  <add key="EngineRedisPath" value="120.55.37.210:8640"></add>
+  <add key="CloudRedisPath" value="118.190.46.210:8639"></add>
+  <add key="EngineRedisWriter" value="118.190.46.210:8640"></add>
+  <add key="EngineRedisReader" value="118.190.46.210:8641"></add>
 </configuration>
