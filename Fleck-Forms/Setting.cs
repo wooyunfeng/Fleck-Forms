@@ -16,8 +16,8 @@ namespace Fleck_Forms
         static public int tcpServeraPort { get; set; }
         static public int thinktimeout { get; set; }
         static public string cloudRedisPath { get; set; }
-        static public string engineRedisPath { get; set; }
-
+        static public string engineRedis_writer { get; set; }
+        static public string engineRedis_reader { get; set; }
         public Setting()
         {
             LoadXml();
@@ -64,9 +64,13 @@ namespace Fleck_Forms
                 {
                     Setting.cloudRedisPath = xe.GetAttribute("value").ToString();
                 }
-                if (xe.GetAttribute("key").ToString() == "EngineRedisPath")
+                if (xe.GetAttribute("key").ToString() == "EngineRedisWriter")
                 {
-                    Setting.engineRedisPath = xe.GetAttribute("value").ToString();
+                    Setting.engineRedis_writer = xe.GetAttribute("value").ToString();
+                }
+                if (xe.GetAttribute("key").ToString() == "EngineRedisReader")
+                {
+                    Setting.engineRedis_reader = xe.GetAttribute("value").ToString();
                 }
             }
         }

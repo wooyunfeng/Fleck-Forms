@@ -10,31 +10,24 @@ namespace Fleck_Forms
     class RedisManage
     {
         public RedisHelper cloudredis;
-        public RedisHelper engineredis;
+        public RedisHelper engineredis_reader;
+        public RedisHelper engineredis_writer;
 
         public RedisManage()
         {
-            engineredis = new RedisHelper(Setting.engineRedisPath, "jiao19890228");
+            engineredis_writer = new RedisHelper(Setting.engineRedis_writer, "jiao19890228");
+            engineredis_reader = new RedisHelper(Setting.engineRedis_reader, "jiao19890228");
             cloudredis = new RedisHelper(Setting.cloudRedisPath, "jiao19890228");
         }
 
         internal bool getItemFromList(string list, int index)
         {
-            if (engineredis.ContainsKey(list))
+            if (engineredis_reader.ContainsKey(list))
             {
-                List<string> listarray = engineredis.getAllItems(list);
-                string value = engineredis.getItemFromList(list, index - 1);
+                string value = engineredis_reader.getItemFromList(list, index - 1);
                 if (value != null && value.Length > 0)
                 {
                     return true;
-                }
-            }
-            else
-            {
-                //初始化list
-                for (int i = 0; i < 20; i++)
-                {
-                    engineredis.addItemToListRight(list, "");
                 }
             }
             return false;
@@ -42,26 +35,23 @@ namespace Fleck_Forms
 
         internal void setItemToList(string list, string message)
         {
-            string[] sArray = message.Split(' ');
-            /* 消息过滤
-             * info depth 14 seldepth 35 multipv 1 score 19 nodes 243960507 nps 6738309 hashfull 974 tbhits 0 time 36205 
-             * pv h2e2 h9g7 h0g2 i9h9 i0h0 b9c7 h0h4 h7i7 h4h9 g7h9 c3c4 b7a7 b2c2 c9e7 c2c6 a9b9 b0c2 g6g5 a0a1 h9g7 
-             */
-            if (sArray.Length > 3 && sArray[1] == "depth" && sArray[3] == "seldepth")
+            depthInfo depthinfo = new depthInfo(message);
+
+            if (depthinfo.depth > 0 && depthinfo.pv != "")
             {
-                int intDepth = Int32.Parse(sArray[2]);
-                for (int i = engineredis.getAllItems(list).Count; i < intDepth; i++)
+                int intDepth = depthinfo.depth;
+                for (int i = engineredis_writer.getAllItems(list).Count; i < intDepth; i++)
                 {
-                    engineredis.addItemToListRight(list, "");
+                    engineredis_writer.addItemToListRight(list, "");
                 }
 
-                engineredis.setItemToList(list, intDepth - 1, message);
+                engineredis_writer.setItemToList(list, intDepth - 1, message);
             }
         }
 
         internal string getbestmoveFromList(NewMsg msg)
         {
-            List<string> list = engineredis.getAllItems(msg.GetBoard());
+            List<string> list = engineredis_reader.getAllItems(msg.GetBoard());
             string strmsg = "";
             int nlevel = Int32.Parse(msg.GetDepth());
             if (list.Count >= nlevel)
