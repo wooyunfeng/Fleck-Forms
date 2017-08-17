@@ -50,6 +50,7 @@
             this.m_CloudApi = new System.Windows.Forms.CheckBox();
             this.listView4 = new Fleck_Forms.ListViewNF();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
+            this.m_Mysql = new System.Windows.Forms.CheckBox();
             this.panel1.SuspendLayout();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
@@ -188,6 +189,7 @@
             // 
             // tabPage4
             // 
+            this.tabPage4.Controls.Add(this.m_Mysql);
             this.tabPage4.Controls.Add(this.m_port);
             this.tabPage4.Controls.Add(this.label2);
             this.tabPage4.Controls.Add(this.btn_clear);
@@ -270,6 +272,19 @@
             this.timer1.Interval = 1000;
             this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
             // 
+            // m_Mysql
+            // 
+            this.m_Mysql.AutoSize = true;
+            this.m_Mysql.Checked = true;
+            this.m_Mysql.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.m_Mysql.Location = new System.Drawing.Point(555, 177);
+            this.m_Mysql.Name = "m_Mysql";
+            this.m_Mysql.Size = new System.Drawing.Size(54, 16);
+            this.m_Mysql.TabIndex = 58;
+            this.m_Mysql.Text = "MySQL";
+            this.m_Mysql.UseVisualStyleBackColor = true;
+            this.m_Mysql.CheckedChanged += new System.EventHandler(this.m_Mysql_CheckedChanged);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -315,6 +330,7 @@
         private System.Windows.Forms.CheckBox m_CloudApi;
         private System.Windows.Forms.Label m_port;
         private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.CheckBox m_Mysql;
 
     }
 }

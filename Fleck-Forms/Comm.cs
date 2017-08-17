@@ -74,7 +74,7 @@ namespace Fleck_Forms
             log = new Log();
             DealSpeedQueue = new Queue();
             redis = new RedisManage();
-            sqlOperate = new MySqlManage();
+            sqlOperate = new SQLiteManage();
         }
 
         public string DealQueryallMessage(string board)

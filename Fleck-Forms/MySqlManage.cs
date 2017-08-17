@@ -199,7 +199,18 @@ namespace Fleck_Forms
 
         public object Query(string addr)
         {
-            return null;
+            try
+            {
+                string sql = String.Format("select * from chess{0} where Address = '{1}'", DateString, addr); ;
+                MySqlDataReader reader = mychessdb.GetReader(sql);
+                reader.Close();
+                return reader;
+            }
+            catch (System.Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                throw;
+            }
         }
     }
 }

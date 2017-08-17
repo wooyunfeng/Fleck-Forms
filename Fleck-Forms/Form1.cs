@@ -14,6 +14,7 @@ using System.Management;
 using System.Collections.Concurrent;
 using System.Collections;
 using System.Data.SQLite;
+using MySql.Data.MySqlClient;
 
 
 namespace Fleck_Forms
@@ -505,21 +506,33 @@ namespace Fleck_Forms
         {
             if (treeView1.SelectedNode != null && treeView1.SelectedNode.Parent != null)
             {
-                string addr = treeView1.SelectedNode.Parent.Text + ":" + treeView1.SelectedNode.Text;
-                SQLiteDataReader reader = (SQLiteDataReader)engine.comm.sqlOperate.Query(addr);
-                listViewNF1.Items.Clear();
-                while (reader.Read())
+                try
                 {
-                    string[] message = { reader["revTime"].ToString(), reader["Command"].ToString(), reader["result"].ToString() };
-                    AddListViewItem(listViewNF1, message, 100);
+                    string addr = treeView1.SelectedNode.Parent.Text + ":" + treeView1.SelectedNode.Text;
+                    SQLiteDataReader reader = (SQLiteDataReader)engine.comm.sqlOperate.Query(addr);
+                    listViewNF1.Items.Clear();
+                    while (reader.Read())
+                    {
+                        string[] message = { reader["revTime"].ToString(), reader["Command"].ToString(), reader["result"].ToString() };
+                        AddListViewItem(listViewNF1, message, 100);
+                    }
                 }
+                catch (System.Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+               
             }
         }
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
-
             engine.Close();
+        }
+
+        private void m_Mysql_CheckedChanged(object sender, EventArgs e)
+        {
+
         }
     }
 

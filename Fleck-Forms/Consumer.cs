@@ -174,11 +174,6 @@ namespace Fleck_Forms
                                 comm.sqlOperate.Update(1, message, currentMsg.GetAddr(), currentMsg.GetMessage());
                                 bdealing = false;
                             }
-                            else
-                            {
-                                comm.sqlOperate.setItemToDepthinfo(currentMsg.boardID, message);
-                                comm.setItemToList(currentMsg.GetBoard(), message);                                
-                            }
                         }
                         break;
                 } 

@@ -110,8 +110,7 @@ namespace Fleck_Forms
             catch (System.Exception ex)
             {
                 Console.WriteLine(ex.Message);
-            }
-           
+            }           
         }
 
         private void DealPositionMessage(IWebSocketConnection socket, string message)
@@ -125,20 +124,24 @@ namespace Fleck_Forms
             }
             else
             {
-                comm.sqlOperate.InsertBoard(msg.GetBoard());
-                msg.boardID = comm.sqlOperate.getBoardID(msg.GetBoard());
+                //将棋盘信息写入数据库，用于统计
+//                 comm.sqlOperate.InsertBoard(msg.GetBoard());
+//                 msg.boardID = comm.sqlOperate.getBoardID(msg.GetBoard());
             }
             //查库
-            if (comm.getItemFromList(msg))
+            if (comm.bRedis)
             {
-                string sendmsg = comm.getbestmoveFromList(msg);
-                string[] msgs = { msg.GetAddr(), "reids", sendmsg };
-                OutputEngineQueueEnqueue(msgs);
+                if (comm.getItemFromList(msg))
+                {
+                    string sendmsg = comm.getbestmoveFromList(msg);
+                    string[] msgs = { msg.GetAddr(), "reids", sendmsg };
+                    OutputEngineQueueEnqueue(msgs);
+                    return;
+                }
             }
-            else//查库没有，加入队列
-            {
-                producer.Product(msg);
-            }
+
+            producer.Product(msg);
+
         }
 
         internal object getUserCount()

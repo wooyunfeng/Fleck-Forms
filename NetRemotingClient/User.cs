@@ -7,7 +7,84 @@ using Newtonsoft.Json;
 
 namespace NetRemotingClient
 {
-    
+    //info depth 14 seldepth 35 multipv 1 score 19 nodes 243960507 nps 6738309 hashfull 974 tbhits 0 time 36205
+    //pv h2e2 h9g7 h0g2 i9h9 i0h0 b9c7 h0h4 h7i7 h4h9 g7h9 c3c4 b7a7 b2c2 c9e7 c2c6 a9b9 b0c2 g6g5 a0a1 h9g7                    
+    class depthInfo
+    {
+        public int depth { get; set; }
+        public int seldepth { get; set; }
+        public int multipv { get; set; }
+        public int score { get; set; }
+        public int nodes { get; set; }
+        public int nps { get; set; }
+        public int hashfull { get; set; }
+        public int tbhits { get; set; }
+        public int time { get; set; }
+        public string pv { get; set; }
+        public depthInfo(string message)
+        {
+            depth = -1;
+            seldepth = -1;
+            multipv = -1;
+            score = -1;
+            nodes = -1;
+            nps = -1;
+            hashfull = -1;
+            tbhits = -1;
+            time = -1;
+            pv = "";
+            Parser(message);
+        }
+
+        private void Parser(string message)
+        {
+            string[] arr = message.Split(' ');
+
+            depth = getInt(arr, "depth");
+            seldepth = getInt(arr, "seldepth");
+            multipv = getInt(arr, "multipv");
+            score = getInt(arr, "score");
+            nodes = getInt(arr, "nodes");
+            nps = getInt(arr, "nps");
+            hashfull = getInt(arr, "hashfull");
+            tbhits = getInt(arr, "tbhits");
+            time = getInt(arr, "time");
+            pv = getvalue(arr, "pv");
+        }
+
+        private string getvalue(string[] arr, string key)
+        {
+            for (int i = 0; i < arr.Length; i++)
+            {
+                if (arr[i] == key)
+                {
+                    if (key == "pv")
+                    {
+                        string str = "";
+                        for (int j = i + 1; j < arr.Length; j++)
+                        {
+                            str += arr[j] + " ";
+                        }
+                        return str;
+                    }
+                    return arr[i + 1];
+                }
+            }
+            return "";
+        }
+        private int getInt(string[] arr, string key)
+        {
+            for (int i = 0; i < arr.Length; i++)
+            {
+                if (arr[i] == key)
+                {
+                    return Int32.Parse(arr[i + 1]);
+                }
+            }
+            return -1;
+        }
+    }
+
     class NewMsg
     {
         private string message { get; set; }

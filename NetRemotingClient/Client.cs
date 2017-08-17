@@ -29,9 +29,11 @@ namespace NetRemotingClient
         static public bool isSupportCloudApi { get; set; }
         static public string engine { get; set; }
         static public string serveraddress { get; set; }
+        static public string engineRedis_writer { get; set; }
         static public int serverport { get; set; }
         NewMsg currentMsg;
         DateTime starttime;
+        RedisManage redis;
         bool bConnect;
         public Client()
         {
@@ -47,6 +49,8 @@ namespace NetRemotingClient
             cpuCounter.InstanceName = "_Total";
 
             ramCounter = new PerformanceCounter("Memory", "Available MBytes");
+
+            redis = new RedisManage(engineRedis_writer);
         }
 
          public void AddMsgItemMethod(string[] message)
@@ -388,6 +392,7 @@ namespace NetRemotingClient
                             intDepth = Int32.Parse(sArray[2]);
                             if (bdealing)
                             {
+                                redis.setItemToList(currentMsg.GetBoard(),line);
                                 SendtoServer(line);
                             }                           
                         }
@@ -486,6 +491,10 @@ namespace NetRemotingClient
                 if (xe.GetAttribute("key").ToString() == "ServerPort")
                 {
                     serverport = Int32.Parse(xe.GetAttribute("value").ToString());
+                }
+                if (xe.GetAttribute("key").ToString() == "EngineRedisWriter")
+                {
+                    engineRedis_writer = xe.GetAttribute("value").ToString();
                 }
             }
         }
