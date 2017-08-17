@@ -104,7 +104,7 @@ namespace Fleck_Forms
                     }
                     else
                     {
-                        serverResult = "null";
+                        serverResult = "";
                     }
                 }
             }

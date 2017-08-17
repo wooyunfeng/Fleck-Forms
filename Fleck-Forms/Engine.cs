@@ -96,10 +96,13 @@ namespace Fleck_Forms
                     NewMsg msg = new NewMsg(socket, message);
 
                     string strQueryall = comm.DealQueryallMessage(msg.GetBoard());
-                    string sendmsg = msg.Send(strQueryall);
-
-                    string[] msgs = { strAddr, "redis", sendmsg };
-                    OutputEngineQueueEnqueue(msgs);
+                    if (strQueryall != "" && strQueryall != "unknwon")
+                    {
+                        string sendmsg = msg.Send(strQueryall);
+                        string[] msgs = { strAddr, "redis", sendmsg };
+                        OutputEngineQueueEnqueue(msgs);
+                    }
+                    
                     comm.sqlOperate.InsertQueryall(msg.GetBoard(), strQueryall);
                 }
                 else if (message.IndexOf("position") != -1)
