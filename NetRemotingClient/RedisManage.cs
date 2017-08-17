@@ -37,7 +37,15 @@ namespace NetRemotingClient
                 Console.WriteLine(ex.Message);
             }
             
-        }      
+        }
 
+
+        internal void setRangeToList(string board, List<string> listinfo)
+        {
+            if (!engineredis_writer.ContainsKey(board))
+            {
+                engineredis_writer.setRangeToList(board, listinfo);
+            }
+        }
     }
 }

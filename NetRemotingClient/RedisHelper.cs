@@ -204,7 +204,7 @@ namespace NetRemotingClient
         /// </summary>
         /// <param name="list"></param>
         /// <param name="values"></param>
-        public void getRangeToList(string list, List<string> values)
+        public void setRangeToList(string list, List<string> values)
         {
             lock (redisCli)
             {
@@ -216,7 +216,7 @@ namespace NetRemotingClient
         /// </summary>
         /// <param name="item"></param>
         /// <param name="set"></param>
-        public void getItemToSet(string item, string set)
+        public void setItemToSet(string item, string set)
         {
             lock (redisCli)
             {

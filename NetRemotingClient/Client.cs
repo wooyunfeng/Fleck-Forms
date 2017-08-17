@@ -153,21 +153,21 @@ namespace NetRemotingClient
         DateTime startdeal;
 
         private void OnTCP()  
-        {  
-            //设定服务器IP地址  
-            IPAddress ip = IPAddress.Parse(serveraddress);  
-            Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            bRun = true;
+        {            
             try  
             {
+                //设定服务器IP地址  
+                IPAddress ip = IPAddress.Parse(serveraddress);
+                Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                bRun = true;
                 socket.Connect(new IPEndPoint(ip, serverport)); //配置服务器IP与端口  
                 strInfo = "连接服务器" + serveraddress + "成功! 本机地址" + socket.LocalEndPoint.ToString();
                 serverSocket = socket;
                 Thread.Sleep(100);
                 bConnect = true;
                
-            }  
-            catch  
+            }
+            catch (Exception ex)
             {
                 bConnect = false;
                 for (int i = 10; i > 0 && bRun; i--)
@@ -360,6 +360,10 @@ namespace NetRemotingClient
             
             string line = "";
             string[] linearray = new string[3];
+
+            int nLevel = Int32.Parse(level);
+            List<string> listinfo = new List<string>();
+            int ncout = 1;
             try
             {
                 //管道参数初始化
@@ -391,10 +395,15 @@ namespace NetRemotingClient
                         {
                             intDepth = Int32.Parse(sArray[2]);
                             if (bdealing)
-                            {
-                                redis.setItemToList(currentMsg.GetBoard(),line);
+                            {                                
                                 SendtoServer(line);
-                            }                           
+                            }                 
+          
+                            if (ncout == intDepth)
+                            {
+                                listinfo.Add(line);
+                                ncout++;
+                            }
                         }
 
                         if (line.IndexOf("bestmove") != -1)
@@ -402,6 +411,16 @@ namespace NetRemotingClient
                             bdealing = false;
                             dealcount++;
                             SendtoServer(line);
+                            if (listinfo.Count >= nLevel)
+                            {
+                                lock (currentMsg)
+                                {
+                                    redis.setRangeToList(currentMsg.GetBoard(), listinfo);
+                                }
+                                ncout = 1;
+                                listinfo.Clear();
+                            }
+                            
                             SendtoServer("list");
                             linearray[0] = currentMsg.GetBoard();
                             linearray[1] = " depth " + intDepth.ToString() + " " + line;
