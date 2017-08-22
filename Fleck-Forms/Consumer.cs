@@ -110,11 +110,6 @@ namespace Fleck_Forms
             return lastdealtime.ToString();
         }
 
-        private bool redisContainsKey(string p)
-        {
-            throw new NotImplementedException();
-        }
-
         public void SendToClient(string info)
         {
             socket.Send(Encoding.ASCII.GetBytes(info));  
@@ -192,6 +187,18 @@ namespace Fleck_Forms
                 return false;
             }
             return bRun;
+        }
+
+        internal void reset()
+        {
+            SendToClient("reset");
+            Thread.Sleep(100);
+            CloseClient();
+        }
+
+        private void CloseClient()
+        {
+            socket.Close();
         }
     }
 

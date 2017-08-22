@@ -161,7 +161,7 @@ namespace NetRemotingClient
                 Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
                 bRun = true;
                 socket.Connect(new IPEndPoint(ip, serverport)); //配置服务器IP与端口  
-                strInfo = "连接服务器" + serveraddress + "成功! 本机地址" + socket.LocalEndPoint.ToString();
+                strInfo = "连接服务器" + serveraddress + ":" + serverport + "成功! 本机地址" + socket.LocalEndPoint.ToString();
                 serverSocket = socket;
                 Thread.Sleep(100);
                 bConnect = true;

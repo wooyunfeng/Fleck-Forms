@@ -97,7 +97,7 @@ namespace NetRemotingClient
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(176, 409);
+            this.label4.Location = new System.Drawing.Point(259, 409);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(65, 12);
             this.label4.TabIndex = 12;
@@ -106,7 +106,7 @@ namespace NetRemotingClient
             // labelruntime
             // 
             this.labelruntime.AutoSize = true;
-            this.labelruntime.Location = new System.Drawing.Point(246, 409);
+            this.labelruntime.Location = new System.Drawing.Point(329, 409);
             this.labelruntime.Name = "labelruntime";
             this.labelruntime.Size = new System.Drawing.Size(41, 12);
             this.labelruntime.TabIndex = 12;
@@ -140,7 +140,7 @@ namespace NetRemotingClient
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(340, 409);
+            this.label3.Location = new System.Drawing.Point(496, 409);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(35, 12);
             this.label3.TabIndex = 12;
@@ -149,7 +149,7 @@ namespace NetRemotingClient
             // labelCPU
             // 
             this.labelCPU.AutoSize = true;
-            this.labelCPU.Location = new System.Drawing.Point(368, 409);
+            this.labelCPU.Location = new System.Drawing.Point(524, 409);
             this.labelCPU.Name = "labelCPU";
             this.labelCPU.Size = new System.Drawing.Size(41, 12);
             this.labelCPU.TabIndex = 12;
@@ -158,7 +158,7 @@ namespace NetRemotingClient
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(406, 409);
+            this.label6.Location = new System.Drawing.Point(562, 409);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(41, 12);
             this.label6.TabIndex = 12;
@@ -167,7 +167,7 @@ namespace NetRemotingClient
             // labelMemory
             // 
             this.labelMemory.AutoSize = true;
-            this.labelMemory.Location = new System.Drawing.Point(442, 409);
+            this.labelMemory.Location = new System.Drawing.Point(598, 409);
             this.labelMemory.Name = "labelMemory";
             this.labelMemory.Size = new System.Drawing.Size(41, 12);
             this.labelMemory.TabIndex = 12;
@@ -214,7 +214,7 @@ namespace NetRemotingClient
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(532, 409);
+            this.label5.Location = new System.Drawing.Point(688, 409);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(65, 12);
             this.label5.TabIndex = 12;
@@ -223,7 +223,7 @@ namespace NetRemotingClient
             // labelcount
             // 
             this.labelcount.AutoSize = true;
-            this.labelcount.Location = new System.Drawing.Point(596, 409);
+            this.labelcount.Location = new System.Drawing.Point(752, 409);
             this.labelcount.Name = "labelcount";
             this.labelcount.Size = new System.Drawing.Size(41, 12);
             this.labelcount.TabIndex = 12;

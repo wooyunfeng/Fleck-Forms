@@ -43,6 +43,7 @@
             this.listViewNF2 = new Fleck_Forms.ListViewNF();
             this.listView3 = new Fleck_Forms.ListViewNF();
             this.tabPage4 = new System.Windows.Forms.TabPage();
+            this.m_Mysql = new System.Windows.Forms.CheckBox();
             this.m_port = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.btn_clear = new System.Windows.Forms.Button();
@@ -50,7 +51,7 @@
             this.m_CloudApi = new System.Windows.Forms.CheckBox();
             this.listView4 = new Fleck_Forms.ListViewNF();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
-            this.m_Mysql = new System.Windows.Forms.CheckBox();
+            this.btn_reset = new System.Windows.Forms.Button();
             this.panel1.SuspendLayout();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
@@ -189,6 +190,7 @@
             // 
             // tabPage4
             // 
+            this.tabPage4.Controls.Add(this.btn_reset);
             this.tabPage4.Controls.Add(this.m_Mysql);
             this.tabPage4.Controls.Add(this.m_port);
             this.tabPage4.Controls.Add(this.label2);
@@ -202,6 +204,19 @@
             this.tabPage4.TabIndex = 3;
             this.tabPage4.Text = "设置";
             this.tabPage4.UseVisualStyleBackColor = true;
+            // 
+            // m_Mysql
+            // 
+            this.m_Mysql.AutoSize = true;
+            this.m_Mysql.Checked = true;
+            this.m_Mysql.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.m_Mysql.Location = new System.Drawing.Point(555, 177);
+            this.m_Mysql.Name = "m_Mysql";
+            this.m_Mysql.Size = new System.Drawing.Size(54, 16);
+            this.m_Mysql.TabIndex = 58;
+            this.m_Mysql.Text = "MySQL";
+            this.m_Mysql.UseVisualStyleBackColor = true;
+            this.m_Mysql.CheckedChanged += new System.EventHandler(this.m_Mysql_CheckedChanged);
             // 
             // m_port
             // 
@@ -223,7 +238,7 @@
             // 
             // btn_clear
             // 
-            this.btn_clear.Location = new System.Drawing.Point(183, 172);
+            this.btn_clear.Location = new System.Drawing.Point(78, 170);
             this.btn_clear.Name = "btn_clear";
             this.btn_clear.Size = new System.Drawing.Size(75, 23);
             this.btn_clear.TabIndex = 53;
@@ -272,18 +287,15 @@
             this.timer1.Interval = 1000;
             this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
             // 
-            // m_Mysql
+            // btn_reset
             // 
-            this.m_Mysql.AutoSize = true;
-            this.m_Mysql.Checked = true;
-            this.m_Mysql.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.m_Mysql.Location = new System.Drawing.Point(555, 177);
-            this.m_Mysql.Name = "m_Mysql";
-            this.m_Mysql.Size = new System.Drawing.Size(54, 16);
-            this.m_Mysql.TabIndex = 58;
-            this.m_Mysql.Text = "MySQL";
-            this.m_Mysql.UseVisualStyleBackColor = true;
-            this.m_Mysql.CheckedChanged += new System.EventHandler(this.m_Mysql_CheckedChanged);
+            this.btn_reset.Location = new System.Drawing.Point(181, 170);
+            this.btn_reset.Name = "btn_reset";
+            this.btn_reset.Size = new System.Drawing.Size(75, 23);
+            this.btn_reset.TabIndex = 59;
+            this.btn_reset.Text = "重启引擎";
+            this.btn_reset.UseVisualStyleBackColor = true;
+            this.btn_reset.Click += new System.EventHandler(this.btn_reset_Click);
             // 
             // Form1
             // 
@@ -331,6 +343,7 @@
         private System.Windows.Forms.Label m_port;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.CheckBox m_Mysql;
+        private System.Windows.Forms.Button btn_reset;
 
     }
 }

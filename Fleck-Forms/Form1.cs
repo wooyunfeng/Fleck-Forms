@@ -534,6 +534,18 @@ namespace Fleck_Forms
         {
 
         }
+
+        private void btn_reset_Click(object sender, EventArgs e)
+        {
+            if (engine.customerlist != null)
+            {
+                foreach (var customer in engine.customerlist.ToList())
+                {
+                    customer.reset();
+                    engine.customerlist.Remove(customer);
+                }
+            }
+        }
     }
 
 }
