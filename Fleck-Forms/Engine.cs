@@ -96,7 +96,7 @@ namespace Fleck_Forms
                     NewMsg msg = new NewMsg(socket, message);
 
                     string strQueryall = comm.DealQueryallMessage(msg.GetBoard());
-                    if (strQueryall != "" && strQueryall != "unknwon")
+                    if (strQueryall != "" && strQueryall != "unknown")
                     {
                         string sendmsg = msg.Send(strQueryall);
                         string[] msgs = { strAddr, "redis", sendmsg };
