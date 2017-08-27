@@ -1,5 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <configuration>
+  <add key="Title" value="人机对弈"></add>
   <add key="WebSocketPort" value="9011"></add>
   <add key="Level" value="17"></add>
   <add key="CloudAPI" value="true"></add>

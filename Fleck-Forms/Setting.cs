@@ -8,6 +8,7 @@ namespace Fleck_Forms
 {
     class Setting
     {
+        static public string title { get; set; }
         static public string websocketPort { get; set; }
         static public string level { get; set; }
         static public bool isSupportCloudApi { get; set; }
@@ -32,6 +33,10 @@ namespace Fleck_Forms
             foreach (XmlNode xn1 in xnl)
             {
                 XmlElement xe = (XmlElement)xn1;
+                if (xe.GetAttribute("key").ToString() == "Title")
+                {
+                    Setting.title = xe.GetAttribute("value").ToString();
+                }
                 if (xe.GetAttribute("key").ToString() == "WebSocketPort")
                 {
                     Setting.websocketPort = xe.GetAttribute("value").ToString();

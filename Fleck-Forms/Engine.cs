@@ -194,11 +194,12 @@ namespace Fleck_Forms
 
         public void Close()
         {
-            foreach (var customer in customerlist.ToList())
+            if (customerlist != null)
             {
-                if (customer.bRun)
+                foreach (var customer in customerlist.ToList())
                 {
-                    customer.SendToClient("exit");
+                    customer.reset();
+                    customerlist.Remove(customer);
                 }
             }
             serverSocket.Close();

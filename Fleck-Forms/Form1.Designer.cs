@@ -43,6 +43,7 @@
             this.listViewNF2 = new Fleck_Forms.ListViewNF();
             this.listView3 = new Fleck_Forms.ListViewNF();
             this.tabPage4 = new System.Windows.Forms.TabPage();
+            this.btn_reset = new System.Windows.Forms.Button();
             this.m_Mysql = new System.Windows.Forms.CheckBox();
             this.m_port = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
@@ -51,7 +52,6 @@
             this.m_CloudApi = new System.Windows.Forms.CheckBox();
             this.listView4 = new Fleck_Forms.ListViewNF();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
-            this.btn_reset = new System.Windows.Forms.Button();
             this.panel1.SuspendLayout();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
@@ -205,6 +205,16 @@
             this.tabPage4.Text = "设置";
             this.tabPage4.UseVisualStyleBackColor = true;
             // 
+            // btn_reset
+            // 
+            this.btn_reset.Location = new System.Drawing.Point(181, 170);
+            this.btn_reset.Name = "btn_reset";
+            this.btn_reset.Size = new System.Drawing.Size(75, 23);
+            this.btn_reset.TabIndex = 59;
+            this.btn_reset.Text = "重启引擎";
+            this.btn_reset.UseVisualStyleBackColor = true;
+            this.btn_reset.Click += new System.EventHandler(this.btn_reset_Click);
+            // 
             // m_Mysql
             // 
             this.m_Mysql.AutoSize = true;
@@ -286,16 +296,6 @@
             this.timer1.Enabled = true;
             this.timer1.Interval = 1000;
             this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
-            // 
-            // btn_reset
-            // 
-            this.btn_reset.Location = new System.Drawing.Point(181, 170);
-            this.btn_reset.Name = "btn_reset";
-            this.btn_reset.Size = new System.Drawing.Size(75, 23);
-            this.btn_reset.TabIndex = 59;
-            this.btn_reset.Text = "重启引擎";
-            this.btn_reset.UseVisualStyleBackColor = true;
-            this.btn_reset.Click += new System.EventHandler(this.btn_reset_Click);
             // 
             // Form1
             // 

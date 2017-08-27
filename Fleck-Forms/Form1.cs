@@ -46,7 +46,6 @@ namespace Fleck_Forms
         
         private void Form1_Load(object sender, EventArgs e)
         {
-
             asc.controllInitializeSize(this);
             InitListView();
             engine = new Engine();
@@ -57,6 +56,7 @@ namespace Fleck_Forms
             RunTime = System.DateTime.Now;
             m_CloudApi.Checked = Setting.isSupportCloudApi;
             m_port.Text = Setting.websocketPort;
+            this.Text = Setting.title;
             FleckLog.Level = LogLevel.Info;
             OnWebSocketServer(Setting.websocketPort);
         }
