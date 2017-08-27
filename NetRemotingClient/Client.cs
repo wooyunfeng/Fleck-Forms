@@ -362,7 +362,7 @@ namespace NetRemotingClient
             string[] linearray = new string[3];
 
             int nLevel = Int32.Parse(level);
-            List<string> listinfo = new List<string>();
+            string[] listinfo = new string[32];
             int ncout = 1;
             try
             {
@@ -397,13 +397,10 @@ namespace NetRemotingClient
                             if (bdealing)
                             {                                
                                 SendtoServer(line);
-                            }                 
-          
-                            if (ncout == intDepth)
-                            {
-                                listinfo.Add(line);
-                                ncout++;
                             }
+
+                            listinfo[intDepth-1] = line;
+  
                         }
 
                         if (line.IndexOf("bestmove") != -1)
@@ -411,15 +408,15 @@ namespace NetRemotingClient
                             bdealing = false;
                             dealcount++;
                             SendtoServer(line);
-                            if (listinfo.Count >= nLevel)
+                            string board = currentMsg.GetBoard();
+
+                            for (int i = 0; i < nLevel; i++)
                             {
-                                lock (currentMsg)
-                                {
-                                    redis.setRangeToList(currentMsg.GetBoard(), listinfo);
-                                }
-                                ncout = 1;
-                                listinfo.Clear();
-                            }
+                                redis.setItemToList(board, listinfo[i]);
+                            }                                
+
+                            Array.Clear(listinfo, 0, listinfo.Length);
+
                             
                             SendtoServer("list");
                             linearray[0] = currentMsg.GetBoard();
