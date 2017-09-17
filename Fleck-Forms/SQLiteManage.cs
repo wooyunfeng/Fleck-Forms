@@ -9,8 +9,10 @@ namespace Fleck_Forms
     {
         public SQLiteHelper historySQLite;
         public SQLiteHelper positionSQLite;
+        public SQLiteHelper openbookSQLite;
         public SQLiteManage()
         {
+            openbookSQLite = new SQLiteHelper("openbook.db");
             historySQLite = new SQLiteHelper(Setting.websocketPort + "history.db");
             string DateString = DateTime.Now.ToString("yyyyMMdd");
             string sql = "CREATE TABLE IF NOT EXISTS chess" + DateString + "(id integer PRIMARY KEY UNIQUE, revTime varchar(20),Address varchar(20), command varchar(255), dealTime varchar(20), dealType integer(1),result varchar(50));";//建表语句    
@@ -43,7 +45,7 @@ namespace Fleck_Forms
         }
         public void InsertBoard(string board)
         {
-
+            getOpenBook(board);
         }
         public void Update(int dealType, string result, string address, string command)
         {
@@ -65,6 +67,12 @@ namespace Fleck_Forms
         }
         public int getBoardID(string board)
         {
+            return 0;
+        }
+        public int getOpenBook(string board)
+        {
+            Zobrist zobrist = new Zobrist();
+            ulong zobristKey = zobrist.getKey(board);
             return 0;
         }
     }

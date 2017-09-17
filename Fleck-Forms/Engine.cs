@@ -106,7 +106,7 @@ namespace Fleck_Forms
                     comm.sqlOperate.InsertQueryall(msg.GetBoard(), strQueryall);
                 }
                 else if (message.IndexOf("position") != -1)
-                {
+                {                   
                     DealPositionMessage(socket, message);
                 }
             }
@@ -128,8 +128,8 @@ namespace Fleck_Forms
             else
             {
                 //将棋盘信息写入数据库，用于统计
-//                 comm.sqlOperate.InsertBoard(msg.GetBoard());
-//                 msg.boardID = comm.sqlOperate.getBoardID(msg.GetBoard());
+                comm.sqlOperate.InsertBoard(msg.GetBoard());
+               // msg.boardID = comm.sqlOperate.getBoardID(msg.GetBoard());
             }
             //查库
             if (comm.bRedis)
