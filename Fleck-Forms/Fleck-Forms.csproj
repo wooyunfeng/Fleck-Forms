@@ -87,6 +87,7 @@
     <Compile Include="AutoSizeFormClass.cs" />
     <Compile Include="Consumer.cs" />
     <Compile Include="Comm.cs" />
+    <Compile Include="COpenBook.cs" />
     <Compile Include="Engine.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>

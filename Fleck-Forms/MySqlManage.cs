@@ -212,5 +212,10 @@ namespace Fleck_Forms
                 throw;
             }
         }
+
+        public object getOpenBook(string board)
+        {
+            return null;
+        }
     }
 }

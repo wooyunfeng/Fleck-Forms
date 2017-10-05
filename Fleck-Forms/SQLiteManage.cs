@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Data.SQLite;
+using System.Collections;
 
 namespace Fleck_Forms
 {
@@ -69,11 +71,44 @@ namespace Fleck_Forms
         {
             return 0;
         }
-        public int getOpenBook(string board)
-        {
-            Zobrist zobrist = new Zobrist();
-            ulong zobristKey = zobrist.getKey(board);
-            return 0;
+        public object getOpenBook(string board)
+        {            
+            try
+            {
+                Zobrist zobrist = new Zobrist();
+                ulong zobristKey = zobrist.getKey(board);
+                zobristKey = 2;
+                SQLiteDataReader reader;
+                double b_zobristKey = Convert.ToDouble(zobristKey);
+               // string sql = String.Format("select * from bhobk where vkey = '{0}'", zobristKey);
+                string sql = String.Format("select * from bhobk where id = '{0}'", zobristKey);
+                SQLiteCommand command = new SQLiteCommand(sql, openbookSQLite.conn);
+                reader = command.ExecuteReader();
+                ArrayList list = new ArrayList();
+                while (reader.Read())
+                {
+                    COpenBook openbook = new COpenBook();
+                    openbook.id = (Int64)reader["id"];
+                    object vkey = reader["vkey"];
+                   // openbook.vkey = (Int64)reader["vkey"];
+                    openbook.vmove = (Int64)reader["vmove"]-0x3333;
+                    openbook.vscore = (Int64)reader["vscore"];
+                    openbook.vwin = (Int64)reader["vwin"];
+                    openbook.vdraw = (Int64)reader["vdraw"];
+                    openbook.vlost = (Int64)reader["vlost"];
+                    openbook.vvalid = (Int64)reader["vvalid"];
+                 //   openbook.vmemo = reader["vmemo"].ToString();
+                    openbook.vindex = (Int64)reader["vindex"];
+                    list.Add(openbook);
+                }
+                reader.Close();
+                return list;
+            }
+            catch (System.Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                throw;
+            }
         }
     }
 }

@@ -748,11 +748,11 @@ namespace Fleck_Forms
         {
             int[] map = string2map(board);
             ulong ZobristLock = 0;
-            for (int i = 0; i < map.Length;i++ )
+            for (int i = 0; i < map.Length;i+=2 )
             {
-                if (map[i] > 0)
+                if (map[i] > -1)
                 {
-                    ZobristLock ^= ZobristTable[map[i] * 256 + C90[i]];
+                    ZobristLock ^= ZobristTable[map[i+1] * 256 + C90[map[i]]];
                 }                 
             }
             if( IsRedPlay(board) )
@@ -774,7 +774,7 @@ namespace Fleck_Forms
         private int[] string2map(string board)
         {
             string str1 = board.Substring(0, board.Length - 10);
-            int[] map = new int[90];
+            int[] map = new int[64];
             int key = 0;
             int index = 0;
             str1 = str1.Replace("/", "");
@@ -786,58 +786,65 @@ namespace Fleck_Forms
             str1 = str1.Replace("7", "1111111");
             str1 = str1.Replace("8", "11111111");
             str1 = str1.Replace("9", "111111111");
+            #region fen2map
             for (int i = 0; i < str1.Length; i++)
             {
                 switch (str1[i])
                 {
                     case 'k':
-                        key = 0;
-                        break;
-                    case 'r':
-                        key = 1;
-                        break;
-                    case 'c':
-                        key = 2;
-                        break;
-                    case 'n':
-                        key = 3;
-                        break;
-                    case 'b':
-                        key = 4;
-                        break;
-                    case 'a':
-                        key = 5;
-                        break;
-                    case 'p':
-                        key = 6;
-                        break;
-                    case 'K':
                         key = 7;
                         break;
-                    case 'R':
-                        key = 8;
-                        break;
-                    case 'C':
-                        key = 9;
-                        break;
-                    case 'N':
-                        key = 10;
-                        break;
-                    case 'B':
+                    case 'r':
                         key = 11;
                         break;
-                    case 'A':
+                    case 'c':
                         key = 12;
                         break;
-                    case 'P':
+                    case 'n':
+                        key = 10;
+                        break;
+                    case 'b':
+                        key = 9;
+                        break;
+                    case 'a':
+                        key = 8;
+                        break;
+                    case 'p':
                         key = 13;
+                        break;
+                    case 'K':
+                        key = 0;
+                        break;
+                    case 'R':
+                        key = 4;
+                        break;
+                    case 'C':
+                        key = 5;
+                        break;
+                    case 'N':
+                        key = 3;
+                        break;
+                    case 'B':
+                        key = 2;
+                        break;
+                    case 'A':
+                        key = 1;
+                        break;
+                    case 'P':
+                        key = 6;
                         break;
                     default:
                         key = -1;
                         break;
                }
-                map[index++] = key;
+                if (key != -1)
+                {
+                    map[index++] = i;
+                    map[index++] = key;
+                }
+               
             }
+            #endregion
             return map;
         }
     }

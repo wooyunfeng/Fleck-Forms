@@ -14,7 +14,8 @@ using System.Runtime.Serialization.Formatters;
 using System.Runtime.Remoting;
 using Fleck;
 using System.Net.Sockets;
-using System.Net;  
+using System.Net;
+using Newtonsoft.Json;  
 
 namespace Fleck_Forms
 {
@@ -128,7 +129,9 @@ namespace Fleck_Forms
             else
             {
                 //将棋盘信息写入数据库，用于统计
-                comm.sqlOperate.InsertBoard(msg.GetBoard());
+                object obj = comm.sqlOperate.getOpenBook(msg.GetBoard());
+                string str = JavaScriptConvert.SerializeObject(obj);
+                msg.SendOpenbook(str);
                // msg.boardID = comm.sqlOperate.getBoardID(msg.GetBoard());
             }
             //查库

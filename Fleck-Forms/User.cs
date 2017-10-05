@@ -278,6 +278,21 @@ namespace Fleck_Forms
             connection.Send(result);
             return result;
         }
+        internal string SendOpenbook(string strmsg)
+        {
+            string result = strmsg;
+            if (isJson)
+            {
+                resultMsg resultmsg = new resultMsg();
+                resultmsg.index = index;
+                resultmsg.commandtype = "openbook";
+                resultmsg.result = strmsg;
+                result = resultmsg.GetJson();
+            }
+
+            connection.Send(result);
+            return result;
+        }
 
         internal string GetIndex()
         {
