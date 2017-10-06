@@ -29,11 +29,13 @@ namespace NetRemotingClient
         static public bool isSupportCloudApi { get; set; }
         static public string engine { get; set; }
         static public string serveraddress { get; set; }
+        static public bool isEngineRedis { get; set; }
         static public string engineRedis_writer { get; set; }
         static public int serverport { get; set; }
         NewMsg currentMsg;
         DateTime starttime;
         RedisManage redis;
+        Queue countQueue;
         bool bConnect;
         public Client()
         {
@@ -50,7 +52,11 @@ namespace NetRemotingClient
 
             ramCounter = new PerformanceCounter("Memory", "Available MBytes");
 
-            redis = new RedisManage(engineRedis_writer);
+            countQueue = new Queue();
+            if (isEngineRedis)
+            {
+                redis = new RedisManage(engineRedis_writer);
+            }
         }
 
          public void AddMsgItemMethod(string[] message)
@@ -410,7 +416,7 @@ namespace NetRemotingClient
                             SendtoServer(line);
                             string board = currentMsg.GetBoard();
 
-                            for (int i = 0; i < nLevel; i++)
+                            for (int i = 0; i < nLevel && isEngineRedis; i++)
                             {
                                 redis.setItemToList(board, listinfo[i]);
                             }                                
@@ -512,6 +518,10 @@ namespace NetRemotingClient
                 {
                     engineRedis_writer = xe.GetAttribute("value").ToString();
                 }
+                if (xe.GetAttribute("key").ToString() == "EngineRedis")
+                {
+                    isEngineRedis = Convert.ToBoolean(xe.GetAttribute("value"));
+                }
             }
         }
 
@@ -544,8 +554,35 @@ namespace NetRemotingClient
             labelinfo.Text = strInfo;
 
             labelcount.Text = dealcount.ToString();
+
+            checkCPU();
+
             //监视超时
             //checkTimeOut();
+        }
+
+        private void checkCPU()
+        {
+            int cpu = (int)cpuCounter.NextValue();
+            countQueue.Enqueue(cpu);
+            int nCount = 0;
+            if (countQueue.Count > 59)
+            {
+                countQueue.Dequeue();
+                foreach (int ncpu in countQueue)
+                {
+                    nCount += ncpu;
+                } 
+                //一分钟内CPU平均值大于90，将level降为0，否则读取配置
+                if (nCount/60 > 90)
+                {
+                    level = "0";                    
+                }
+                else
+                {
+                    level = textDepth.Text;
+                }
+            }
         }
 
         private void timer2_Tick(object sender, EventArgs e)

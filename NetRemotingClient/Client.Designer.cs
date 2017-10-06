@@ -252,6 +252,7 @@ namespace NetRemotingClient
             this.Controls.Add(this.listView1);
             this.Controls.Add(this.textDepth);
             this.Controls.Add(this.label1);
+            this.MaximizeBox = false;
             this.Name = "Client";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "象棋微学堂引擎";
