@@ -78,6 +78,7 @@ namespace Fleck_Forms
                 Zobrist zobrist = new Zobrist();
                 ulong zobristKey = zobrist.getKey(board);
                 zobristKey = 2;
+                Byte[] blob = null; 
                 SQLiteDataReader reader;
                 double b_zobristKey = Convert.ToDouble(zobristKey);
                // string sql = String.Format("select * from bhobk where vkey = '{0}'", zobristKey);
@@ -87,6 +88,12 @@ namespace Fleck_Forms
                 ArrayList list = new ArrayList();
                 while (reader.Read())
                 {
+                    var vey = reader.GetValue(1);
+
+                    blob = new Byte[(reader.GetBytes(0, 0, null, 0, int.MaxValue))];   
+                    reader.GetBytes(0, 0, blob, 0, blob.Length);   
+  
+  
                     COpenBook openbook = new COpenBook();
                     openbook.id = (Int64)reader["id"];
                     object vkey = reader["vkey"];

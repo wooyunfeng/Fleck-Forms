@@ -132,7 +132,6 @@ namespace Fleck_Forms
                 object obj = comm.sqlOperate.getOpenBook(msg.GetBoard());
                 string str = JavaScriptConvert.SerializeObject(obj);
                 msg.SendOpenbook(str);
-               // msg.boardID = comm.sqlOperate.getBoardID(msg.GetBoard());
             }
             //查库
             if (comm.bRedis)

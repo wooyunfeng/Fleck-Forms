@@ -5,6 +5,6 @@
   <add key="EnginePath" value="D:\ccyclone\ccyclone.exe"></add>
   <add key="ServerAddress" value="120.55.37.210"></add>
   <add key="ServerPort" value="8885"></add>
-  <add key="EngineRedis" value="false"></add>
-  <add key="EngineRedisWriter" value="118.190.46.210:8640"></add>
+  <add key="EngineRedis" value="true"></add>
+  <add key="EngineRedisWriter" value="118.190.46.210:6379"></add>
 </configuration>

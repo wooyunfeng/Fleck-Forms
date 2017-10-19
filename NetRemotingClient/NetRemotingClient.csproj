@@ -82,6 +82,7 @@
     <Compile Include="RedisManage.cs" />
     <Compile Include="User.cs" />
     <Compile Include="ZipHelper.cs" />
+    <Compile Include="Zobrist.cs" />
     <EmbeddedResource Include="Client.resx">
       <DependentUpon>Client.cs</DependentUpon>
     </EmbeddedResource>

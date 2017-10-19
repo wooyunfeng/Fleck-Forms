@@ -219,7 +219,7 @@ namespace Fleck_Forms
         private string command { get; set; }
         private string commandtype { get; set; }
         private bool isJson { get; set; }
-        public int boardID { get; set; }
+        public UInt64 boardID { get; set; }
         public NewMsg(IWebSocketConnection connection, string message)
         {
             if (JsonSplit.IsJson(message))//传入的json串
@@ -240,7 +240,9 @@ namespace Fleck_Forms
             }
 
             this.connection = connection;
-            this.message = message;           
+            this.message = message;
+            Zobrist zobrist = new Zobrist();
+            this.boardID = zobrist.getKey(GetBoard());
         }
 
         public NewMsg(string message)
@@ -262,6 +264,8 @@ namespace Fleck_Forms
                 isJson = false;
             }
             this.message = message;
+            Zobrist zobrist = new Zobrist();
+            this.boardID = zobrist.getKey(GetBoard());
         }
         internal string Send(string strmsg)
         {

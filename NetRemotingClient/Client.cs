@@ -17,6 +17,7 @@ using System.IO;
 using System.Net;
 using System.Xml;
 using System.Net.Sockets;
+using Fleck_Forms;
 
 namespace NetRemotingClient
 {   
@@ -146,7 +147,7 @@ namespace NetRemotingClient
             }
             catch (Exception ex)
             {
-                strInfo = ex.Message; 
+                strInfo = "Client_Load:" + ex.Message; 
             }
         }
 
@@ -171,7 +172,7 @@ namespace NetRemotingClient
                 serverSocket = socket;
                 Thread.Sleep(100);
                 bConnect = true;
-               
+                bdealing = false;               
             }
             catch (Exception ex)
             {
@@ -222,7 +223,7 @@ namespace NetRemotingClient
                 catch (Exception ex)
                 {
                     myClientSocket.Close();
-                    strInfo = ex.Message;
+                    strInfo = "ReceiveMessage:" + ex.Message;
                     break;
                 }
             }
@@ -267,7 +268,7 @@ namespace NetRemotingClient
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message);
+               // MessageBox.Show(ex.Message);
             }
         }
         // 检查一个Socket是否可连接  
@@ -354,7 +355,7 @@ namespace NetRemotingClient
             }
             catch (System.Exception ex)
             {
-               strInfo = ex.Message;
+                strInfo = "KillPipeThread:" + ex.Message;
             }
         }
 
@@ -401,12 +402,13 @@ namespace NetRemotingClient
                         {
                             intDepth = Int32.Parse(sArray[2]);
                             if (bdealing)
-                            {                                
+                            {
                                 SendtoServer(line);
                             }
-
-                            listinfo[intDepth-1] = line;
-  
+                            if (intDepth > 0 && intDepth < 32)
+                            {
+                                listinfo[intDepth - 1] = line;  
+                            }                            
                         }
 
                         if (line.IndexOf("bestmove") != -1)
@@ -415,10 +417,11 @@ namespace NetRemotingClient
                             dealcount++;
                             SendtoServer(line);
                             string board = currentMsg.GetBoard();
-
+                            Zobrist zobrist = new Zobrist();
+                            UInt64 boardKey = zobrist.getKey(board);
                             for (int i = 0; i < nLevel && isEngineRedis; i++)
                             {
-                                redis.setItemToList(board, listinfo[i]);
+                                redis.setItemToList(boardKey.ToString("X8"), listinfo[i]);
                             }                                
 
                             Array.Clear(listinfo, 0, listinfo.Length);
@@ -435,7 +438,9 @@ namespace NetRemotingClient
             }
             catch (System.Exception ex)
             {
-                strInfo = ex.Message;
+                bdealing = false;
+                resetEngine();
+                strInfo = "PipeThread:" + ex.Message;
             }
         }
 
@@ -454,8 +459,7 @@ namespace NetRemotingClient
             }
             catch (System.Exception ex)
             {
-                strInfo = ex.Message;
-                bRun = false;
+                strInfo = "SendtoServer:" + ex.Message;
                 Thread.Sleep(100);
                 OnTCP();                
             }                       
@@ -530,7 +534,9 @@ namespace NetRemotingClient
 
         public string getCurrentCpuUsage()
         {
-            return (int)cpuCounter.NextValue() + "%";
+            int cpu = (int)cpuCounter.NextValue();
+            checkCPU(cpu);         
+            return cpu + "%";
         }
 
         public string getAvailableRAM()
@@ -554,16 +560,12 @@ namespace NetRemotingClient
             labelinfo.Text = strInfo;
 
             labelcount.Text = dealcount.ToString();
-
-            checkCPU();
-
             //监视超时
             //checkTimeOut();
         }
 
-        private void checkCPU()
+        private void checkCPU(int cpu)
         {
-            int cpu = (int)cpuCounter.NextValue();
             countQueue.Enqueue(cpu);
             int nCount = 0;
             if (countQueue.Count > 59)
@@ -611,6 +613,7 @@ namespace NetRemotingClient
         private void button1_Click(object sender, EventArgs e)
         {
             strInfo = "重连服务器";
+            bdealing  = false;
             OnTCP();
         }
 
