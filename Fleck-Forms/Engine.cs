@@ -129,9 +129,10 @@ namespace Fleck_Forms
             else
             {
                 //将棋盘信息写入数据库，用于统计
-                object obj = comm.sqlOperate.getOpenBook(msg.GetBoard());
-                string str = JavaScriptConvert.SerializeObject(obj);
-                msg.SendOpenbook(str);
+                comm.sqlOperate.InsertBoard(msg.GetFen());
+//                 object obj = comm.sqlOperate.getOpenBook(msg.GetBoard());
+//                 string str = JavaScriptConvert.SerializeObject(obj);
+//                 msg.SendOpenbook(str);
             }
             //查库
             if (comm.bRedis)

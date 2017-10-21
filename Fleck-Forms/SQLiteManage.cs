@@ -22,7 +22,7 @@ namespace Fleck_Forms
             string sqlLogin = "CREATE TABLE IF NOT EXISTS Login (id integer PRIMARY KEY UNIQUE, Address varchar(20), Connected DATETIME(20), Closed DATETIME(20));";//建表语句    
             historySQLite.SQLite_CreateTable(sqlLogin);
             positionSQLite = new SQLiteHelper("position.db");
-            string sqlPosiotion = "CREATE TABLE IF NOT EXISTS Position (id integer PRIMARY KEY UNIQUE, Board varchar(255), visit integer);";//建表语句    
+            string sqlPosiotion = "CREATE TABLE IF NOT EXISTS Position (id integer PRIMARY KEY UNIQUE, hashkey integer, fen varchar(255), visit integer, lasttime DATETIME(20));";//建表语句    
             positionSQLite.SQLite_CreateTable(sqlPosiotion);
             string sqlEngine = "CREATE TABLE IF NOT EXISTS Engine (id integer, depth integer, seldepth integer,multipv integer,score integer,nodes integer,nps integer,hashfull integer,tbhits integer,time integer,pv varchar(255));";//建表语句    
             positionSQLite.SQLite_CreateTable(sqlEngine);
@@ -47,7 +47,28 @@ namespace Fleck_Forms
         }
         public void InsertBoard(string board)
         {
-            getOpenBook(board);
+            Zobrist zobrist = new Zobrist();
+            ulong zobristKey = zobrist.getKey(board);
+            string sql = String.Format("select * from Position where hashkey = '{0}'", zobristKey);
+            SQLiteDataReader reader = positionSQLite.SQLite_ExecuteReader(sql);
+            if (reader != null)
+            {
+                if (reader.Read())
+                {
+                    //do something
+                    int count = reader.GetInt32(3)+1;
+                    DateTime dealTime = DateTime.Now;
+                    sql = String.Format("UPDATE  Position set visit = '{0}', lasttime = '{1}' where hashkey = '{2}'", count, dealTime, zobristKey);
+                    positionSQLite.SQLite_ExecuteNonQuery(sql);
+                }
+                else
+                {
+                    DateTime dealTime = DateTime.Now;
+                    sql = String.Format("INSERT INTO Position(hashkey, fen, visit, lasttime) VALUES('{0}', '{1}',1, '{2}')", zobristKey, board, dealTime);//插入几条数据
+                    positionSQLite.SQLite_ExecuteNonQuery(sql);
+                }
+            }           
+
         }
         public void Update(int dealType, string result, string address, string command)
         {
@@ -56,7 +77,7 @@ namespace Fleck_Forms
 
         public object Query(string addr)
         {
-            return historySQLite.SQLite_Query(addr);
+            return historySQLite.SQLite_QueryAddress(addr);
         }
 
         public void InsertQueryall(string board, string strQueryall)

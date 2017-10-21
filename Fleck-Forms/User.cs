@@ -318,7 +318,6 @@ namespace Fleck_Forms
             if (command.IndexOf("position") != -1)
             {
                 return command.Substring(13,command.Length-13);
-
             }
             else if (command.IndexOf("queryall") != -1)
             {
@@ -326,6 +325,20 @@ namespace Fleck_Forms
             }
             return "";
         }
+
+        internal string GetFen()
+        {
+            if (command.IndexOf("position") != -1)
+            {
+                return command.Substring(13, command.Length - 13 - 8);
+            }
+            else if (command.IndexOf("queryall") != -1)
+            {
+                return command.Substring(9, command.Length - 9);
+            }
+            return "";
+        }
+
 
         internal string GetDepth()
         {

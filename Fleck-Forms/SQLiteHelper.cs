@@ -117,11 +117,41 @@ namespace Fleck_Forms
             }
         }
 
-        public SQLiteDataReader SQLite_Query(string address)
+        public int SQLite_ExecuteNonQuery(string sql)
+        {
+            try
+            {               
+                SQLiteCommand cmdInsert = new SQLiteCommand(conn);
+                cmdInsert.CommandText = sql;
+                return cmdInsert.ExecuteNonQuery();
+            }
+            catch (System.Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                throw;
+            }
+        }
+
+        public SQLiteDataReader SQLite_ExecuteReader(string sql)
+        {
+            try
+            {              
+                SQLiteCommand command = new SQLiteCommand(sql, conn);
+                SQLiteDataReader reader = command.ExecuteReader();
+                return reader;
+            }
+            catch (System.Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                throw;
+            }
+        }
+
+        public SQLiteDataReader SQLite_QueryAddress(string address)
         {
             try
             {
-                string sql = String.Format("select * from chess{0} where Address = '{1}'" ,DateString, address); ;
+                string sql = String.Format("select * from chess{0} where Address = '{1}'" ,DateString, address);
                 SQLiteCommand command = new SQLiteCommand(sql, conn);
                 SQLiteDataReader reader = command.ExecuteReader();                
                 return reader;
