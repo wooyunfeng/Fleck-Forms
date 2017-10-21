@@ -22,12 +22,12 @@ namespace Fleck_Forms
             string sqlLogin = "CREATE TABLE IF NOT EXISTS Login (id integer PRIMARY KEY UNIQUE, Address varchar(20), Connected DATETIME(20), Closed DATETIME(20));";//建表语句    
             historySQLite.SQLite_CreateTable(sqlLogin);
             positionSQLite = new SQLiteHelper("position.db");
-            string sqlPosiotion = "CREATE TABLE IF NOT EXISTS Position (id integer PRIMARY KEY UNIQUE, hashkey integer, fen varchar(255), visit integer, lasttime DATETIME(20));";//建表语句    
+            string sqlPosiotion = "CREATE TABLE IF NOT EXISTS board (id integer PRIMARY KEY UNIQUE, vkey integer, zobrist varchar(16), fen varchar(255), visit integer, lasttime DATETIME(20));";//建表语句    
             positionSQLite.SQLite_CreateTable(sqlPosiotion);
-            string sqlEngine = "CREATE TABLE IF NOT EXISTS Engine (id integer, depth integer, seldepth integer,multipv integer,score integer,nodes integer,nps integer,hashfull integer,tbhits integer,time integer,pv varchar(255));";//建表语句    
-            positionSQLite.SQLite_CreateTable(sqlEngine);
-            string sqlQueryall = "CREATE TABLE IF NOT EXISTS ChessDB (id integer, result varchar(4096), visit integer);";//建表语句    
-            positionSQLite.SQLite_CreateTable(sqlQueryall);
+//             string sqlEngine = "CREATE TABLE IF NOT EXISTS Engine (id integer, depth integer, seldepth integer,multipv integer,score integer,nodes integer,nps integer,hashfull integer,tbhits integer,time integer,pv varchar(255));";//建表语句    
+//             positionSQLite.SQLite_CreateTable(sqlEngine);
+//             string sqlQueryall = "CREATE TABLE IF NOT EXISTS ChessDB (id integer, result varchar(4096), visit integer);";//建表语句    
+//             positionSQLite.SQLite_CreateTable(sqlQueryall);
         }
 
 
@@ -47,29 +47,37 @@ namespace Fleck_Forms
         }
         public void InsertBoard(string board)
         {
-            Zobrist zobrist = new Zobrist();
-            ulong zobristKey = zobrist.getKey(board);
-            string sql = String.Format("select * from Position where hashkey = '{0}'", zobristKey);
-            SQLiteDataReader reader = positionSQLite.SQLite_ExecuteReader(sql);
-            if (reader != null)
+            try
             {
-                if (reader.Read())
+                Zobrist zobrist = new Zobrist();
+                ulong zobristKey = zobrist.getKey(board);
+                string sql = String.Format("select * from board where zobrist = '{0}'", zobristKey.ToString("X"));
+                SQLiteDataReader reader = positionSQLite.SQLite_ExecuteReader(sql);
+                if (reader != null)
                 {
-                    //do something
-                    int count = reader.GetInt32(3)+1;
-                    DateTime dealTime = DateTime.Now;
-                    sql = String.Format("UPDATE  Position set visit = '{0}', lasttime = '{1}' where hashkey = '{2}'", count, dealTime, zobristKey);
-                    positionSQLite.SQLite_ExecuteNonQuery(sql);
-                }
-                else
-                {
-                    DateTime dealTime = DateTime.Now;
-                    sql = String.Format("INSERT INTO Position(hashkey, fen, visit, lasttime) VALUES('{0}', '{1}',1, '{2}')", zobristKey, board, dealTime);//插入几条数据
-                    positionSQLite.SQLite_ExecuteNonQuery(sql);
-                }
-            }           
-
+                    if (reader.Read())
+                    {
+                        //do something
+                        int count = reader.GetInt32(4) + 1;
+                        DateTime dealTime = DateTime.Now;
+                        sql = String.Format("UPDATE  board set visit = '{0}', lasttime = '{1}' where zobrist = '{2}'", count, dealTime, zobristKey.ToString("X"));
+                        positionSQLite.SQLite_ExecuteNonQuery(sql);
+                    }
+                    else
+                    {
+                        DateTime dealTime = DateTime.Now;
+                        sql = String.Format("INSERT INTO board(vkey, zobrist, fen, visit, lasttime) VALUES('{0}', '{1}','{2}',1, '{3}')", zobristKey, zobristKey.ToString("X"), board, dealTime);//插入几条数据
+                        positionSQLite.SQLite_ExecuteNonQuery(sql);
+                    }
+                }          
+            }
+            catch (System.Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                throw;
+            }
         }
+
         public void Update(int dealType, string result, string address, string command)
         {
             historySQLite.SQLite_UpdateCommand(dealType, result, address, command);
