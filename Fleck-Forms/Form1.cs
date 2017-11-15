@@ -15,6 +15,7 @@ using System.Collections.Concurrent;
 using System.Collections;
 using System.Data.SQLite;
 using MySql.Data.MySqlClient;
+using Fleck.online;
 
 
 namespace Fleck_Forms
@@ -64,6 +65,7 @@ namespace Fleck_Forms
         public void OnWebSocketServer(string port)
         {
             var server = new WebSocketServer("ws://0.0.0.0:" + port);
+            RoomSet roomSet = new RoomSet();
 
             server.Start(socket =>
             {
@@ -76,9 +78,22 @@ namespace Fleck_Forms
                 {
                     DelConnection(socket);
                     engine.OnClose(socket);
+                    roomSet.Remove(socket);
                 };
                 socket.OnMessage = message =>
                 {
+                    if (message.IndexOf("roomid") != -1)
+                    {
+                        roomSet.Add(message, socket);
+                    }
+                    else if (message.IndexOf("move") != -1)
+                    {
+                        roomSet.Send(socket, message);
+                    }
+                    else if (message.IndexOf("resign") != -1)
+                    {
+                        roomSet.RemoveAll(socket);
+                    }                             
                     engine.OnMessage(socket, message);
                     string strAddr = socket.ConnectionInfo.ClientIpAddress + ":" + socket.ConnectionInfo.ClientPort.ToString();
                     string[] msg = { DateTime.Now.ToLongTimeString(), strAddr, message };                    

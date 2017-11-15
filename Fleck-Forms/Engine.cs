@@ -110,11 +110,27 @@ namespace Fleck_Forms
                 {                   
                     DealPositionMessage(socket, message);
                 }
+                else if (message.IndexOf("move") != -1)
+                {
+                    DealMoveMessage(socket, message);
+                }
             }
             catch (System.Exception ex)
             {
                 Console.WriteLine(ex.Message);
             }           
+        }
+
+        private void DealMoveMessage(IWebSocketConnection socket, string message)
+        {
+            var role_from = new Role(socket);
+            foreach (var role in comm.user.allRoles.ToList())
+            {
+                if (socket != role.connection)
+                {
+                    role.Send(message);
+                }                
+            }
         }
 
         private void DealPositionMessage(IWebSocketConnection socket, string message)
