@@ -114,6 +114,10 @@ namespace Fleck_Forms
                 {
                     DealMoveMessage(socket, message);
                 }
+                else if (message.IndexOf("openbook") != -1)
+                {
+                    DealOpenBookMessage(socket, message);
+                }
             }
             catch (System.Exception ex)
             {
@@ -133,6 +137,14 @@ namespace Fleck_Forms
             }
         }
 
+        private void DealOpenBookMessage(IWebSocketConnection socket, string message)
+        {
+            NewMsg msg = new NewMsg(socket, message);
+            object obj = comm.sqlOperate.getOpenBook(msg.GetBoard());
+            string str = JavaScriptConvert.SerializeObject(obj);
+            msg.Send(str);
+        }
+
         private void DealPositionMessage(IWebSocketConnection socket, string message)
         {
             NewMsg msg = new NewMsg(socket, message);
@@ -146,9 +158,6 @@ namespace Fleck_Forms
             {
                 //将棋盘信息写入数据库，用于统计
                 comm.sqlOperate.InsertBoard(msg.GetBoard());
-//                 object obj = comm.sqlOperate.getOpenBook(msg.GetBoard());
-//                 string str = JavaScriptConvert.SerializeObject(obj);
-//                 msg.SendOpenbook(str);
             }
             //查库
             if (comm.bRedis)

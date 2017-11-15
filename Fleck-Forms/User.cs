@@ -323,6 +323,10 @@ namespace Fleck_Forms
             {
                 return command.Substring(9, command.Length - 9);
             }
+            else if (command.IndexOf("openbook") != -1)
+            {
+                return command.Substring(9, command.Length - 9);
+            }
             return "";
         }
 
@@ -333,6 +337,10 @@ namespace Fleck_Forms
                 return command.Substring(13, command.Length - 13 - 8);
             }
             else if (command.IndexOf("queryall") != -1)
+            {
+                return command.Substring(9, command.Length - 9);
+            }
+            else if (command.IndexOf("openbook") != -1)
             {
                 return command.Substring(9, command.Length - 9);
             }
