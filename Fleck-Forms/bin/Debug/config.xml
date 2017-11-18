@@ -1,10 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <configuration>
   <add key="Title" value="人机对弈"></add>
-  <add key="WebSocketPort" value="9011"></add>
+  <add key="WebSocketPort" value="9001"></add>
   <add key="Level" value="17"></add>
   <add key="CloudAPI" value="true"></add>
-  <add key="ServerAddress" value="118.190.46.210"></add>
+  <add key="ServerAddress" value="127.0.0.1"></add>
   <add key="ServerPort" value="8887"></add>
   <add key="CloudRedisPath" value="47.96.28.91:8639"></add>
   <add key="EngineRedisWriter" value="47.96.28.91:8640"></add>

@@ -64,6 +64,7 @@ namespace Fleck_Forms
             FleckLog.Level = LogLevel.Info;
             OnWebSocketServer(Setting.websocketPort);
             initRabbit();
+            recvThread();
         }
 
         public void OnWebSocketServer(string port)
