@@ -16,7 +16,8 @@ using System.Collections;
 using System.Data.SQLite;
 using MySql.Data.MySqlClient;
 using Fleck.online;
-
+using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
 
 namespace Fleck_Forms
 {
@@ -25,7 +26,9 @@ namespace Fleck_Forms
         //1.声明自适应类实例
         AutoSizeFormClass asc = new AutoSizeFormClass();
         string Port = "9001";
-        
+        ConnectionFactory factory;
+        IConnection connection;
+        IModel send_channel;
         public Form1()
         {
             addListDelegate = new AddConnectionItem(AddListItemMethod);
@@ -60,6 +63,7 @@ namespace Fleck_Forms
             this.Text = Setting.title;
             FleckLog.Level = LogLevel.Info;
             OnWebSocketServer(Setting.websocketPort);
+            initRabbit();
         }
 
         public void OnWebSocketServer(string port)
@@ -82,6 +86,7 @@ namespace Fleck_Forms
                 };
                 socket.OnMessage = message =>
                 {
+                    sendtoRabbit(message);
                     if (message.IndexOf("roomid") != -1)
                     {
                         roomSet.Add(message, socket);
@@ -101,8 +106,52 @@ namespace Fleck_Forms
                 };
             });
         }
+        private void initRabbit()
+        {
+            factory = new ConnectionFactory();
+            factory.HostName = "47.96.28.91";
+            factory.UserName = "chd1219";
+            factory.Password = "jiao19890228";
+            connection = factory.CreateConnection();
+            send_channel = connection.CreateModel();
+            send_channel.QueueDeclare("send-queue", true, false, false, null);
+        }
 
-        
+        private void sendtoRabbit(string message)
+        {                      
+            var body = Encoding.UTF8.GetBytes(message);
+            var properties = send_channel.CreateBasicProperties();
+            send_channel.BasicPublish("", "send-queue", properties, body);
+        }
+
+        private void recvThread()
+        {
+            Thread thread = new Thread(new ThreadStart(revfromRabbit));
+            thread.Start();
+        }
+
+        private void revfromRabbit()
+        {
+            using (var recv_channel = connection.CreateModel())
+            {
+                recv_channel.QueueDeclare("recv-queue", true, false, false, null);
+                recv_channel.BasicQos(0, 1, false);
+
+                var consumer = new QueueingBasicConsumer(recv_channel);
+                recv_channel.BasicConsume("recv-queue", false, consumer);
+
+                while (true)
+                {
+                    var ea = (BasicDeliverEventArgs)consumer.Queue.Dequeue();
+
+                    var body = ea.Body;
+                    var message = Encoding.UTF8.GetString(body);
+
+                    recv_channel.BasicAck(ea.DeliveryTag, false);
+                }
+            }
+        }
+
         private void AddMsg(string [] param)
         {
             try
@@ -543,6 +592,7 @@ namespace Fleck_Forms
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
             engine.Close();
+            System.Environment.Exit(0);
         }
 
         private void m_Mysql_CheckedChanged(object sender, EventArgs e)

@@ -46,6 +46,9 @@
     <Reference Include="Newtonsoft.Json">
       <HintPath>lib\Newtonsoft.Json.dll</HintPath>
     </Reference>
+    <Reference Include="RabbitMQ.Client">
+      <HintPath>lib\RabbitMQ.Client.dll</HintPath>
+    </Reference>
     <Reference Include="ServiceStack.Common, Version=1.0.4198.20620, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>bin\Debug\ServiceStack.Common.dll</HintPath>

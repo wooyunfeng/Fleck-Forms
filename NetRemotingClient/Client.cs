@@ -578,13 +578,18 @@ namespace NetRemotingClient
                 //一分钟内CPU平均值大于90，将level降为0，否则读取配置
                 if (nCount/60 > 90)
                 {
-                    level = "0";                    
-                }
-                else
-                {
-                    level = textDepth.Text;
-                }
+                    Restart();                
+                }              
             }
+        }
+
+        private void Restart()
+        {
+            System.Diagnostics.Process.Start(System.Reflection.Assembly.GetExecutingAssembly().Location);
+            Application.ExitThread();
+            Application.Exit();
+            Application.Restart();
+            Process.GetCurrentProcess().Kill();
         }
 
         private void timer2_Tick(object sender, EventArgs e)
