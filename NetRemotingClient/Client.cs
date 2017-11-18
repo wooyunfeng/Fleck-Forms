@@ -333,11 +333,12 @@ namespace NetRemotingClient
 
         public void resetEngine()
         {
-            SendtoServer("restart");
-            KillPipeThread();
-            //启动管道线程
-            StartPipeThread();
-            Thread.Sleep(1000);
+//             SendtoServer("restart");
+//             KillPipeThread();
+//             //启动管道线程
+//             StartPipeThread();
+//             Thread.Sleep(1000);
+            Restart();
         }
 
         private void KillPipeThread()
@@ -568,7 +569,7 @@ namespace NetRemotingClient
         {
             countQueue.Enqueue(cpu);
             int nCount = 0;
-            if (countQueue.Count > 59)
+            if (countQueue.Count > 29)
             {
                 countQueue.Dequeue();
                 foreach (int ncpu in countQueue)
@@ -576,16 +577,15 @@ namespace NetRemotingClient
                     nCount += ncpu;
                 } 
                 //一分钟内CPU平均值大于90，将level降为0，否则读取配置
-                if (nCount/60 > 90)
+                if (nCount/30 > 90)
                 {
-                    Restart();                
+                    Restart();
                 }              
             }
         }
 
         private void Restart()
         {
-            System.Diagnostics.Process.Start(System.Reflection.Assembly.GetExecutingAssembly().Location);
             Application.ExitThread();
             Application.Exit();
             Application.Restart();
