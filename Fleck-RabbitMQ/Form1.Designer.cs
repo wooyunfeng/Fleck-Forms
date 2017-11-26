@@ -114,9 +114,9 @@
             // 
             // listView1
             // 
-            this.listView1.Location = new System.Drawing.Point(111, 0);
+            this.listView1.Location = new System.Drawing.Point(169, 0);
             this.listView1.Name = "listView1";
-            this.listView1.Size = new System.Drawing.Size(612, 591);
+            this.listView1.Size = new System.Drawing.Size(554, 591);
             this.listView1.TabIndex = 34;
             this.listView1.UseCompatibleStateImageBehavior = false;
             // 
@@ -124,12 +124,12 @@
             // 
             this.treeView1.Location = new System.Drawing.Point(2, 3);
             this.treeView1.Name = "treeView1";
-            this.treeView1.Size = new System.Drawing.Size(103, 553);
+            this.treeView1.Size = new System.Drawing.Size(161, 553);
             this.treeView1.TabIndex = 26;
             // 
             // btn_expend
             // 
-            this.btn_expend.Location = new System.Drawing.Point(6, 562);
+            this.btn_expend.Location = new System.Drawing.Point(28, 562);
             this.btn_expend.Name = "btn_expend";
             this.btn_expend.Size = new System.Drawing.Size(41, 23);
             this.btn_expend.TabIndex = 28;
@@ -138,7 +138,7 @@
             // 
             // btn_closeall
             // 
-            this.btn_closeall.Location = new System.Drawing.Point(57, 562);
+            this.btn_closeall.Location = new System.Drawing.Point(79, 562);
             this.btn_closeall.Name = "btn_closeall";
             this.btn_closeall.Size = new System.Drawing.Size(41, 23);
             this.btn_closeall.TabIndex = 27;

@@ -162,25 +162,33 @@ namespace RabbitMQ_Client
 
         private void deal(NewMsg currentMsg)
         {
-            if (currentMsg.GetCommand().IndexOf("position") != -1)
+            try
             {
-                bdealing = true;
-                startdeal = DateTime.Now;
-                PipeWriter.Write(currentMsg.GetCommand() + "\r\n");
-                string depth = currentMsg.GetDepth();
-                if (depth == null)
+                if (currentMsg.GetCommand().IndexOf("position") != -1)
                 {
-                    PipeWriter.Write("go depth " + level + "\r\n");
+                    bdealing = true;
+                    startdeal = DateTime.Now;
+                    PipeWriter.Write(currentMsg.GetCommand() + "\r\n");
+                    string depth = currentMsg.GetDepth();
+                    if (depth == null)
+                    {
+                        PipeWriter.Write("go depth " + level + "\r\n");
+                    }
+                    else
+                    {
+                        PipeWriter.Write("go depth " + depth + "\r\n");
+                    }
                 }
                 else
                 {
-                    PipeWriter.Write("go depth " + depth + "\r\n");
+                    recv_channel.BasicAck(ea.DeliveryTag, false);
                 }
             }
-            else
+            catch (System.Exception ex)
             {
-                recv_channel.BasicAck(ea.DeliveryTag, false);
+                strInfo = "deal:" + ex.Message;
             }
+           
         }  
   
         /// <summary>
@@ -324,6 +332,11 @@ namespace RabbitMQ_Client
                         }
                         Thread.Sleep(10);
                     }
+                    else
+                    {
+                        recv_channel.BasicAck(ea.DeliveryTag, false);
+                        Restart();
+                    }
                 }
             }
             catch (System.Exception ex)
@@ -375,8 +388,15 @@ namespace RabbitMQ_Client
 
                     var body = ea.Body;
                     var message = Encoding.UTF8.GetString(body);
-                    currentMsg = new NewMsg(message);
-                    deal(currentMsg);                   
+                    if (message.IndexOf("id") != -1)
+                    {
+                        currentMsg = new NewMsg(message);
+                        deal(currentMsg);       
+                    }
+                    else
+                    {
+                        recv_channel.BasicAck(ea.DeliveryTag, false);
+                    }
                 }
             }
         }
@@ -501,10 +521,10 @@ namespace RabbitMQ_Client
 
         private void Restart()
         {
-//             Application.ExitThread();
-//             Application.Exit();
-//             Application.Restart();
-//             Process.GetCurrentProcess().Kill();
+            Application.ExitThread();
+            Application.Exit();
+            Application.Restart();
+            Process.GetCurrentProcess().Kill();
         }
 
         private bool checkTimeOut()

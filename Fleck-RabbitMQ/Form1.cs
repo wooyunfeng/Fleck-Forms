@@ -111,7 +111,7 @@ namespace Fleck_RabbitMQ
             }
            
             string strAddr = socket.ConnectionInfo.ClientIpAddress + ":" + socket.ConnectionInfo.ClientPort.ToString();
-            string[] showmsg = { DateTime.Now.ToLongTimeString(), strAddr, message };
+            string[] showmsg = { DateTime.Now.ToLongTimeString(), strAddr, msg.index, msg.GetCommand() };
             AddMsgIn(showmsg);
 
             //过滤命令
@@ -200,10 +200,18 @@ namespace Fleck_RabbitMQ
 
         private void sendtoRabbit(string message)
         {
-            send_channel.QueueDeclare("send-queue", true, false, false, null);
-            var body = Encoding.UTF8.GetBytes(message);
-            var properties = send_channel.CreateBasicProperties();
-            send_channel.BasicPublish("", "send-queue", properties, body);
+            try
+            {
+                send_channel.QueueDeclare("send-queue", true, false, false, null);
+                var body = Encoding.UTF8.GetBytes(message);
+                var properties = send_channel.CreateBasicProperties();
+                send_channel.BasicPublish("", "send-queue", properties, body);
+            }
+            catch (System.Exception ex)
+            {
+                ShowError(ex.Message);
+            }
+            
         }
 
         private void recvThread()
@@ -240,15 +248,22 @@ namespace Fleck_RabbitMQ
             {
                 JavaScriptObject jsonObj = JavaScriptConvert.DeserializeObject<JavaScriptObject>(message);
                 string uuid = jsonObj["uuid"].ToString();
+                string index = jsonObj["index"].ToString();
+                string result = jsonObj["result"].ToString();
                 if (pList.ContainsKey(uuid))
                 {
                     NewMsg sendmsg = (NewMsg)pList[uuid];
                     sendmsg.Send(message);
-                }                
+                }
+                string[] names = { DateTime.Now.ToLongTimeString(), uuid, index, result };
+                if (message.IndexOf("bestmove") != -1)
+                {
+                    AddMsgOut(names);
+                    System.Threading.Thread.Sleep(1);
+                }
+               
             }
-            string[] names = { DateTime.Now.ToLongTimeString(), message,""};
-            AddMsgOut(names);
-            System.Threading.Thread.Sleep(1);
+           
         }
 
         private void AddMsgIn(string [] param)
@@ -325,8 +340,8 @@ namespace Fleck_RabbitMQ
 
             listView1.View = View.Details;
             listView1.Columns.Add("时间", 60);
-            listView1.Columns.Add("用户", 132);
-            listView1.Columns.Add("状态", 73);
+            listView1.Columns.Add("用户", 150, HorizontalAlignment.Center);
+            listView1.Columns.Add("状态", 100, HorizontalAlignment.Center);
 
             listView2.GridLines = true;
             //单选时,选择整行
@@ -340,8 +355,9 @@ namespace Fleck_RabbitMQ
 
             listView2.View = View.Details;
             listView2.Columns.Add("时间", 60);
-            listView2.Columns.Add("用户", 132);
-            listView2.Columns.Add("命令", 1100);
+            listView2.Columns.Add("用户", 150, HorizontalAlignment.Center);
+            listView2.Columns.Add("index", 50, HorizontalAlignment.Center);
+            listView2.Columns.Add("command", 450);
 
             listView4.GridLines = true;
             //单选时,选择整行
@@ -376,7 +392,9 @@ namespace Fleck_RabbitMQ
 
             listViewNF1.View = View.Details;
             listViewNF1.Columns.Add("时间", 60);
-            listViewNF1.Columns.Add("结果",1000);
+            listViewNF1.Columns.Add("UUID", 250, HorizontalAlignment.Center);
+            listViewNF1.Columns.Add("index", 50, HorizontalAlignment.Center);
+            listViewNF1.Columns.Add("result", 300, HorizontalAlignment.Center);
         }
 
         private void AddListViewItem(ListView listView, string[] array,int showLines = 35)
