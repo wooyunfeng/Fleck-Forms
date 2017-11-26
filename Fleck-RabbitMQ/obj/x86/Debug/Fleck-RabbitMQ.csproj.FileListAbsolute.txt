@@ -1,0 +1,17 @@
+D:\Fleck-Forms\Fleck-RabbitMQ\bin\Debug\Fleck-RabbitMQ.exe
+D:\Fleck-Forms\Fleck-RabbitMQ\bin\Debug\Fleck-RabbitMQ.pdb
+D:\Fleck-Forms\Fleck-RabbitMQ\obj\x86\Debug\Fleck_RabbitMQ.Form1.resources
+D:\Fleck-Forms\Fleck-RabbitMQ\obj\x86\Debug\Fleck_RabbitMQ.Properties.Resources.resources
+D:\Fleck-Forms\Fleck-RabbitMQ\obj\x86\Debug\Fleck-RabbitMQ.csproj.GenerateResource.Cache
+D:\Fleck-Forms\Fleck-RabbitMQ\obj\x86\Debug\Fleck-RabbitMQ.exe
+D:\Fleck-Forms\Fleck-RabbitMQ\obj\x86\Debug\Fleck-RabbitMQ.pdb
+D:\Fleck-Forms\Fleck-RabbitMQ\obj\x86\Debug\Fleck-RabbitMQ.csprojResolveAssemblyReference.cache
+D:\Fleck-Forms\Fleck-RabbitMQ\bin\Debug\Fleck-RabbitMQ.exe.config
+D:\Fleck-Forms\Fleck-RabbitMQ\bin\Debug\Fleck.dll
+D:\Fleck-Forms\Fleck-RabbitMQ\bin\Debug\Newtonsoft.Json.dll
+D:\Fleck-Forms\Fleck-RabbitMQ\bin\Debug\RabbitMQ.Client.dll
+D:\Fleck-Forms\Fleck-RabbitMQ\bin\Debug\ServiceStack.Common.dll
+D:\Fleck-Forms\Fleck-RabbitMQ\bin\Debug\ServiceStack.Interfaces.dll
+D:\Fleck-Forms\Fleck-RabbitMQ\bin\Debug\ServiceStack.Redis.dll
+D:\Fleck-Forms\Fleck-RabbitMQ\bin\Debug\ServiceStack.Text.dll
+D:\Fleck-Forms\Fleck-RabbitMQ\bin\Debug\System.Data.SQLite.dll

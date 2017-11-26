@@ -28,19 +28,10 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.tabControl1 = new System.Windows.Forms.TabControl();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.tabControl1 = new System.Windows.Forms.TabControl();
             this.panel1.SuspendLayout();
             this.SuspendLayout();
-            // 
-            // tabControl1
-            // 
-            this.tabControl1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.tabControl1.Location = new System.Drawing.Point(0, 0);
-            this.tabControl1.Name = "tabControl1";
-            this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(660, 330);
-            this.tabControl1.TabIndex = 1;
             // 
             // panel1
             // 
@@ -50,6 +41,15 @@
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(660, 330);
             this.panel1.TabIndex = 2;
+            // 
+            // tabControl1
+            // 
+            this.tabControl1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.tabControl1.Location = new System.Drawing.Point(0, 0);
+            this.tabControl1.Name = "tabControl1";
+            this.tabControl1.SelectedIndex = 0;
+            this.tabControl1.Size = new System.Drawing.Size(660, 330);
+            this.tabControl1.TabIndex = 1;
             // 
             // Form2
             // 
@@ -68,8 +68,9 @@
 
         #endregion
 
-        private System.Windows.Forms.TabControl tabControl1;
         private System.Windows.Forms.Panel panel1;
+        private System.Windows.Forms.TabControl tabControl1;
+
 
     }
 }

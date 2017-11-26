@@ -1,4 +1,4 @@
-﻿namespace Fleck_Forms
+﻿namespace Fleck_RabbitMQ
 {
     partial class Form1
     {
@@ -29,16 +29,20 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
+            this.btn_reset = new System.Windows.Forms.Button();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.listView4 = new Fleck_Forms.ListViewNF();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
+            this.listView1 = new Fleck_Forms.ListViewNF();
             this.treeView1 = new System.Windows.Forms.TreeView();
             this.btn_expend = new System.Windows.Forms.Button();
             this.btn_closeall = new System.Windows.Forms.Button();
             this.tabPage2 = new System.Windows.Forms.TabPage();
+            this.listView2 = new Fleck_Forms.ListViewNF();
             this.tabPage3 = new System.Windows.Forms.TabPage();
+            this.listViewNF1 = new Fleck_Forms.ListViewNF();
             this.tabPage4 = new System.Windows.Forms.TabPage();
-            this.btn_reset = new System.Windows.Forms.Button();
             this.m_Mysql = new System.Windows.Forms.CheckBox();
             this.m_port = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
@@ -46,12 +50,6 @@
             this.m_Redis = new System.Windows.Forms.CheckBox();
             this.m_CloudApi = new System.Windows.Forms.CheckBox();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
-            this.listViewNF1 = new Fleck_Forms.ListViewNF();
-            this.listView1 = new Fleck_Forms.ListViewNF();
-            this.listView2 = new Fleck_Forms.ListViewNF();
-            this.listViewNF2 = new Fleck_Forms.ListViewNF();
-            this.listView3 = new Fleck_Forms.ListViewNF();
-            this.listView4 = new Fleck_Forms.ListViewNF();
             this.panel1.SuspendLayout();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
@@ -60,15 +58,33 @@
             this.tabPage4.SuspendLayout();
             this.SuspendLayout();
             // 
+            // btn_reset
+            // 
+            this.btn_reset.Location = new System.Drawing.Point(181, 170);
+            this.btn_reset.Name = "btn_reset";
+            this.btn_reset.Size = new System.Drawing.Size(75, 23);
+            this.btn_reset.TabIndex = 59;
+            this.btn_reset.Text = "重启引擎";
+            this.btn_reset.UseVisualStyleBackColor = true;
+            // 
             // panel1
             // 
-            this.panel1.Controls.Add(this.tabControl1);
             this.panel1.Controls.Add(this.listView4);
+            this.panel1.Controls.Add(this.tabControl1);
             this.panel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panel1.Location = new System.Drawing.Point(0, 0);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(734, 425);
-            this.panel1.TabIndex = 0;
+            this.panel1.Size = new System.Drawing.Size(737, 649);
+            this.panel1.TabIndex = 1;
+            // 
+            // listView4
+            // 
+            this.listView4.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.listView4.Location = new System.Drawing.Point(0, 613);
+            this.listView4.Name = "listView4";
+            this.listView4.Size = new System.Drawing.Size(737, 36);
+            this.listView4.TabIndex = 48;
+            this.listView4.UseCompatibleStateImageBehavior = false;
             // 
             // tabControl1
             // 
@@ -79,12 +95,11 @@
             this.tabControl1.Location = new System.Drawing.Point(3, 0);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(731, 392);
+            this.tabControl1.Size = new System.Drawing.Size(731, 617);
             this.tabControl1.TabIndex = 47;
             // 
             // tabPage1
             // 
-            this.tabPage1.Controls.Add(this.listViewNF1);
             this.tabPage1.Controls.Add(this.listView1);
             this.tabPage1.Controls.Add(this.treeView1);
             this.tabPage1.Controls.Add(this.btn_expend);
@@ -92,38 +107,43 @@
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(723, 366);
+            this.tabPage1.Size = new System.Drawing.Size(723, 591);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "在线用户";
             this.tabPage1.UseVisualStyleBackColor = true;
+            // 
+            // listView1
+            // 
+            this.listView1.Location = new System.Drawing.Point(111, 0);
+            this.listView1.Name = "listView1";
+            this.listView1.Size = new System.Drawing.Size(612, 591);
+            this.listView1.TabIndex = 34;
+            this.listView1.UseCompatibleStateImageBehavior = false;
             // 
             // treeView1
             // 
             this.treeView1.Location = new System.Drawing.Point(2, 3);
             this.treeView1.Name = "treeView1";
-            this.treeView1.Size = new System.Drawing.Size(103, 331);
+            this.treeView1.Size = new System.Drawing.Size(103, 553);
             this.treeView1.TabIndex = 26;
-            this.treeView1.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.treeView1_AfterSelect);
             // 
             // btn_expend
             // 
-            this.btn_expend.Location = new System.Drawing.Point(6, 338);
+            this.btn_expend.Location = new System.Drawing.Point(6, 562);
             this.btn_expend.Name = "btn_expend";
             this.btn_expend.Size = new System.Drawing.Size(41, 23);
             this.btn_expend.TabIndex = 28;
             this.btn_expend.Text = "展开";
             this.btn_expend.UseVisualStyleBackColor = true;
-            this.btn_expend.Click += new System.EventHandler(this.btn_expend_Click);
             // 
             // btn_closeall
             // 
-            this.btn_closeall.Location = new System.Drawing.Point(57, 338);
+            this.btn_closeall.Location = new System.Drawing.Point(57, 562);
             this.btn_closeall.Name = "btn_closeall";
             this.btn_closeall.Size = new System.Drawing.Size(41, 23);
             this.btn_closeall.TabIndex = 27;
             this.btn_closeall.Text = "折叠";
             this.btn_closeall.UseVisualStyleBackColor = true;
-            this.btn_closeall.Click += new System.EventHandler(this.btn_closeall_Click);
             // 
             // tabPage2
             // 
@@ -131,22 +151,37 @@
             this.tabPage2.Location = new System.Drawing.Point(4, 22);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(723, 366);
+            this.tabPage2.Size = new System.Drawing.Size(723, 591);
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "输入";
             this.tabPage2.UseVisualStyleBackColor = true;
             // 
+            // listView2
+            // 
+            this.listView2.Location = new System.Drawing.Point(-2, 0);
+            this.listView2.Name = "listView2";
+            this.listView2.Size = new System.Drawing.Size(727, 591);
+            this.listView2.TabIndex = 35;
+            this.listView2.UseCompatibleStateImageBehavior = false;
+            // 
             // tabPage3
             // 
-            this.tabPage3.Controls.Add(this.listViewNF2);
-            this.tabPage3.Controls.Add(this.listView3);
+            this.tabPage3.Controls.Add(this.listViewNF1);
             this.tabPage3.Location = new System.Drawing.Point(4, 22);
             this.tabPage3.Name = "tabPage3";
             this.tabPage3.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage3.Size = new System.Drawing.Size(723, 366);
+            this.tabPage3.Size = new System.Drawing.Size(723, 591);
             this.tabPage3.TabIndex = 2;
             this.tabPage3.Text = "引擎";
             this.tabPage3.UseVisualStyleBackColor = true;
+            // 
+            // listViewNF1
+            // 
+            this.listViewNF1.Location = new System.Drawing.Point(-4, 2);
+            this.listViewNF1.Name = "listViewNF1";
+            this.listViewNF1.Size = new System.Drawing.Size(731, 586);
+            this.listViewNF1.TabIndex = 38;
+            this.listViewNF1.UseCompatibleStateImageBehavior = false;
             // 
             // tabPage4
             // 
@@ -160,20 +195,10 @@
             this.tabPage4.Location = new System.Drawing.Point(4, 22);
             this.tabPage4.Name = "tabPage4";
             this.tabPage4.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage4.Size = new System.Drawing.Size(723, 366);
+            this.tabPage4.Size = new System.Drawing.Size(723, 591);
             this.tabPage4.TabIndex = 3;
             this.tabPage4.Text = "设置";
             this.tabPage4.UseVisualStyleBackColor = true;
-            // 
-            // btn_reset
-            // 
-            this.btn_reset.Location = new System.Drawing.Point(181, 170);
-            this.btn_reset.Name = "btn_reset";
-            this.btn_reset.Size = new System.Drawing.Size(75, 23);
-            this.btn_reset.TabIndex = 59;
-            this.btn_reset.Text = "重启引擎";
-            this.btn_reset.UseVisualStyleBackColor = true;
-            this.btn_reset.Click += new System.EventHandler(this.btn_reset_Click);
             // 
             // m_Mysql
             // 
@@ -186,7 +211,6 @@
             this.m_Mysql.TabIndex = 58;
             this.m_Mysql.Text = "MySQL";
             this.m_Mysql.UseVisualStyleBackColor = true;
-            this.m_Mysql.CheckedChanged += new System.EventHandler(this.m_Mysql_CheckedChanged);
             // 
             // m_port
             // 
@@ -214,7 +238,6 @@
             this.btn_clear.TabIndex = 53;
             this.btn_clear.Text = "清空消息";
             this.btn_clear.UseVisualStyleBackColor = true;
-            this.btn_clear.Click += new System.EventHandler(this.btn_clear_Click);
             // 
             // m_Redis
             // 
@@ -227,7 +250,6 @@
             this.m_Redis.TabIndex = 54;
             this.m_Redis.Text = "Redis";
             this.m_Redis.UseVisualStyleBackColor = true;
-            this.m_Redis.CheckedChanged += new System.EventHandler(this.m_Redis_CheckedChanged);
             // 
             // m_CloudApi
             // 
@@ -240,7 +262,6 @@
             this.m_CloudApi.TabIndex = 55;
             this.m_CloudApi.Text = "云库";
             this.m_CloudApi.UseVisualStyleBackColor = true;
-            this.m_CloudApi.CheckedChanged += new System.EventHandler(this.m_CloudApi_CheckedChanged);
             // 
             // timer1
             // 
@@ -248,60 +269,11 @@
             this.timer1.Interval = 1000;
             this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
             // 
-            // listViewNF1
-            // 
-            this.listViewNF1.Location = new System.Drawing.Point(349, 3);
-            this.listViewNF1.Name = "listViewNF1";
-            this.listViewNF1.Size = new System.Drawing.Size(375, 363);
-            this.listViewNF1.TabIndex = 36;
-            this.listViewNF1.UseCompatibleStateImageBehavior = false;
-            // 
-            // listView1
-            // 
-            this.listView1.Location = new System.Drawing.Point(105, 3);
-            this.listView1.Name = "listView1";
-            this.listView1.Size = new System.Drawing.Size(245, 363);
-            this.listView1.TabIndex = 33;
-            this.listView1.UseCompatibleStateImageBehavior = false;
-            // 
-            // listView2
-            // 
-            this.listView2.Location = new System.Drawing.Point(0, 0);
-            this.listView2.Name = "listView2";
-            this.listView2.Size = new System.Drawing.Size(727, 366);
-            this.listView2.TabIndex = 34;
-            this.listView2.UseCompatibleStateImageBehavior = false;
-            // 
-            // listViewNF2
-            // 
-            this.listViewNF2.Location = new System.Drawing.Point(2, 2);
-            this.listViewNF2.Name = "listViewNF2";
-            this.listViewNF2.Size = new System.Drawing.Size(727, 103);
-            this.listViewNF2.TabIndex = 35;
-            this.listViewNF2.UseCompatibleStateImageBehavior = false;
-            // 
-            // listView3
-            // 
-            this.listView3.Location = new System.Drawing.Point(3, 111);
-            this.listView3.Name = "listView3";
-            this.listView3.Size = new System.Drawing.Size(727, 249);
-            this.listView3.TabIndex = 35;
-            this.listView3.UseCompatibleStateImageBehavior = false;
-            // 
-            // listView4
-            // 
-            this.listView4.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.listView4.Location = new System.Drawing.Point(0, 392);
-            this.listView4.Name = "listView4";
-            this.listView4.Size = new System.Drawing.Size(734, 33);
-            this.listView4.TabIndex = 43;
-            this.listView4.UseCompatibleStateImageBehavior = false;
-            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(734, 425);
+            this.ClientSize = new System.Drawing.Size(737, 649);
             this.Controls.Add(this.panel1);
             this.Name = "Form1";
             this.Text = "象棋微学堂";
@@ -321,30 +293,27 @@
 
         #endregion
 
+        private System.Windows.Forms.Button btn_reset;
         private System.Windows.Forms.Panel panel1;
-        private ListViewNF listView4;
-        private ListViewNF listView3;
-        private ListViewNF listView2;
-        private ListViewNF listView1;
-        private System.Windows.Forms.Button btn_closeall;
-        private System.Windows.Forms.Button btn_expend;
-        private System.Windows.Forms.TreeView treeView1;
-        private System.Windows.Forms.Timer timer1;
         private System.Windows.Forms.TabControl tabControl1;
         private System.Windows.Forms.TabPage tabPage1;
+        private System.Windows.Forms.TreeView treeView1;
+        private System.Windows.Forms.Button btn_expend;
+        private System.Windows.Forms.Button btn_closeall;
         private System.Windows.Forms.TabPage tabPage2;
-        private System.Windows.Forms.TabPage tabPage3;
-        private ListViewNF listViewNF1;
-        private ListViewNF listViewNF2;
         private System.Windows.Forms.TabPage tabPage4;
+        private System.Windows.Forms.CheckBox m_Mysql;
+        private System.Windows.Forms.Label m_port;
+        private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Button btn_clear;
         private System.Windows.Forms.CheckBox m_Redis;
         private System.Windows.Forms.CheckBox m_CloudApi;
-        private System.Windows.Forms.Label m_port;
-        private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.CheckBox m_Mysql;
-        private System.Windows.Forms.Button btn_reset;
-
+        private System.Windows.Forms.Timer timer1;
+        private Fleck_Forms.ListViewNF listView1;
+        private Fleck_Forms.ListViewNF listView2;
+        private Fleck_Forms.ListViewNF listView4;
+        private System.Windows.Forms.TabPage tabPage3;
+        private Fleck_Forms.ListViewNF listViewNF1;
     }
 }
 
