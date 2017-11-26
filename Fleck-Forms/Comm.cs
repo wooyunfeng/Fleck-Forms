@@ -106,7 +106,7 @@ namespace Fleck_Forms
                 return redis.getItemFromList(list, index);
                
             }
-            catch (System.Exception ex)
+            catch 
             {
             	 return false;
             }            

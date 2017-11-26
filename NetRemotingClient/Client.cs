@@ -43,7 +43,8 @@ namespace NetRemotingClient
         ConnectionFactory factory;
         IConnection connection;
         IModel send_channel;
-
+        IModel recv_channel;
+        BasicDeliverEventArgs ea;
         public Client()
         {
             LoadXml();          
@@ -147,14 +148,22 @@ namespace NetRemotingClient
                 strInfo = labelinfo.Text;
                 labelcount.Text = dealcount.ToString();
                 StartPipeThread();
-                Thread thread = new Thread(OnTCP);
-                thread.IsBackground = true;
-                thread.Start(); 
+                initRabbit();
+                Thread.Sleep(1000);
+                recvThread();
+              //  StartOnTCPThread();                
             }
             catch (Exception ex)
             {
                 strInfo = "Client_Load:" + ex.Message; 
             }
+        }
+
+        private void StartOnTCPThread()
+        {
+            Thread thread = new Thread(OnTCP);
+            thread.IsBackground = true;
+            thread.Start(); 
         }
 
         private static byte[] result = new byte[4096];
@@ -252,6 +261,10 @@ namespace NetRemotingClient
                     PipeWriter.Write("go depth " + depth + "\r\n");
                 }
             }
+            else
+            {
+                recv_channel.BasicAck(ea.DeliveryTag, false);
+            }
         }  
   
         /// <summary>
@@ -276,6 +289,7 @@ namespace NetRemotingClient
             {
                // MessageBox.Show(ex.Message);
             }
+            System.Environment.Exit(0);
         }
         // 检查一个Socket是否可连接  
         private bool IsSocketConnected(Socket client)
@@ -410,6 +424,8 @@ namespace NetRemotingClient
                             intDepth = Int32.Parse(sArray[2]);
                             if (bdealing)
                             {
+                                currentMsg.result = line;
+                                sendtoRabbit(currentMsg.GetJson());
                                 SendtoServer(line);
                             }
                             if (intDepth > 0 && intDepth < 32)
@@ -438,6 +454,10 @@ namespace NetRemotingClient
                             linearray[0] = currentMsg.GetBoard();
                             linearray[1] = " depth " + intDepth.ToString() + " " + line;
                             AddMsg(linearray);
+                            currentMsg.result = line;
+                            string sendmsg = currentMsg.GetJson();
+                            sendtoRabbit(sendmsg);
+                            recv_channel.BasicAck(ea.DeliveryTag, false);
                         }
                         Thread.Sleep(10);
                     }
@@ -471,9 +491,20 @@ namespace NetRemotingClient
                 OnTCP();                
             }                       
         }
+        private void initRabbit()
+        {
+            factory = new ConnectionFactory();
+            factory.HostName = "47.96.28.91";
+            factory.UserName = "chd1219";
+            factory.Password = "jiao19890228";
+            connection = factory.CreateConnection();
+            send_channel = connection.CreateModel();
+
+        }
 
         private void sendtoRabbit(string message)
         {
+            send_channel.QueueDeclare("recv-queue", true, false, false, null);
             var body = Encoding.UTF8.GetBytes(message);
             var properties = send_channel.CreateBasicProperties();
             send_channel.BasicPublish("", "recv-queue", properties, body);
@@ -487,7 +518,7 @@ namespace NetRemotingClient
 
         private void revfromRabbit()
         {
-            using (var recv_channel = connection.CreateModel())
+            using (recv_channel = connection.CreateModel())
             {
                 recv_channel.QueueDeclare("send-queue", true, false, false, null);
                 recv_channel.BasicQos(0, 1, false);
@@ -497,12 +528,12 @@ namespace NetRemotingClient
 
                 while (true)
                 {
-                    var ea = (BasicDeliverEventArgs)consumer.Queue.Dequeue();
+                    ea = (BasicDeliverEventArgs)consumer.Queue.Dequeue();
 
                     var body = ea.Body;
                     var message = Encoding.UTF8.GetString(body);
-
-                    recv_channel.BasicAck(ea.DeliveryTag, false);
+                    currentMsg = new NewMsg(message);
+                    deal(currentMsg);                   
                 }
             }
         }
@@ -627,10 +658,10 @@ namespace NetRemotingClient
 
         private void Restart()
         {
-            Application.ExitThread();
-            Application.Exit();
-            Application.Restart();
-            Process.GetCurrentProcess().Kill();
+//             Application.ExitThread();
+//             Application.Exit();
+//             Application.Restart();
+//             Process.GetCurrentProcess().Kill();
         }
 
         private void timer2_Tick(object sender, EventArgs e)

@@ -214,10 +214,11 @@ namespace Fleck_Forms
     class NewMsg
     {
         private IWebSocketConnection connection { get; set; }
+        public string uuid { get; set; }
         private string message { get; set; }
-        private string index { get; set; }
+        public string index { get; set; }
         private string command { get; set; }
-        private string commandtype { get; set; }
+        public string commandtype { get; set; }
         private bool isJson { get; set; }
         public UInt64 boardID { get; set; }
         public NewMsg(IWebSocketConnection connection, string message)
@@ -226,6 +227,7 @@ namespace Fleck_Forms
             {
                 isJson = true;
                 JavaScriptObject jsonObj = JavaScriptConvert.DeserializeObject<JavaScriptObject>(message);
+                uuid = jsonObj["id"].ToString();
                 index = jsonObj["index"].ToString();
                 command = jsonObj["command"].ToString();
                 commandtype = command.Substring(0, 8);
@@ -251,6 +253,7 @@ namespace Fleck_Forms
             {
                 isJson = true;
                 JavaScriptObject jsonObj = JavaScriptConvert.DeserializeObject<JavaScriptObject>(message);
+                uuid = jsonObj["id"].ToString();
                 index = jsonObj["index"].ToString();
                 command = jsonObj["command"].ToString();
                 commandtype = command.Substring(0, 8);
@@ -269,6 +272,11 @@ namespace Fleck_Forms
         }
         internal string Send(string strmsg)
         {
+            if (JsonSplit.IsJson(strmsg))//传入的json串
+            {
+                connection.Send(strmsg);
+                return strmsg;
+            }
             string result = strmsg;
             if (isJson)
             {
@@ -902,7 +910,14 @@ namespace Fleck_Forms
         public Role GetAt(IWebSocketConnection socket)
         {
             int index = allSockets.IndexOf(socket);
-            return allRoles[index];
+            if (index != -1)
+            {
+                return allRoles[index];
+            }
+            else
+            {
+                return null;
+            }
         }
 
 

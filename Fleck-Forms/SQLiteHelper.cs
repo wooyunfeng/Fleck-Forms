@@ -37,7 +37,7 @@ namespace Fleck_Forms
                 SQLiteCommand cmdCreateTable = new SQLiteCommand(sql, conn);
                 cmdCreateTable.ExecuteNonQuery();//如果表不存在，创建数据表 
             }
-            catch (System.Exception ex)
+            catch 
             {
                 throw;
             }

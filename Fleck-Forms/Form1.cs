@@ -18,6 +18,7 @@ using MySql.Data.MySqlClient;
 using Fleck.online;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using Newtonsoft.Json;
 
 namespace Fleck_Forms
 {
@@ -29,6 +30,8 @@ namespace Fleck_Forms
         ConnectionFactory factory;
         IConnection connection;
         IModel send_channel;
+        Dictionary<String, Object> pList = new Dictionary<String, Object>();
+
         public Form1()
         {
             addListDelegate = new AddConnectionItem(AddListItemMethod);
@@ -88,6 +91,11 @@ namespace Fleck_Forms
                 socket.OnMessage = message =>
                 {
                     sendtoRabbit(message);
+                    NewMsg msg = new NewMsg(socket,message);
+                    if (!pList.ContainsKey(msg.uuid))
+                    {
+                        pList.Add(msg.uuid, msg);
+                    }
                     if (message.IndexOf("roomid") != -1)
                     {
                         roomSet.Add(message, socket);
@@ -100,10 +108,10 @@ namespace Fleck_Forms
                     {
                         roomSet.RemoveAll(socket);
                     }                             
-                    engine.OnMessage(socket, message);
+                    //engine.OnMessage(socket, message);
                     string strAddr = socket.ConnectionInfo.ClientIpAddress + ":" + socket.ConnectionInfo.ClientPort.ToString();
-                    string[] msg = { DateTime.Now.ToLongTimeString(), strAddr, message };                    
-                    AddMsg(msg);
+                    string[] showmsg = { DateTime.Now.ToLongTimeString(), strAddr, message };
+                    AddMsg(showmsg);
                 };
             });
         }
@@ -115,11 +123,12 @@ namespace Fleck_Forms
             factory.Password = "jiao19890228";
             connection = factory.CreateConnection();
             send_channel = connection.CreateModel();
-            send_channel.QueueDeclare("send-queue", true, false, false, null);
+            
         }
 
         private void sendtoRabbit(string message)
-        {                      
+        {
+            send_channel.QueueDeclare("send-queue", true, false, false, null);
             var body = Encoding.UTF8.GetBytes(message);
             var properties = send_channel.CreateBasicProperties();
             send_channel.BasicPublish("", "send-queue", properties, body);
@@ -147,9 +156,23 @@ namespace Fleck_Forms
 
                     var body = ea.Body;
                     var message = Encoding.UTF8.GetString(body);
-
+                    SendtoUser(message);
                     recv_channel.BasicAck(ea.DeliveryTag, false);
                 }
+            }
+        }
+
+        private void SendtoUser(string message)
+        {
+            if (JsonSplit.IsJson(message))//传入的json串
+            {
+                JavaScriptObject jsonObj = JavaScriptConvert.DeserializeObject<JavaScriptObject>(message);
+                string uuid = jsonObj["uuid"].ToString();
+                if (pList.ContainsKey(uuid))
+                {
+                    NewMsg sendmsg = (NewMsg)pList[uuid];
+                    sendmsg.Send(message);
+                }                
             }
         }
 

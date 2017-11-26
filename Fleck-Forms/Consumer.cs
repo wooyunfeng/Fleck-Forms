@@ -40,7 +40,7 @@ namespace Fleck_Forms
             {
                 return socket.RemoteEndPoint.ToString();
             }
-            catch (System.Exception ex)
+            catch 
             {
                 return "";
             }
@@ -78,7 +78,7 @@ namespace Fleck_Forms
                         }
                     }                    
                 }
-                catch (Exception ex)
+                catch
                 {
                     myClientSocket.Close();
                     break;

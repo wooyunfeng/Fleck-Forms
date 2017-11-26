@@ -15,7 +15,8 @@ using System.Runtime.Remoting;
 using Fleck;
 using System.Net.Sockets;
 using System.Net;
-using Newtonsoft.Json;  
+using Newtonsoft.Json;
+
 
 namespace Fleck_Forms
 {
@@ -26,6 +27,7 @@ namespace Fleck_Forms
         ConcurrentQueue<string[]> outputContainer;
         public Comm comm;
         public List<Consumer> customerlist { get; set; }
+       
         bool bRun = true;
 
         public int getMsgQueueCount()
@@ -79,8 +81,11 @@ namespace Fleck_Forms
         public void OnClose(IWebSocketConnection socket)
         {
             var role = comm.user.GetAt(socket);
-            comm.sqlOperate.Logout(role.GetAddr());
-            comm.user.Remove(socket);
+            if (role != null)
+            {
+                comm.sqlOperate.Logout(role.GetAddr());
+                comm.user.Remove(socket);
+            }           
         }
 
         public void OnMessage(IWebSocketConnection socket, string message)
@@ -179,7 +184,7 @@ namespace Fleck_Forms
         {
             return comm.user.allRoles.Count;
         }
-
+      
         private static byte[] result = new byte[4096];
         //private static int myProt = 8885;   //端口  
         static Socket serverSocket;

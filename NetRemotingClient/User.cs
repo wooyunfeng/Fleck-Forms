@@ -87,18 +87,20 @@ namespace NetRemotingClient
 
     class NewMsg
     {
-        private string message { get; set; }
-        private string index { get; set; }
+        public string uuid { get; set; }
+        public string index { get; set; }
         private string command { get; set; }
-        private string commandtype { get; set; }
+        public string commandtype { get; set; }
         private bool isJson { get; set; }
-
+        public string result { get; set; }
+        private string strdepth { get; set; }
         public NewMsg(string message)
         {
             if (JsonSplit.IsJson(message))//传入的json串
             {
                 isJson = true;
                 JavaScriptObject jsonObj = JavaScriptConvert.DeserializeObject<JavaScriptObject>(message);
+                uuid = jsonObj["id"].ToString();
                 index = jsonObj["index"].ToString();
                 command = jsonObj["command"].ToString();
                 commandtype = command.Substring(0, 8);
@@ -106,12 +108,53 @@ namespace NetRemotingClient
                 {
                     command = null;
                 }
+
+                string strpower;
+                string defaultdepth = "17";
+                string type;
+
+                type = jsonObj["type"].ToString();
+                if (type == "0")
+                {
+                    strpower = jsonObj["power"].ToString();
+                    switch (strpower)
+                    {
+                        case "level-0":
+                            strdepth = "3";
+                            break;
+                        case "level-1":
+                            strdepth = "6";
+                            break;
+                        case "level-2":
+                            strdepth = "9";
+                            break;
+                        case "level-3":
+                            strdepth = "12";
+                            break;
+                        case "level-4":
+                            strdepth = "15";
+                            break;
+                        case "level-5":
+                            strdepth = "16";
+                            break;
+                        case "level-6":
+                            strdepth = "17";
+                            break;
+                        default:
+                            strdepth = defaultdepth;
+                            break;
+                    }                       
+                }
+                else
+                {
+                    strdepth = defaultdepth;
+                }              
             }
             else
             {
                 isJson = false;
             }
-            this.message = message;
+            this.result = "";
         }
         
         internal string GetIndex()
@@ -144,66 +187,15 @@ namespace NetRemotingClient
         }
 
         internal string GetDepth()
-        {
-            string strdepth = null;
-            string strpower;
-            string defaultdepth = null;
-            string type;
-            if (isJson)
-            {
-                try
-                {
-                    JavaScriptObject jsonObj = JavaScriptConvert.DeserializeObject<JavaScriptObject>(message);
-                    type = jsonObj["type"].ToString();
-                    if (type == "1") return defaultdepth;
-
-                    strpower = jsonObj["power"].ToString();
-                    switch (strpower)
-                    {
-                        case "level-0":
-                            strdepth = "3";
-                            break;
-                        case "level-1":
-                            strdepth = "6";
-                            break;
-                        case "level-2":
-                            strdepth = "9";
-                            break;
-                        case "level-3":
-                            strdepth = "12";
-                            break;
-                        case "level-4":
-                            strdepth = "15";
-                            break;
-                        case "level-5":
-                            strdepth = "16";
-                            break;
-                        case "level-6":
-                            strdepth = "17";
-                            break;
-                        default:
-                            strdepth = defaultdepth;
-                            break;
-                    }
-                }
-                catch (System.Exception ex)
-                {
-                    strdepth = defaultdepth;
-                }                
-            }
-            else
-            {
-                strdepth = defaultdepth;
-            }
-
+        {  
             return strdepth;
         }
 
-
-        internal string GetMessage()
+        // 对象--->JSON  
+        public string GetJson()
         {
-            return message;
-        }        
+            return JavaScriptConvert.SerializeObject(this);
+        }          
     }
 
     internal class JsonSplit

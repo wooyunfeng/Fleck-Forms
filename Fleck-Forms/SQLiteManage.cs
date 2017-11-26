@@ -106,7 +106,6 @@ namespace Fleck_Forms
             {
                 Zobrist zobrist = new Zobrist();
                 ulong zobristKey = zobrist.getKey(board);               
-                Byte[] blob = null; 
                 SQLiteDataReader reader;
                 double b_zobristKey = Convert.ToDouble(zobristKey);
                 string sql = String.Format("select * from bhobk where vkey = '{0}'", zobristKey);
