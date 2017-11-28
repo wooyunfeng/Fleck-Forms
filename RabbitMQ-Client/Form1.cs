@@ -169,7 +169,7 @@ namespace RabbitMQ_Client
                     bdealing = true;
                     startdeal = DateTime.Now;
                     PipeWriter.Write(currentMsg.GetCommand() + "\r\n");
-                    string depth = currentMsg.GetDepth();
+                    string depth = level;
                     if (depth == null)
                     {
                         PipeWriter.Write("go depth " + level + "\r\n");
@@ -551,5 +551,6 @@ namespace RabbitMQ_Client
         {
             Restart();
         }
+
     }
 }

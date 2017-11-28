@@ -182,11 +182,13 @@
             this.textDepth.Size = new System.Drawing.Size(29, 21);
             this.textDepth.TabIndex = 18;
             this.textDepth.Text = "17";
+            this.textDepth.TextChanged += new System.EventHandler(this.textDepth_TextChanged);
             // 
             // timer1
             // 
             this.timer1.Enabled = true;
             this.timer1.Interval = 1000;
+            this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
             // 
             // label1
             // 
