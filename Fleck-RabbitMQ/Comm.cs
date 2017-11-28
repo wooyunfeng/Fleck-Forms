@@ -8,10 +8,8 @@ using System.Threading;
 using System.Diagnostics;
 using System.Xml;
 using System.Net;
-using ServiceStack.Redis;
 using System.Timers;
 using Newtonsoft.Json;
-using System.Data.SQLite;
 using Fleck;
 
 namespace Fleck_Forms
@@ -21,7 +19,6 @@ namespace Fleck_Forms
         public Log log;
         public Setting setting;
         public Queue DealSpeedQueue;
-        public RedisManage redis;        
         public User user;
         private static int nMsgQueuecount { get; set; }
         public bool bRedis { get; set; }
@@ -72,61 +69,7 @@ namespace Fleck_Forms
             log = new Log();
             DealSpeedQueue = new Queue();
         }
-
-        public string DealQueryallMessage(string board)
-        {
-            string str = "";
-            if (board.Length > 0 && Setting.isSupportCloudApi)
-            {
-                str = redis.QueryallFromCloud(board);
-            }
-            return str;
-        }
-        
-        public bool getItemFromList(NewMsg msg)
-        {
-            string list =  msg.GetBoard();
-            int index = Int32.Parse(msg.GetDepth());
-            
-            return getItemFromList(list,index);
-        }
-
-        public bool getItemFromList(string list, int index)
-        {
-            if (!bRedis)
-            {
-                return false;
-            }
-            try
-            {
-                return redis.getItemFromList(list, index);
-               
-            }
-            catch 
-            {
-            	 return false;
-            }            
-        }
-
-        public void setItemToList(string list, string message)
-        {
-            if (!bRedis)
-            {
-                return;
-            }
-            redis.setItemToList(list, message);            
-        }
        
-        public string getbestmoveFromList(NewMsg msg)
-        {
-            if (!bRedis)
-            {
-                return "";
-            }
-            string bestmove = redis.getbestmoveFromList(msg);
-            return bestmove;
-        }
-
         public Msg Json2Msg(string jsonStr)
         {  
             Msg msg = null;       

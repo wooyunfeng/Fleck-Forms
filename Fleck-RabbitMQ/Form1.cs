@@ -48,9 +48,9 @@ namespace Fleck_RabbitMQ
             comm = new Comm();
             comm.Init();
             countQueue = new Queue();
-            MsgCount = 0;
+            MsgInCount = 0;
+            MsgOutCount = 0;
             RunTime = System.DateTime.Now;
-            m_CloudApi.Checked = Setting.isSupportCloudApi;
             m_port.Text = Setting.websocketPort;
             this.Text = Setting.title;
             FleckLog.Level = LogLevel.Info;
@@ -103,7 +103,7 @@ namespace Fleck_RabbitMQ
 
         public void OnMessage(IWebSocketConnection socket, string message)
         {
-            sendtoRabbit(message);
+           
             NewMsg msg = new NewMsg(socket, message);
             if (!pList.ContainsKey(msg.uuid))
             {
@@ -111,38 +111,18 @@ namespace Fleck_RabbitMQ
             }
            
             string strAddr = socket.ConnectionInfo.ClientIpAddress + ":" + socket.ConnectionInfo.ClientPort.ToString();
-            string[] showmsg = { DateTime.Now.ToLongTimeString(), strAddr, msg.index, msg.GetCommand() };
-            AddMsgIn(showmsg);
-
-            //过滤命令
-            try
+            string level = "17";
+            if (msg.GetType() == "0")
             {
-                if (message.IndexOf("queryall") != -1)
-                {
-                    string strQueryall = comm.DealQueryallMessage(msg.GetBoard());
-                    if (strQueryall != "" && strQueryall != "unknown")
-                    {
-                        string sendmsg = msg.Send(strQueryall);
-                        string[] msgs = { strAddr, "redis", sendmsg };
-                    }
-                }
-                else if (message.IndexOf("position") != -1)
-                {
-                    DealPositionMessage(socket, message);
-                }
-                else if (message.IndexOf("move") != -1)
-                {
-                    DealMoveMessage(socket, message);
-                }
-                else if (message.IndexOf("openbook") != -1)
-                {
-                    DealOpenBookMessage(socket, message);
-                }
+                level = msg.GetDepth();
             }
-            catch (System.Exception ex)
+            string[] showmsg = { DateTime.Now.ToLongTimeString(), strAddr, msg.GetType(),msg.index, level,msg.GetBoard() };
+            if (msg.GetCommandType() == "position")
             {
-                Console.WriteLine(ex.Message);
+                AddMsgIn(showmsg);
+                sendtoRabbit(message);
             }
+            
         }
 
         private void DealMoveMessage(IWebSocketConnection socket, string message)
@@ -163,28 +143,6 @@ namespace Fleck_RabbitMQ
 //             object obj = comm.sqlOperate.getOpenBook(msg.GetBoard());
 //             string str = JavaScriptConvert.SerializeObject(obj);
 //             msg.Send(str);
-        }
-
-        private void DealPositionMessage(IWebSocketConnection socket, string message)
-        {
-            NewMsg msg = new NewMsg(socket, message);
-
-            if (msg.GetCommand() == null)
-            {
-                comm.WriteInfo(msg.GetAddr() + "  " + message);
-                return;
-            }
-
-            //查库
-            if (comm.bRedis)
-            {
-                if (comm.getItemFromList(msg))
-                {
-                    string sendmsg = comm.getbestmoveFromList(msg);
-                    string[] msgs = { msg.GetAddr(), "reids", sendmsg };
-                    return;
-                }
-            }
         }
 
         private void initRabbit()
@@ -253,15 +211,14 @@ namespace Fleck_RabbitMQ
                 if (pList.ContainsKey(uuid))
                 {
                     NewMsg sendmsg = (NewMsg)pList[uuid];
-                    sendmsg.Send(message);
-                }
-                string[] names = { DateTime.Now.ToLongTimeString(), uuid, index, result };
-                if (message.IndexOf("bestmove") != -1)
-                {
-                    AddMsgOut(names);
-                    System.Threading.Thread.Sleep(1);
-                }
-               
+                   // sendmsg.Send(message);
+                    string[] names = { DateTime.Now.ToLongTimeString(), sendmsg.GetAddr(), uuid, index, result };
+                    if (message.IndexOf("bestmove") != -1)
+                    {
+                        AddMsgOut(names);
+                        System.Threading.Thread.Sleep(1);
+                    }
+                }             
             }
            
         }
@@ -270,7 +227,7 @@ namespace Fleck_RabbitMQ
         {
             try
             {
-                MsgCount++;
+                MsgInCount++;
                 this.Invoke(this.addMsgInDelegate, new Object[] { param });
             }
             catch (System.Exception ex)
@@ -283,7 +240,7 @@ namespace Fleck_RabbitMQ
         {
             try
             {
-                MsgCount++;
+                MsgOutCount++;
                 this.Invoke(this.addMsgOutDelegate, new Object[] { param });
             }
             catch (System.Exception ex)
@@ -297,19 +254,15 @@ namespace Fleck_RabbitMQ
             string m_speed = null;
             string m_online = comm.user.allRoles.Count.ToString();
 
-            string m_msg = MsgCount.ToString() + " 个";
-
             if (countQueue != null)
             {
-                countQueue.Enqueue(MsgCount);
+                countQueue.Enqueue(MsgInCount);
                 if (countQueue.Count > 60)
                 {
                     countQueue.Dequeue();
                 }
-                m_speed = (MsgCount - (int)countQueue.Peek()).ToString() + " 个/分钟";
+                m_speed = (MsgInCount - (int)countQueue.Peek()).ToString() + " 个/分钟";
             }       
-
-            string m_undo = " 个";
 
             string m_time = RunTime.ToString();
 
@@ -320,7 +273,7 @@ namespace Fleck_RabbitMQ
             string m_CPU = comm.getCurrentCpuUsage();
             string m_Memory = comm.getAvailableRAM();
 
-            string[] names = { DateTime.Now.ToLongTimeString(),m_online, m_msg, m_speed, m_undo, m_CPU, m_Memory, m_time, m_span };
+            string[] names = { DateTime.Now.ToLongTimeString(), m_online, MsgInCount.ToString(), MsgOutCount.ToString(), (MsgInCount - MsgOutCount).ToString(), m_CPU, m_Memory, m_time, m_span };
             AddListViewItem(listView4, names, 0);
  
         }
@@ -356,8 +309,10 @@ namespace Fleck_RabbitMQ
             listView2.View = View.Details;
             listView2.Columns.Add("时间", 60);
             listView2.Columns.Add("用户", 150, HorizontalAlignment.Center);
+            listView2.Columns.Add("mode", 40, HorizontalAlignment.Center);
             listView2.Columns.Add("index", 50, HorizontalAlignment.Center);
-            listView2.Columns.Add("command", 450);
+            listView2.Columns.Add("level", 50, HorizontalAlignment.Center);
+            listView2.Columns.Add("board", 360);
 
             listView4.GridLines = true;
             //单选时,选择整行
@@ -373,7 +328,7 @@ namespace Fleck_RabbitMQ
             listView4.Columns.Add("  时间", 60, HorizontalAlignment.Center);
             listView4.Columns.Add("在线用户", 60, HorizontalAlignment.Center);
             listView4.Columns.Add("接受请求", 60, HorizontalAlignment.Center);
-            listView4.Columns.Add("处理速度", 80, HorizontalAlignment.Center);
+            listView4.Columns.Add("处理请求", 60, HorizontalAlignment.Center);
             listView4.Columns.Add("等待处理", 60, HorizontalAlignment.Center);
             listView4.Columns.Add("CPU使用", 60, HorizontalAlignment.Center);
             listView4.Columns.Add("剩余内存", 100, HorizontalAlignment.Center);
@@ -392,9 +347,10 @@ namespace Fleck_RabbitMQ
 
             listViewNF1.View = View.Details;
             listViewNF1.Columns.Add("时间", 60);
+            listViewNF1.Columns.Add("用户", 150, HorizontalAlignment.Center);
             listViewNF1.Columns.Add("UUID", 250, HorizontalAlignment.Center);
             listViewNF1.Columns.Add("index", 50, HorizontalAlignment.Center);
-            listViewNF1.Columns.Add("result", 300, HorizontalAlignment.Center);
+            listViewNF1.Columns.Add("result", 200, HorizontalAlignment.Center);
         }
 
         private void AddListViewItem(ListView listView, string[] array,int showLines = 35)
@@ -421,7 +377,8 @@ namespace Fleck_RabbitMQ
         }
 
         DateTime RunTime;
-        int MsgCount;
+        int MsgInCount; 
+        int MsgOutCount;
         Queue countQueue;
 
         //安全调用控件
@@ -603,38 +560,12 @@ namespace Fleck_RabbitMQ
             listView4.Items.Clear();
         }
 
-        private void m_Redis_CheckedChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void m_CloudApi_CheckedChanged(object sender, EventArgs e)
-        {
-            Setting.isSupportCloudApi = m_CloudApi.Checked;
-        }
-
-        private void Form1_SizeChanged(object sender, EventArgs e)
-        {
-        }
-
-        private void treeView1_AfterSelect(object sender, TreeViewEventArgs e)
-        {
-       
-        }
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
             System.Environment.Exit(0);
         }
 
-        private void m_Mysql_CheckedChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void btn_reset_Click(object sender, EventArgs e)
-        {
-            
-        }
+       
     }    
 }

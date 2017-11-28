@@ -220,6 +220,7 @@ namespace Fleck_Forms
         private string command { get; set; }
         public string commandtype { get; set; }
         private bool isJson { get; set; }
+        private string type { get; set; }
         public UInt64 boardID { get; set; }
         public NewMsg(IWebSocketConnection connection, string message)
         {
@@ -228,6 +229,7 @@ namespace Fleck_Forms
                 isJson = true;
                 JavaScriptObject jsonObj = JavaScriptConvert.DeserializeObject<JavaScriptObject>(message);
                 uuid = jsonObj["id"].ToString();
+                type = jsonObj["type"].ToString();
                 index = jsonObj["index"].ToString();
                 command = jsonObj["command"].ToString();
                 commandtype = command.Substring(0, 8);
@@ -255,6 +257,7 @@ namespace Fleck_Forms
                 JavaScriptObject jsonObj = JavaScriptConvert.DeserializeObject<JavaScriptObject>(message);
                 uuid = jsonObj["id"].ToString();
                 index = jsonObj["index"].ToString();
+                type = jsonObj["type"].ToString();
                 command = jsonObj["command"].ToString();
                 commandtype = command.Substring(0, 8);
                 if (command.IndexOf('K') < command.IndexOf('k'))
@@ -309,6 +312,11 @@ namespace Fleck_Forms
         internal string GetIndex()
         {
             return index;
+        }
+
+        internal string GetType()
+        {
+            return type;
         }
 
         internal string GetCommandType()
