@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
+using System.Threading;
 
 namespace NetRemotingClient
 {
@@ -15,7 +16,12 @@ namespace NetRemotingClient
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new Client());
+            bool bCreatedNew;
+            Mutex m = new Mutex(false, Application.ProductName, out bCreatedNew);
+            if (bCreatedNew)
+            {
+                Application.Run(new Client());
+            }           
         }
     }
 }

@@ -658,6 +658,7 @@ namespace NetRemotingClient
 
         private void Restart()
         {
+            System.Environment.Exit(0);
 //             Application.ExitThread();
 //             Application.Exit();
 //             Application.Restart();
@@ -711,5 +712,6 @@ namespace NetRemotingClient
         {
             listView1.Items.Clear();
         }
+
     }
 }
