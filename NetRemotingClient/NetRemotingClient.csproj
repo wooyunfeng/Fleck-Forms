@@ -50,9 +50,6 @@
     <Reference Include="Newtonsoft.Json">
       <HintPath>..\Fleck-Forms\lib\Newtonsoft.Json.dll</HintPath>
     </Reference>
-    <Reference Include="RabbitMQ.Client">
-      <HintPath>..\Fleck-Forms\lib\RabbitMQ.Client.dll</HintPath>
-    </Reference>
     <Reference Include="ServiceStack.Common">
       <HintPath>..\Fleck-Forms\lib\ServiceStack.Common.dll</HintPath>
     </Reference>
@@ -92,7 +89,6 @@
     <Compile Include="RedisHelper.cs" />
     <Compile Include="RedisManage.cs" />
     <Compile Include="User.cs" />
-    <Compile Include="ZipHelper.cs" />
     <Compile Include="Zobrist.cs" />
     <EmbeddedResource Include="Client.resx">
       <DependentUpon>Client.cs</DependentUpon>

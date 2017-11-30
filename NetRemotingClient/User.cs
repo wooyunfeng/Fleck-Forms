@@ -100,7 +100,6 @@ namespace NetRemotingClient
             {
                 isJson = true;
                 JavaScriptObject jsonObj = JavaScriptConvert.DeserializeObject<JavaScriptObject>(message);
-                uuid = jsonObj["id"].ToString();
                 index = jsonObj["index"].ToString();
                 command = jsonObj["command"].ToString();
                 commandtype = command.Substring(0, 8);

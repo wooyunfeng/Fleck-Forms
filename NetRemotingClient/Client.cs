@@ -18,8 +18,6 @@ using System.Net;
 using System.Xml;
 using System.Net.Sockets;
 using Fleck_Forms;
-using RabbitMQ.Client;
-using RabbitMQ.Client.Events;
 
 namespace NetRemotingClient
 {   
@@ -40,11 +38,6 @@ namespace NetRemotingClient
         RedisManage redis;
         Queue countQueue;
         bool bConnect;
-        ConnectionFactory factory;
-        IConnection connection;
-        IModel send_channel;
-        IModel recv_channel;
-        BasicDeliverEventArgs ea;
         public Client()
         {
             LoadXml();          
@@ -148,10 +141,7 @@ namespace NetRemotingClient
                 strInfo = labelinfo.Text;
                 labelcount.Text = dealcount.ToString();
                 StartPipeThread();
-                initRabbit();
-                Thread.Sleep(1000);
-                recvThread();
-              //  StartOnTCPThread();                
+                StartOnTCPThread();                
             }
             catch (Exception ex)
             {
@@ -260,10 +250,6 @@ namespace NetRemotingClient
                 {
                     PipeWriter.Write("go depth " + depth + "\r\n");
                 }
-            }
-            else
-            {
-                recv_channel.BasicAck(ea.DeliveryTag, false);
             }
         }  
   
@@ -425,7 +411,6 @@ namespace NetRemotingClient
                             if (bdealing)
                             {
                                 currentMsg.result = line;
-                                sendtoRabbit(currentMsg.GetJson());
                                 SendtoServer(line);
                             }
                             if (intDepth > 0 && intDepth < 32)
@@ -456,8 +441,6 @@ namespace NetRemotingClient
                             AddMsg(linearray);
                             currentMsg.result = line;
                             string sendmsg = currentMsg.GetJson();
-                            sendtoRabbit(sendmsg);
-                            recv_channel.BasicAck(ea.DeliveryTag, false);
                         }
                         Thread.Sleep(10);
                     }
@@ -490,53 +473,7 @@ namespace NetRemotingClient
                 Thread.Sleep(100);
                 OnTCP();                
             }                       
-        }
-        private void initRabbit()
-        {
-            factory = new ConnectionFactory();
-            factory.HostName = "47.96.28.91";
-            factory.UserName = "chd1219";
-            factory.Password = "jiao19890228";
-            connection = factory.CreateConnection();
-            send_channel = connection.CreateModel();
-
-        }
-
-        private void sendtoRabbit(string message)
-        {
-            send_channel.QueueDeclare("recv-queue", true, false, false, null);
-            var body = Encoding.UTF8.GetBytes(message);
-            var properties = send_channel.CreateBasicProperties();
-            send_channel.BasicPublish("", "recv-queue", properties, body);
-        }
-
-        private void recvThread()
-        {
-            Thread thread = new Thread(new ThreadStart(revfromRabbit));
-            thread.Start();
-        }
-
-        private void revfromRabbit()
-        {
-            using (recv_channel = connection.CreateModel())
-            {
-                recv_channel.QueueDeclare("send-queue", true, false, false, null);
-                recv_channel.BasicQos(0, 1, false);
-
-                var consumer = new QueueingBasicConsumer(recv_channel);
-                recv_channel.BasicConsume("send-queue", false, consumer);
-
-                while (true)
-                {
-                    ea = (BasicDeliverEventArgs)consumer.Queue.Dequeue();
-
-                    var body = ea.Body;
-                    var message = Encoding.UTF8.GetString(body);
-                    currentMsg = new NewMsg(message);
-                    deal(currentMsg);                   
-                }
-            }
-        }
+        }      
 
         private void textDepth_TextChanged(object sender, EventArgs e)
         {
