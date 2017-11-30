@@ -14,6 +14,7 @@ using System.Threading;
 using RabbitMQ.Client.Events;
 using Newtonsoft.Json;
 using System.Collections;
+using System.Diagnostics;
 
 namespace Fleck_RabbitMQ
 {
@@ -330,10 +331,10 @@ namespace Fleck_RabbitMQ
             listView4.Columns.Add("接受请求", 60, HorizontalAlignment.Center);
             listView4.Columns.Add("处理请求", 60, HorizontalAlignment.Center);
             listView4.Columns.Add("等待处理", 60, HorizontalAlignment.Center);
-            listView4.Columns.Add("CPU", 40, HorizontalAlignment.Center);
+            listView4.Columns.Add("CPU使用", 60, HorizontalAlignment.Center);
             listView4.Columns.Add("剩余内存", 100, HorizontalAlignment.Center);
             listView4.Columns.Add("启动时间", 130, HorizontalAlignment.Center);
-            listView4.Columns.Add("运行时间", 110, HorizontalAlignment.Center);
+            listView4.Columns.Add("运行时间", 100, HorizontalAlignment.Center);
 
             listViewNF1.GridLines = true;
             //单选时,选择整行
@@ -353,7 +354,7 @@ namespace Fleck_RabbitMQ
             listViewNF1.Columns.Add("result", 200, HorizontalAlignment.Center);
         }
 
-        private void AddListViewItem(ListView listView, string[] array,int showLines = 34)
+        private void AddListViewItem(ListView listView, string[] array,int showLines = 35)
         {
             if (listView.Items.Count > showLines)
             {

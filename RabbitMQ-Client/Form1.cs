@@ -521,10 +521,11 @@ namespace RabbitMQ_Client
 
         private void Restart()
         {
-            Application.ExitThread();
-            Application.Exit();
-            Application.Restart();
-            Process.GetCurrentProcess().Kill();
+            System.Environment.Exit(0);
+//             Application.ExitThread();
+//             Application.Exit();
+//             Application.Restart();
+//             Process.GetCurrentProcess().Kill();
         }
 
         private bool checkTimeOut()

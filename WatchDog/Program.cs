@@ -2,9 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
-using System.Threading;
 
-namespace RabbitMQ_Client
+namespace WatchDog
 {
     static class Program
     {
@@ -16,10 +15,7 @@ namespace RabbitMQ_Client
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-//             bool bCreatedNew;
-//             Mutex m = new Mutex(false, Application.ProductName, out bCreatedNew);
-//             if (bCreatedNew)
-                Application.Run(new Form1());
+            Application.Run(new Form1());
         }
     }
 }
