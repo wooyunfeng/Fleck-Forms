@@ -88,10 +88,7 @@ namespace WatchDog
             }
         }
 
-        private void 退出ToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            this.Close();
-        }
+       
 
         private void Form1_Resize(object sender, EventArgs e)
         {
@@ -108,5 +105,28 @@ namespace WatchDog
             this.WindowState = FormWindowState.Normal;
             this.Show();
         }
+
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            //MessageBox.Show("程序将最小化到系统托盘区");
+            e.Cancel = true; // 取消关闭窗体
+            this.Hide();
+            this.ShowInTaskbar = false;//取消窗体在任务栏的显示
+            this.notifyIcon1.Visible = true;//显示托盘图标
+        }
+
+        private void 显示主窗口ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            this.Show();
+            this.ShowInTaskbar = true;
+            this.notifyIcon1.Visible = false;
+        }
+
+        private void 退出ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            this.Dispose(true);
+            Application.ExitThread();
+        }
+
     }
 }
