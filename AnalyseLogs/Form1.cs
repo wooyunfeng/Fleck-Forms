@@ -9,6 +9,8 @@ using System.Windows.Forms;
 using System.IO;
 using System.Collections;
 using System.Threading;
+using Newtonsoft.Json;
+using Fleck_Forms;
 
 namespace AnalyseLogs
 {
@@ -18,6 +20,9 @@ namespace AnalyseLogs
         {
             InitializeComponent();
             InitListView();
+            redis = new RedisManage();
+            sql = new SQLiteManage();
+            timer1.Enabled = true;
         }
 
         ArrayList filepath = new ArrayList();
@@ -85,29 +90,29 @@ namespace AnalyseLogs
         {
             StartThread();  
         }
-
+        int value = 0;
+        int max = 0;
+        bool bset = false;
         private void ParseFile()
         {
             foreach (var file in filepath)
             {
+                bset = false;
+                max = 0;
+                value = 0;
+                timer1.Enabled = true;
+                Thread.Sleep(100);
                 loadfile((string)file);
-                this.progressBar1.Minimum = 0;
-                this.progressBar1.Maximum = fileline.Count;
-                this.progressBar1.Value = 0;
+                max = fileline.Count;                
                 foreach (var line in fileline)
                 {
                     ParseLine(line);
-                    this.progressBar1.Value++;
+                    value++;
                 }
+                MessageBox.Show(file+" Done");
             }
            
         }
-
-        private delegate void ParseFileDelegate();
-        //线程开始的时候调用的委托  
-        private delegate void maxValueDelegate(int maxValue);
-        //线程执行中调用的委托  
-        private delegate void nowValueDelegate(int nowValue);  
 
         public void StartThread()
         {
@@ -116,10 +121,58 @@ namespace AnalyseLogs
             pthread.IsBackground = true;
             pthread.Start();
         }
-
+        public string uuid { get; set; }
+        public string id { get; set; }
+        private string result { get; set; }
+        public string index { get; set; }
+        public string commandtype { get; set; }
+        public string command { get; set; }
+        RedisManage redis;
+        SQLiteManage sql;
         private void ParseLine(object line)
         {
-            Thread.Sleep(10);
+            try
+            {
+                string message = (string)line;
+                if (message.Length > 50)
+                {
+                    int seek = message.IndexOf("{");
+                    string str = message.Substring(seek, message.Length - seek);
+                    if (JsonSplit.IsJson(str))//传入的json串
+                    {
+                        JavaScriptObject jsonObj = JavaScriptConvert.DeserializeObject<JavaScriptObject>(str);
+                        index = jsonObj["index"].ToString();
+                        if (str.IndexOf("uuid") != -1)
+                        {
+                            uuid = jsonObj["uuid"].ToString();
+                            result = jsonObj["result"].ToString();
+                            if (result.IndexOf("bestmove") != -1)
+                            {
+                                sql.Update(uuid, index, result);
+                            }
+                            command = sql.getCommand(uuid, index);
+                            redis.setItemToList(command, result);
+                        }
+                        else
+                        {
+                            id = jsonObj["id"].ToString();
+                            command = jsonObj["command"].ToString();
+                            string[] args = { index, id, command };
+                            sql.Insert(args);
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine(message);
+                    }
+                }
+               
+            }
+            catch (System.Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }         
+                   
         }
 
         private void AddListViewItem(ListView listView, string[] array, int showLines = 20)
@@ -165,14 +218,26 @@ namespace AnalyseLogs
 
         private void timer1_Tick(object sender, EventArgs e)
         {
-            if (progressBar1.Value < progressBar1.Maximum)
+            if (bset)
             {
-                progressBar1.Value++;
+                if (progressBar1.Value <= progressBar1.Maximum)
+                {
+                    progressBar1.Value = value;
+                }
+                else
+                {
+                    timer1.Enabled = false;
+                }
             }
             else
             {
-                timer1.Enabled = false;
+                if (max > 0)
+                {
+                    bset = true;
+                    progressBar1.Maximum = max;
+                }
             }
+            
             
         }
 
