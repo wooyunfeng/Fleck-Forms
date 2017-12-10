@@ -313,6 +313,14 @@ namespace WatchDog
                 info.path = form2.path;
                 info.span = form2.span;
                 string[] args = { (listView1.Items.Count+1).ToString(), info.path, info.span, "" };
+                foreach (Info i in myList)
+                {
+                    if (i.path == info.path)
+                    {
+                        MessageBox.Show("文件已存在，请删除重试！");
+                        return;
+                    }
+                }
                 AddNode(info);
                 myList.Add(info);
             }

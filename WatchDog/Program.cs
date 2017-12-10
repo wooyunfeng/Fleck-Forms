@@ -17,7 +17,9 @@ namespace WatchDog
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             bool bCreatedNew;
-            Mutex m = new Mutex(false, Application.ProductName, out bCreatedNew);
+            string strFullPath = Application.ExecutablePath;
+            string strFileName = System.IO.Path.GetFileName(strFullPath);
+            Mutex m = new Mutex(false, strFileName, out bCreatedNew);
             if (bCreatedNew)
             {
                 Application.Run(new Form1());
