@@ -211,8 +211,8 @@ namespace AnalyseLogs
             listView1.MultiSelect = false;
 
             listView1.View = View.Details;
-            listView1.Columns.Add("序号", 60);
-            listView1.Columns.Add("路径", 300);
+            listView1.Columns.Add("序号", 50);
+            listView1.Columns.Add("路径", 500);
             listView1.Columns.Add("处理结果", 80);
         }
 
