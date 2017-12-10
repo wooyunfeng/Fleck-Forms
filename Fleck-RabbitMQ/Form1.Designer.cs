@@ -46,6 +46,7 @@
             this.label2 = new System.Windows.Forms.Label();
             this.btn_clear = new System.Windows.Forms.Button();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
+            this.button_discon = new System.Windows.Forms.Button();
             this.panel1.SuspendLayout();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
@@ -174,6 +175,7 @@
             // 
             // tabPage4
             // 
+            this.tabPage4.Controls.Add(this.button_discon);
             this.tabPage4.Controls.Add(this.m_port);
             this.tabPage4.Controls.Add(this.label2);
             this.tabPage4.Controls.Add(this.btn_clear);
@@ -219,6 +221,16 @@
             this.timer1.Interval = 1000;
             this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
             // 
+            // button_discon
+            // 
+            this.button_discon.Location = new System.Drawing.Point(192, 170);
+            this.button_discon.Name = "button_discon";
+            this.button_discon.Size = new System.Drawing.Size(75, 23);
+            this.button_discon.TabIndex = 58;
+            this.button_discon.Text = "清空连接";
+            this.button_discon.UseVisualStyleBackColor = true;
+            this.button_discon.Click += new System.EventHandler(this.button_discon_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -259,6 +271,7 @@
         private Fleck_Forms.ListViewNF listView4;
         private System.Windows.Forms.TabPage tabPage3;
         private Fleck_Forms.ListViewNF listViewNF1;
+        private System.Windows.Forms.Button button_discon;
     }
 }
 

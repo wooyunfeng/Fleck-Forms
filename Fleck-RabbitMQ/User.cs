@@ -915,6 +915,16 @@ namespace Fleck_Forms
             allSockets.Remove(socket);
         }
 
+        public void RemoveAll()
+        {
+            foreach (var r in allRoles.ToList())
+            {
+                r.connection.Close();
+                allRoles.Remove(r);
+                allSockets.Remove(r.connection);
+            }            
+        }
+
         public Role GetAt(IWebSocketConnection socket)
         {
             int index = allSockets.IndexOf(socket);

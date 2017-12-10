@@ -18,10 +18,7 @@ namespace Fleck_Forms
     {
         public Log log;
         public Setting setting;
-        public Queue DealSpeedQueue;
         public User user;
-        private static int nMsgQueuecount { get; set; }
-        public bool bRedis { get; set; }
 
         public void WriteInfo(string message, bool isOutConsole = false)
         {
@@ -35,22 +32,12 @@ namespace Fleck_Forms
                 Console.WriteLine(message);
             }
         }
-       
-        public int getDealspeed()
-        {
-            return nMsgQueuecount;
-        }
-
+        
         public string getDepth()
         {
             return Setting.level;
         }
-
-        public bool getSupportCloudApi()
-        {
-            return Setting.isSupportCloudApi;
-        }
-
+        
         public void LoadXml()
         {
             setting.LoadXml();
@@ -66,8 +53,10 @@ namespace Fleck_Forms
             ramCounter = new PerformanceCounter("Memory", "Available MBytes");
             user = new User();
             setting = new Setting();
-            log = new Log();
-            DealSpeedQueue = new Queue();
+            if (Setting.islog)
+            {
+                log = new Log();
+            }
         }
        
         public Msg Json2Msg(string jsonStr)

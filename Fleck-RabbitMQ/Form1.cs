@@ -98,6 +98,7 @@ namespace Fleck_RabbitMQ
                         roomSet.RemoveAll(socket);
                     }
                     OnMessage(socket, message);
+                    comm.WriteInfo(message);
                 };
             });
         }
@@ -112,6 +113,7 @@ namespace Fleck_RabbitMQ
             }
            
             string strAddr = socket.ConnectionInfo.ClientIpAddress + ":" + socket.ConnectionInfo.ClientPort.ToString();
+
             string level = "17";
             if (msg.GetType() == "0")
             {
@@ -196,6 +198,7 @@ namespace Fleck_RabbitMQ
                     var body = ea.Body;
                     var message = Encoding.UTF8.GetString(body);
                     SendtoUser(message);
+                    comm.WriteInfo(message);
                     recv_channel.BasicAck(ea.DeliveryTag, false);
                 }
             }
@@ -565,6 +568,11 @@ namespace Fleck_RabbitMQ
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
             System.Environment.Exit(0);
+        }
+
+        private void button_discon_Click(object sender, EventArgs e)
+        {
+            comm.user.RemoveAll();
         }
 
        

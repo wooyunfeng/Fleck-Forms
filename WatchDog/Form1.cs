@@ -9,6 +9,7 @@ using System.Windows.Forms;
 using System.Diagnostics;
 using System.Xml;
 using System.IO;
+using Microsoft.Win32;
 
 namespace WatchDog
 {
@@ -26,6 +27,8 @@ namespace WatchDog
         XmlDocument xmlDoc;
         string xmlPath;
         string slectline;
+        bool bAutorun;
+
         //查找进程、结束进程
         public void CheckProc(Info info)
         {
@@ -95,6 +98,7 @@ namespace WatchDog
             }  
         }
 
+
         private void Form1_Load(object sender, EventArgs e)
         {
             this.Text = "进程监控";
@@ -103,10 +107,33 @@ namespace WatchDog
             InitListView();
             xmlPath = ".\\config.xml";
             LoadXml(xmlPath);
+            CheckAutoRun();
             ShowList();
             timer1.Enabled = true;
             //隐藏窗体
             //this.WindowState = FormWindowState.Minimized;
+        }
+
+        private void CheckAutoRun()
+        {
+            if (bAutorun) //设置开机自启动  
+            {
+                string path = Application.ExecutablePath;
+                RegistryKey rk = Registry.LocalMachine;
+                RegistryKey rk2 = rk.CreateSubKey(@"Software\Microsoft\Windows\CurrentVersion\Run");
+                rk2.SetValue("Watchdog", path);
+                rk2.Close();
+                rk.Close();
+            }
+            else //取消开机自启动  
+            {
+                string path = Application.ExecutablePath;
+                RegistryKey rk = Registry.LocalMachine;
+                RegistryKey rk2 = rk.CreateSubKey(@"Software\Microsoft\Windows\CurrentVersion\Run");
+                rk2.DeleteValue("Watchdog", false);
+                rk2.Close();
+                rk.Close();
+            }  
         }
 
         private void ShowList()
@@ -133,6 +160,10 @@ namespace WatchDog
                     foreach (XmlNode xn1 in xnl)
                     {
                         XmlElement xe = (XmlElement)xn1;
+                        if (xe.Name == "AutoRun")
+                        {
+                            bAutorun =  Convert.ToBoolean(xe.InnerText);
+                        }
                         if (xe.Name == "Path")
                         {
                             info.path = xe.InnerText;
@@ -193,8 +224,7 @@ namespace WatchDog
                 root = xmlDoc.CreateElement("Settings");
             }
             XmlNode node = xmlDoc.CreateNode(XmlNodeType.Element, "setting", null);
-            CreateNode(xmlDoc, node, "Path", info.path);
-            CreateNode(xmlDoc, node, "Span", info.span);
+            CreateNode(xmlDoc, node, "AutoRun", "True");
             root.AppendChild(node);
             SaveXml();
         }
