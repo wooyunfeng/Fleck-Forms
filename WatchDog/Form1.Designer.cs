@@ -35,7 +35,7 @@
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.ToolStripMenuShowItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ToolStripMenuExitItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.listView1 = new System.Windows.Forms.ListView();
+            this.listView1 = new ListViewNF();
             this.contextMenuStrip2 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.ToolStripMenuAddItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ToolStripMenuDelItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -135,7 +135,7 @@
         private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
         private System.Windows.Forms.ToolStripMenuItem ToolStripMenuExitItem;
         private System.Windows.Forms.ToolStripMenuItem ToolStripMenuShowItem;
-        private System.Windows.Forms.ListView listView1;
+        private ListViewNF listView1;
         private System.Windows.Forms.ContextMenuStrip contextMenuStrip2;
         private System.Windows.Forms.ToolStripMenuItem ToolStripMenuAddItem;
         private System.Windows.Forms.ToolStripMenuItem ToolStripMenuDelItem;

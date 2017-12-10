@@ -39,7 +39,7 @@ namespace Fleck_RabbitMQ
             addListDelegate = new AddConnectionItem(AddListItemMethod);
             removeListDelegate = new RemoveConnectionListItem(RemoveListItemMethod);
             addMsgInDelegate = new AddMsgInItem(AddMsgItemInMethod);
-
+            addMsgOutDelegate = new AddMsgOutItem(AddMsgItemOutMethod);
             InitializeComponent();
         }
         
@@ -104,8 +104,7 @@ namespace Fleck_RabbitMQ
         }
 
         public void OnMessage(IWebSocketConnection socket, string message)
-        {
-           
+        {           
             NewMsg msg = new NewMsg(socket, message);
             if (!pList.ContainsKey(msg.uuid))
             {
@@ -123,9 +122,9 @@ namespace Fleck_RabbitMQ
             if (msg.GetCommandType() == "position")
             {
                 AddMsgIn(showmsg);
-                sendtoRabbit(message);
-            }
-            
+                sendtoQueue(message);
+                sendtoFanout(message);
+            }            
         }
 
         private void DealMoveMessage(IWebSocketConnection socket, string message)
@@ -155,11 +154,10 @@ namespace Fleck_RabbitMQ
             factory.UserName = "chd1219";
             factory.Password = "jiao19890228";
             connection = factory.CreateConnection();
-            send_channel = connection.CreateModel();
-            
+            send_channel = connection.CreateModel();            
         }
 
-        private void sendtoRabbit(string message)
+        private void sendtoQueue(string message)
         {
             try
             {
@@ -174,14 +172,34 @@ namespace Fleck_RabbitMQ
             }
             
         }
+        private void sendtoFanout(string message)
+        {
+            try
+            {
+                string EXCHANGE_NAME = "send-fanout";
+                string ROUTING_KEY = "";
+                send_channel.ExchangeDeclare(EXCHANGE_NAME, "fanout");//广播
+
+                var body = Encoding.UTF8.GetBytes(message);
+                send_channel.BasicPublish(EXCHANGE_NAME, ROUTING_KEY, null, body);//不需要指定routing key，设置了fanout,指了也没有用.
+            }
+            catch (System.Exception ex)
+            {
+                ShowError(ex.Message);
+            }
+
+        }
 
         private void recvThread()
         {
-            Thread thread = new Thread(new ThreadStart(revfromRabbit));
+            Thread thread = new Thread(new ThreadStart(revfromQueue));
             thread.Start();
+
+            Thread thread1 = new Thread(new ThreadStart(recvfromFanout));
+            thread1.Start();
         }
 
-        private void revfromRabbit()
+        private void revfromQueue()
         {
             using (var recv_channel = connection.CreateModel())
             {
@@ -198,12 +216,34 @@ namespace Fleck_RabbitMQ
                     var body = ea.Body;
                     var message = Encoding.UTF8.GetString(body);
                     SendtoUser(message);
-                    comm.WriteInfo(message);
                     recv_channel.BasicAck(ea.DeliveryTag, false);
                 }
             }
         }
 
+        private void recvfromFanout()
+        {
+            string EXCHANGE_NAME = "recv-fanout";
+            string ROUTING_KEY = "";
+            using (var recv_channel = connection.CreateModel())
+            {
+                recv_channel.ExchangeDeclare(EXCHANGE_NAME, "fanout");//广播
+                QueueDeclareOk queueOk = recv_channel.QueueDeclare();//每当Consumer连接时，我们需要一个新的，空的queue。因为我们不对老的log感兴趣。幸运的是，如果在声明queue时不指定名字，那么RabbitMQ会随机为我们选择这个名字。
+                ////现在我们已经创建了fanout类型的exchange和没有名字的queue（实际上是RabbitMQ帮我们取了名字）。
+                ////那exchange怎么样知道它的Message发送到哪个queue呢？答案就是通过bindings：绑定。
+                string queueName = queueOk.QueueName;//得到RabbitMQ帮我们取了名字
+                recv_channel.QueueBind(queueName, EXCHANGE_NAME, ROUTING_KEY);//不需要指定routing key，设置了fanout,指了也没有用.
+                var consumer = new QueueingBasicConsumer(recv_channel);
+                recv_channel.BasicConsume(queueName, true, consumer);
+                while (true)
+                {
+                    var ea = (BasicDeliverEventArgs)consumer.Queue.Dequeue();//挂起的操作
+                    var body = ea.Body;
+                    var message = Encoding.UTF8.GetString(body);
+                    comm.WriteInfo(message);
+                }
+            }
+        }
         private void SendtoUser(string message)
         {
             if (JsonSplit.IsJson(message))//传入的json串
@@ -281,7 +321,6 @@ namespace Fleck_RabbitMQ
             AddListViewItem(listView4, names, 0);
  
         }
-
 
         private void InitListView()
         {
@@ -563,7 +602,6 @@ namespace Fleck_RabbitMQ
             listView2.Items.Clear();
             listView4.Items.Clear();
         }
-
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {

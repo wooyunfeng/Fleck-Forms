@@ -358,7 +358,24 @@ namespace RabbitMQ_Client
 
         }
 
+
         private void sendtoRabbit(string message)
+        {
+            sendtoQueue(message);
+            sendtoFanout(message);
+        }
+        
+        private void sendtoFanout(string message)
+        {
+            string EXCHANGE_NAME = "recv-fanout";
+            string ROUTING_KEY = "";
+            send_channel.ExchangeDeclare(EXCHANGE_NAME, "fanout");//广播
+   
+            var body = Encoding.UTF8.GetBytes(message);
+            send_channel.BasicPublish(EXCHANGE_NAME, ROUTING_KEY, null, body);//不需要指定routing key，设置了fanout,指了也没有用.
+        }
+
+        private void sendtoQueue(string message)
         {
             send_channel.QueueDeclare("recv-queue", true, false, false, null);
             var body = Encoding.UTF8.GetBytes(message);

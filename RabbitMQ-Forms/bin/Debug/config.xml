@@ -1,0 +1,6 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<configuration>
+  <add key="Title" value="象棋微学堂"></add>
+  <add key="Level" value="17"></add>
+  <add key="Log" value="true"></add>
+</configuration>

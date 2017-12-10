@@ -198,6 +198,9 @@ namespace WatchDog
             //创建根节点    
             XmlNode root = xmlDoc.CreateElement("Settings");
             xmlDoc.AppendChild(root);
+            XmlNode node1 = xmlDoc.CreateNode(XmlNodeType.Element, "setting", null);
+            CreateNode(xmlDoc, node1, "AutoRun", "True");
+            root.AppendChild(node1);
             try
             {
                 xmlDoc.Save(xmlpath);
@@ -224,7 +227,8 @@ namespace WatchDog
                 root = xmlDoc.CreateElement("Settings");
             }
             XmlNode node = xmlDoc.CreateNode(XmlNodeType.Element, "setting", null);
-            CreateNode(xmlDoc, node, "AutoRun", "True");
+            CreateNode(xmlDoc, node, "Path", info.path);
+            CreateNode(xmlDoc, node, "Span", info.span);
             root.AppendChild(node);
             SaveXml();
         }
