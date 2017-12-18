@@ -420,12 +420,7 @@ namespace NetRemotingClient
                             dealcount++;
                             SendtoServer(line);
                             string board = currentMsg.GetBoard();
-                            Zobrist zobrist = new Zobrist();
-                            UInt64 boardKey = zobrist.getKey(board);
-                            for (int i = 0; i < nLevel && isEngineRedis; i++)
-                            {
-                                redis.setItemToList(boardKey.ToString("X8"), listinfo[i]);
-                            }                                
+                            InsertBoardtoRedis(board, listinfo, nLevel);                                         
 
                             Array.Clear(listinfo, 0, listinfo.Length);
                             
@@ -448,6 +443,25 @@ namespace NetRemotingClient
                 strInfo = "PipeThread:" + ex.Message;
             }
         }
+
+        private void InsertBoardtoRedis(string board, string[] listinfo, int nLevel)
+        {            
+            //开局不入库
+            if (board.IndexOf("rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR") == -1)
+            {
+                return;
+            }
+
+            //Zobrist zobrist = new Zobrist();
+            //UInt64 boardKey = zobrist.getKey(board);
+            for (int i = 0; i < nLevel && isEngineRedis; i++)
+            {
+                //redis.setItemToList(boardKey.ToString("X8"), listinfo[i]);
+                redis.setItemToList(board, listinfo[i]);
+            }
+            
+        }
+            
 
         private void SendtoServer(string line)
         {
