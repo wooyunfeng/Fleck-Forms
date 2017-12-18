@@ -447,7 +447,7 @@ namespace NetRemotingClient
         private void InsertBoardtoRedis(string board, string[] listinfo, int nLevel)
         {            
             //开局不入库
-            if (board.IndexOf("rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR") == -1)
+            if (board.IndexOf("rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR") != -1)
             {
                 return;
             }
