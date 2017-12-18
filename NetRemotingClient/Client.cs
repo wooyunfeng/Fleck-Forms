@@ -60,7 +60,7 @@ namespace NetRemotingClient
             }
         }
 
-         public void AddMsgItemMethod(string[] message)
+        public void AddMsgItemMethod(string[] message)
         {
             string[] info = new string[message.Length + 1];
             info[0] = DateTime.Now.ToLongTimeString();
@@ -70,7 +70,7 @@ namespace NetRemotingClient
             Thread.Sleep(1);
         }
 
-         private void AddListViewItem(ListView listView, string[] array, int showLines = 20)
+        private void AddListViewItem(ListView listView, string[] array, int showLines = 20)
          {
              if (listView.Items.Count > showLines)
              {
@@ -111,7 +111,7 @@ namespace NetRemotingClient
             listView1.Columns.Add("输出", 250);
         }
 
-         private void AddMsg(string[]  param)
+        private void AddMsg(string[]  param)
          {
              try
              {
@@ -122,11 +122,7 @@ namespace NetRemotingClient
                  strInfo = ex.Message;
              }
          }
-        /// <summary>
-        /// 注册通道
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
+       
         private void Client_Load(object sender, EventArgs e)
         {
             try
@@ -420,8 +416,7 @@ namespace NetRemotingClient
                         }
 
                         if (line.IndexOf("bestmove") != -1)
-                        {
-                            bdealing = false;
+                        {                            
                             dealcount++;
                             SendtoServer(line);
                             string board = currentMsg.GetBoard();
@@ -433,7 +428,6 @@ namespace NetRemotingClient
                             }                                
 
                             Array.Clear(listinfo, 0, listinfo.Length);
-
                             
                             SendtoServer("list");
                             linearray[0] = currentMsg.GetBoard();
@@ -441,6 +435,7 @@ namespace NetRemotingClient
                             AddMsg(linearray);
                             currentMsg.result = line;
                             string sendmsg = currentMsg.GetJson();
+                            bdealing = false;
                         }
                         Thread.Sleep(10);
                     }
