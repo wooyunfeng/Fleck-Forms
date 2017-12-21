@@ -108,7 +108,7 @@ namespace Fleck_Forms
                     {
                         roomSet.RemoveAll(socket);
                     }                             
-                    //engine.OnMessage(socket, message);
+                    engine.OnMessage(socket, message);
                     string strAddr = socket.ConnectionInfo.ClientIpAddress + ":" + socket.ConnectionInfo.ClientPort.ToString();
                     string[] showmsg = { DateTime.Now.ToLongTimeString(), strAddr, message };
                     AddMsg(showmsg);

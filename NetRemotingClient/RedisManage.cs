@@ -39,6 +39,30 @@ namespace NetRemotingClient
             
         }
 
+        internal void setItemToList(string list, string[] listinfo)
+        {
+            try
+            {
+                string str = "";
+                foreach(var message in listinfo) 
+                {
+                    if (message != null)
+                    {
+                        depthInfo depthinfo = new depthInfo(message);
+
+                        if (depthinfo.depth > 0 && depthinfo.pv != "")
+                        {
+                            str += depthinfo.depth.ToString() + ',' + depthinfo.score.ToString() + "," + depthinfo.pv + "|";
+                        }
+                    }                   
+                }
+                engineredis_writer.addItemToListLeft(list, str);               
+            }
+            catch (System.Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
 
         internal void setRangeToList(string board, List<string> listinfo)
         {

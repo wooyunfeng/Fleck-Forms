@@ -106,9 +106,10 @@ namespace NetRemotingClient
             listView1.MultiSelect = false;
 
             listView1.View = View.Details;
-            listView1.Columns.Add("时间", 60);
-            listView1.Columns.Add("输入", 500);
-            listView1.Columns.Add("输出", 250);
+            listView1.Columns.Add("  时间", 60, HorizontalAlignment.Center);
+            listView1.Columns.Add("输入", 500, HorizontalAlignment.Center);
+            listView1.Columns.Add("输出", 230, HorizontalAlignment.Center);
+            listView1.Columns.Add("耗时(ms)", 60, HorizontalAlignment.Center);
         }
 
         private void AddMsg(string[]  param)
@@ -426,7 +427,17 @@ namespace NetRemotingClient
                             
                             SendtoServer("list");
                             linearray[0] = currentMsg.GetBoard();
-                            linearray[1] = " depth " + intDepth.ToString() + " " + line;
+                            linearray[1] = "depth " + intDepth.ToString() + " " + line;
+                            DateTime currentTime = System.DateTime.Now;
+                            TimeSpan span = currentTime.Subtract(startdeal);
+                            if (span.Seconds == 0)
+                            {
+                                linearray[2] = span.ToString("fff");
+                            }
+                            else
+                            {
+                                linearray[2] = span.Seconds.ToString() + span.ToString("fff");
+                            }                            
                             AddMsg(linearray);
                             currentMsg.result = line;
                             string sendmsg = currentMsg.GetJson();
@@ -445,20 +456,26 @@ namespace NetRemotingClient
         }
 
         private void InsertBoardtoRedis(string board, string[] listinfo, int nLevel)
-        {            
-            //开局不入库
-            if (board.IndexOf("rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR") != -1)
+        {
+            if (isEngineRedis)
             {
-                return;
+                redis.setItemToList(board, listinfo);
             }
-
-            //Zobrist zobrist = new Zobrist();
-            //UInt64 boardKey = zobrist.getKey(board);
-            for (int i = 0; i < nLevel && isEngineRedis; i++)
-            {
-                //redis.setItemToList(boardKey.ToString("X8"), listinfo[i]);
-                redis.setItemToList(board, listinfo[i]);
-            }
+           
+//             //开局不入库
+//             if (board.IndexOf("rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR") != -1)
+//             {
+//                 redis.setItemToList(board, listinfo);
+//                 return;
+//             }
+// 
+//             //Zobrist zobrist = new Zobrist();
+//             //UInt64 boardKey = zobrist.getKey(board);
+//             for (int i = 0; i < nLevel && isEngineRedis; i++)
+//             {
+//                 //redis.setItemToList(boardKey.ToString("X8"), listinfo[i]);
+//                 redis.setItemToList(board, listinfo[i]);
+//             }
             
         }
             
