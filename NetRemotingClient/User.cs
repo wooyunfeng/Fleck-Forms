@@ -61,10 +61,11 @@ namespace NetRemotingClient
                     if (key == "pv")
                     {
                         string str = "";
-                        for (int j = i + 1; j < arr.Length; j++)
+                        for (int j = i + 1; j < arr.Length-1; j++)
                         {
                             str += arr[j] + " ";
                         }
+                        str += arr[arr.Length - 1];
                         return str;
                     }
                     return arr[i + 1];
