@@ -12,12 +12,14 @@ namespace Fleck_Forms
         public RedisHelper cloudredis;
         public RedisHelper engineredis_reader;
         public RedisHelper engineredis_writer;
+        public RedisHelper countredis;
 
         public RedisManage()
         {
             engineredis_writer = new RedisHelper(Setting.engineRedis_writer, "jiao19890228");
             engineredis_reader = new RedisHelper(Setting.engineRedis_reader, "jiao19890228");
             cloudredis = new RedisHelper(Setting.cloudRedisPath, "jiao19890228");
+            countredis = new RedisHelper(Setting.countRedis, "jiao19890228");
         }
 
         internal bool getItemFromList(string list, int index)

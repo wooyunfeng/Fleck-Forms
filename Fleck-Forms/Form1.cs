@@ -24,13 +24,12 @@ namespace Fleck_Forms
 {
     public partial class Form1 : Form
     {
-        //1.声明自适应类实例
-        AutoSizeFormClass asc = new AutoSizeFormClass();
         string Port = "9001";
         ConnectionFactory factory;
         IConnection connection;
         IModel send_channel;
         Dictionary<String, Object> pList = new Dictionary<String, Object>();
+        Dictionary<String, Object> pConnect = new Dictionary<String, Object>();
 
         public Form1()
         {
@@ -53,21 +52,18 @@ namespace Fleck_Forms
         
         private void Form1_Load(object sender, EventArgs e)
         {
-            asc.controllInitializeSize(this);
             InitListView();
             engine = new Engine();
+            //启动引擎服务
             engine.Start();
-            engine.comm.bRedis = m_Redis.Checked;
-            countQueue = new Queue();
-            MsgCount = 0;
             RunTime = System.DateTime.Now;
-            m_CloudApi.Checked = Setting.isSupportCloudApi;
             m_port.Text = Setting.websocketPort;
             this.Text = Setting.title;
             FleckLog.Level = LogLevel.Info;
             OnWebSocketServer(Setting.websocketPort);
-            initRabbit();
-            recvThread();
+            //连接rabbitMQ
+            initRabbit();            
+            revfromRabbitThread();
         }
 
         public void OnWebSocketServer(string port)
@@ -81,12 +77,16 @@ namespace Fleck_Forms
                 {
                     AddConnection(socket);
                     engine.OnOpen(socket);
+                    string strAddr = getSocketAddr(socket);
+                    pConnect.Add(strAddr, socket);
                 };
                 socket.OnClose = () =>
                 {
                     DelConnection(socket);
                     engine.OnClose(socket);
                     roomSet.Remove(socket);
+                    string strAddr = getSocketAddr(socket);
+                    pConnect.Remove(strAddr);
                 };
                 socket.OnMessage = message =>
                 {
@@ -115,6 +115,12 @@ namespace Fleck_Forms
                 };
             });
         }
+
+        private string getSocketAddr(IWebSocketConnection socket)
+        {
+            return socket.ConnectionInfo.ClientIpAddress + ":" + socket.ConnectionInfo.ClientPort.ToString();                    
+        }
+
         private void initRabbit()
         {
             factory = new ConnectionFactory();
@@ -122,8 +128,7 @@ namespace Fleck_Forms
             factory.UserName = "chd1219";
             factory.Password = "jiao19890228";
             connection = factory.CreateConnection();
-            send_channel = connection.CreateModel();
-            
+            send_channel = connection.CreateModel();            
         }
 
         private void sendtoRabbit(string message)
@@ -134,7 +139,7 @@ namespace Fleck_Forms
             send_channel.BasicPublish("", "send-queue", properties, body);
         }
 
-        private void recvThread()
+        private void revfromRabbitThread()
         {
             Thread thread = new Thread(new ThreadStart(revfromRabbit));
             thread.Start();
@@ -180,7 +185,6 @@ namespace Fleck_Forms
         {
             try
             {
-                MsgCount++;
                 this.Invoke(this.addMsgDelegate, new Object[] { param });
             }
             catch (System.Exception ex)
@@ -193,25 +197,12 @@ namespace Fleck_Forms
         {
             if (engine != null)
             {
-                string m_speed = null;
                 string m_online = engine.getUserCount().ToString();
 
-                string m_msg = MsgCount.ToString() + " 个";
-
-                if (countQueue != null)
-                {
-                    countQueue.Enqueue(MsgCount);
-                    if (countQueue.Count > 60)
-                    {
-                        countQueue.Dequeue();
-                    }
-                    m_speed = (MsgCount - (int)countQueue.Peek()).ToString() + " 个/分钟";
-                }       
-
+                string m_msg = getMsgCount().ToString() + " 个";
+                string m_speed = getDealSpeed().ToString() + " 个/分钟";                
                 string m_undo = engine.getMsgQueueCount().ToString() + " 个";
-
                 string m_time = RunTime.ToString();
-
                 DateTime currentTime = System.DateTime.Now;
                 TimeSpan span = currentTime.Subtract(RunTime);
                 string m_span = span.Days + "天" + span.Hours + "时" + span.Minutes + "分" + span.Seconds + "秒";
@@ -230,15 +221,22 @@ namespace Fleck_Forms
                     string[] info = new string[msg.Length + 1];
                     info[0] = DateTime.Now.ToLongTimeString();
                     msg.CopyTo(info, 1);
-/*                    string[] str = { DateTime.Now.ToLongTimeString(), msg[0], msg[1], msg[2] };*/
                     AddListViewItem(listView3, info);
                 }
            
-                //显示选择用户的历史命令
-                showUserCommand();
                 //显示引擎信息
                 showEngineInfo();                     
             }
+        }
+
+        private int getDealSpeed()
+        {
+            return 0;
+        }
+
+        private int getMsgCount()
+        {
+            return 0;
         }
 
         private void showEngineInfo()
@@ -322,29 +320,14 @@ namespace Fleck_Forms
 
             listView4.View = View.Details;
             listView4.Columns.Add("  时间", 60, HorizontalAlignment.Center);
-            listView4.Columns.Add("在线用户", 100, HorizontalAlignment.Center);
-            listView4.Columns.Add("接受请求", 100, HorizontalAlignment.Center);
-            listView4.Columns.Add("处理速度", 100, HorizontalAlignment.Center);
-            listView4.Columns.Add("等待处理", 100, HorizontalAlignment.Center);
-            listView4.Columns.Add("CPU使用", 100, HorizontalAlignment.Center);
-            listView4.Columns.Add("剩余内存", 100, HorizontalAlignment.Center);
-            listView4.Columns.Add("启动时间", 200, HorizontalAlignment.Center);
-            listView4.Columns.Add("运行时间", 100, HorizontalAlignment.Center);
-
-            listViewNF1.GridLines = true;
-            //单选时,选择整行
-            listViewNF1.FullRowSelect = true;
-            //显示方式
-            listViewNF1.View = View.Details;
-            //没有足够的空间显示时,是否添加滚动条
-            listViewNF1.Scrollable = true;
-            //是否可以选择多行
-            listViewNF1.MultiSelect = false;
-
-            listViewNF1.View = View.Details;
-            listViewNF1.Columns.Add("时间", 60);
-            listViewNF1.Columns.Add("命令", 1000);
-            listViewNF1.Columns.Add("结果",200);
+            listView4.Columns.Add("在线用户", 60, HorizontalAlignment.Center);
+            listView4.Columns.Add("接受请求", 80, HorizontalAlignment.Center);
+            listView4.Columns.Add("处理速度", 80, HorizontalAlignment.Center);
+            listView4.Columns.Add("等待处理", 60, HorizontalAlignment.Center);
+            listView4.Columns.Add("CPU", 50, HorizontalAlignment.Center);
+            listView4.Columns.Add("剩余内存", 80, HorizontalAlignment.Center);
+            listView4.Columns.Add("启动时间", 130, HorizontalAlignment.Center);
+            listView4.Columns.Add("运行时间", 110, HorizontalAlignment.Center);
 
             listViewNF2.GridLines = true;
             //单选时,选择整行
@@ -364,7 +347,7 @@ namespace Fleck_Forms
             listViewNF2.Columns.Add("等待处理", 100, HorizontalAlignment.Center);
         }
 
-        private void AddListViewItem(ListView listView, string[] array,int showLines = 28)
+        private void AddListViewItem(ListView listView, string[] array,int showLines = 35)
         {
             if (listView.Items.Count > showLines)
             {
@@ -389,8 +372,6 @@ namespace Fleck_Forms
 
         Engine engine;
         DateTime RunTime;
-        int MsgCount;
-        Queue countQueue;
 
         //安全调用控件
         public delegate void AddConnectionItem(IWebSocketConnection socket);
@@ -569,59 +550,10 @@ namespace Fleck_Forms
             listView4.Items.Clear();
         }
 
-        private void m_Redis_CheckedChanged(object sender, EventArgs e)
-        {
-            engine.comm.bRedis = m_Redis.Checked;
-        }
-
-        private void m_CloudApi_CheckedChanged(object sender, EventArgs e)
-        {
-            Setting.isSupportCloudApi = m_CloudApi.Checked;
-        }
-
-
-        private void Form1_SizeChanged(object sender, EventArgs e)
-        {
-            asc.controlAutoSize(this);
-        }
-
-        private void treeView1_AfterSelect(object sender, TreeViewEventArgs e)
-        {
-            showUserCommand();           
-        }
-
-        private void showUserCommand()
-        {
-            if (treeView1.SelectedNode != null && treeView1.SelectedNode.Parent != null)
-            {
-                try
-                {
-                    string addr = treeView1.SelectedNode.Parent.Text + ":" + treeView1.SelectedNode.Text;
-                    SQLiteDataReader reader = (SQLiteDataReader)engine.comm.sqlOperate.Query(addr);
-                    listViewNF1.Items.Clear();
-                    while (reader.Read())
-                    {
-                        string[] message = { reader["revTime"].ToString(), reader["Command"].ToString(), reader["result"].ToString() };
-                        AddListViewItem(listViewNF1, message, 100);
-                    }
-                }
-                catch (System.Exception ex)
-                {
-                    Console.WriteLine(ex.Message);
-                }
-               
-            }
-        }
-
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
             engine.Close();
             System.Environment.Exit(0);
-        }
-
-        private void m_Mysql_CheckedChanged(object sender, EventArgs e)
-        {
-
         }
 
         private void btn_reset_Click(object sender, EventArgs e)

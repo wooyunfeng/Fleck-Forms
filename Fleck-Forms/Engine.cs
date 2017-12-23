@@ -99,17 +99,7 @@ namespace Fleck_Forms
             {
                 if (message.IndexOf("queryall") != -1)
                 {
-                    NewMsg msg = new NewMsg(socket, message);
-
-                    string strQueryall = comm.DealQueryallMessage(msg.GetBoard());
-                    if (strQueryall != "" && strQueryall != "unknown")
-                    {
-                        string sendmsg = msg.Send(strQueryall);
-                        string[] msgs = { strAddr, "redis", sendmsg };
-                        OutputEngineQueueEnqueue(msgs);
-                    }
-                    
-                    comm.sqlOperate.InsertQueryall(msg.GetBoard(), strQueryall);
+                    DealQueryallMessage(socket,message);
                 }
                 else if (message.IndexOf("position") != -1)
                 {                   
@@ -128,6 +118,18 @@ namespace Fleck_Forms
             {
                 Console.WriteLine(ex.Message);
             }           
+        }
+
+        private void DealQueryallMessage(IWebSocketConnection socket, string message)
+        {
+            NewMsg msg = new NewMsg(socket, message);
+
+            string strQueryall = comm.DealQueryallMessage(msg.GetBoard());
+            if (strQueryall != "" && strQueryall != "unknown")
+            {
+                string sendmsg = msg.Send(strQueryall);
+            }
+            comm.sqlOperate.InsertQueryall(msg.GetBoard(), strQueryall);
         }
 
         private void DealMoveMessage(IWebSocketConnection socket, string message)

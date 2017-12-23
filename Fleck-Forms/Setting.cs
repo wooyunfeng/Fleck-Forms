@@ -69,6 +69,10 @@ namespace Fleck_Forms
                 {
                     Setting.cloudRedisPath = xe.GetAttribute("value").ToString();
                 }
+                if (xe.GetAttribute("key").ToString() == "CountRedis")
+                {
+                    Setting.countRedis = xe.GetAttribute("value").ToString();
+                }
                 if (xe.GetAttribute("key").ToString() == "EngineRedisWriter")
                 {
                     Setting.engineRedis_writer = xe.GetAttribute("value").ToString();
@@ -79,5 +83,7 @@ namespace Fleck_Forms
                 }
             }
         }
+
+        public static string countRedis { get; set; }
     }    
 }
