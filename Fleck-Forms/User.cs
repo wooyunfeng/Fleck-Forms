@@ -213,28 +213,53 @@ namespace Fleck_Forms
 
     class NewMsg
     {
-        private IWebSocketConnection connection { get; set; }
+        public IWebSocketConnection connection { get; set; }
         public string uuid { get; set; }
-        private string message { get; set; }
+        public string message { get; set; }
         public string index { get; set; }
-        private string command { get; set; }
+        public string command { get; set; }
         public string commandtype { get; set; }
-        private bool isJson { get; set; }
+        public bool isJson { get; set; }
         public UInt64 boardID { get; set; }
+        public string zobristKey { get; set; }
+        private string type { get; set; }
+        public string result { get; set; }
         public NewMsg(IWebSocketConnection connection, string message)
         {
             if (JsonSplit.IsJson(message))//传入的json串
             {
                 isJson = true;
                 JavaScriptObject jsonObj = JavaScriptConvert.DeserializeObject<JavaScriptObject>(message);
-                uuid = jsonObj["id"].ToString();
-                index = jsonObj["index"].ToString();
-                command = jsonObj["command"].ToString();
+                if (message.IndexOf("uuid") != -1)
+                {
+                    uuid = jsonObj["uuid"].ToString();
+                }                
+                else if (message.IndexOf("id") != -1)
+                {
+                    uuid = jsonObj["id"].ToString();
+                }
+
+                if (message.IndexOf("type") != -1)
+                {
+                    type = jsonObj["type"].ToString();
+                }
+
+                if (message.IndexOf("index") != -1)
+                {
+                    index = jsonObj["index"].ToString();
+                }
+                if (message.IndexOf("command") != -1)
+                {
+                    command = jsonObj["command"].ToString();
+                }
                 commandtype = command.Substring(0, 8);
                 if (command.IndexOf('K') < command.IndexOf('k'))
                 {
                     command = null;
                 }
+                Zobrist zobrist = new Zobrist();
+                this.boardID = zobrist.getKey(GetBoard());
+                this.zobristKey = this.boardID.ToString("X");
             }
             else
             {
@@ -243,8 +268,7 @@ namespace Fleck_Forms
 
             this.connection = connection;
             this.message = message;
-            Zobrist zobrist = new Zobrist();
-            this.boardID = zobrist.getKey(GetBoard());
+            
         }
 
         public NewMsg(string message)
@@ -253,9 +277,28 @@ namespace Fleck_Forms
             {
                 isJson = true;
                 JavaScriptObject jsonObj = JavaScriptConvert.DeserializeObject<JavaScriptObject>(message);
-                uuid = jsonObj["id"].ToString();
-                index = jsonObj["index"].ToString();
-                command = jsonObj["command"].ToString();
+                if (message.IndexOf("uuid") != -1)
+                {
+                    uuid = jsonObj["uuid"].ToString();
+                }
+                if (message.IndexOf("id") != -1)
+                {
+                    uuid = jsonObj["id"].ToString();
+                }
+
+                if (message.IndexOf("type") != -1)
+                {
+                    type = jsonObj["type"].ToString();
+                }
+
+                if (message.IndexOf("index") != -1)
+                {
+                    index = jsonObj["index"].ToString();
+                }
+                if (message.IndexOf("command") != -1)
+                {
+                    command = jsonObj["command"].ToString();
+                }
                 commandtype = command.Substring(0, 8);
                 if (command.IndexOf('K') < command.IndexOf('k'))
                 {
@@ -270,6 +313,7 @@ namespace Fleck_Forms
             Zobrist zobrist = new Zobrist();
             this.boardID = zobrist.getKey(GetBoard());
         }
+
         internal string Send(string strmsg)
         {
             if (JsonSplit.IsJson(strmsg))//传入的json串
@@ -311,9 +355,19 @@ namespace Fleck_Forms
             return index;
         }
 
+        internal string GetType()
+        {
+            return type;
+        }
+
         internal string GetCommandType()
         {
             return commandtype;
+        }
+
+        internal void SetCommandType(string t)
+        {
+            commandtype = t;
         }
 
         internal string GetCommand()
@@ -420,6 +474,11 @@ namespace Fleck_Forms
         internal string GetAddr()
         {
             return connection.ConnectionInfo.ClientIpAddress + ":" + connection.ConnectionInfo.ClientPort.ToString();
+        }
+
+        internal void SetResult(string str)
+        {
+            result = str;
         }
     }
 
@@ -874,6 +933,7 @@ namespace Fleck_Forms
     class User
     {
         public List<IWebSocketConnection> allSockets;
+        Dictionary<String, Object> pSockets = new Dictionary<String, Object>();
         public List<Role> allRoles;
         public Role currentRole { get; set; }
         public User()

@@ -74,7 +74,6 @@ namespace Fleck_Forms
         public void OnOpen(IWebSocketConnection socket)
         {
             var role = new Role(socket);
-            comm.sqlOperate.Login(role.GetAddr());
             comm.user.Add(role);
         }
 
@@ -83,89 +82,52 @@ namespace Fleck_Forms
             var role = comm.user.GetAt(socket);
             if (role != null)
             {
-                comm.sqlOperate.Logout(role.GetAddr());
                 comm.user.Remove(socket);
             }           
         }
 
-        public void OnMessage(IWebSocketConnection socket, string message)
+
+        private void DealQueryallMessage(NewMsg msg)
         {
-            string strAddr = socket.ConnectionInfo.ClientIpAddress + ":" + socket.ConnectionInfo.ClientPort.ToString();
-            string[] param = { DateTime.Now.ToLongTimeString(), strAddr, message };
-            comm.sqlOperate.Insert(param);
-
-            //过滤命令
-            try
-            {
-                if (message.IndexOf("queryall") != -1)
-                {
-                    DealQueryallMessage(socket,message);
-                }
-                else if (message.IndexOf("position") != -1)
-                {                   
-                    DealPositionMessage(socket, message);
-                }
-                else if (message.IndexOf("move") != -1)
-                {
-                    DealMoveMessage(socket, message);
-                }
-                else if (message.IndexOf("openbook") != -1)
-                {
-                    DealOpenBookMessage(socket, message);
-                }
-            }
-            catch (System.Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }           
-        }
-
-        private void DealQueryallMessage(IWebSocketConnection socket, string message)
-        {
-            NewMsg msg = new NewMsg(socket, message);
-
             string strQueryall = comm.DealQueryallMessage(msg.GetBoard());
             if (strQueryall != "" && strQueryall != "unknown")
             {
                 string sendmsg = msg.Send(strQueryall);
             }
-            comm.sqlOperate.InsertQueryall(msg.GetBoard(), strQueryall);
         }
 
-        private void DealMoveMessage(IWebSocketConnection socket, string message)
+        private void DealMoveMessage(NewMsg msg)
         {
-            var role_from = new Role(socket);
+
+            var role_from = new Role(msg.connection);
             foreach (var role in comm.user.allRoles.ToList())
             {
-                if (socket != role.connection)
+                if (msg.connection != role.connection)
                 {
-                    role.Send(message);
+                    role.Send(msg.message);
                 }                
             }
         }
 
-        private void DealOpenBookMessage(IWebSocketConnection socket, string message)
+        private void DealOpenBookMessage(NewMsg msg)
         {
-            NewMsg msg = new NewMsg(socket, message);
-            object obj = comm.sqlOperate.getOpenBook(msg.GetBoard());
-            string str = JavaScriptConvert.SerializeObject(obj);
-            msg.Send(str);
+            List<string> list = (List<string>)comm.redis.getOpenBook(msg.zobristKey);
+            string result = "";
+            foreach (var value in list)
+            {
+                result += value+"|";
+            }
+            msg.SendOpenbook(result);
         }
 
-        private void DealPositionMessage(IWebSocketConnection socket, string message)
+        private void DealPositionMessage(NewMsg msg)
         {
-            NewMsg msg = new NewMsg(socket, message);
-
             if (msg.GetCommand() == null)
             {
-                comm.WriteInfo(msg.GetAddr()+"  "+message);
+                comm.WriteInfo(msg.GetAddr() + "  " + msg.GetMessage());
                 return;
             }
-            else
-            {
-                //将棋盘信息写入数据库，用于统计
-                comm.sqlOperate.InsertBoard(msg.GetBoard());
-            }
+
             //查库
             if (comm.bRedis)
             {
@@ -197,7 +159,7 @@ namespace Fleck_Forms
             //服务器IP地址  
             IPAddress ip = IPAddress.Parse(Setting.tcpServerAddress);
             serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            serverSocket.Bind(new IPEndPoint(ip, Setting.tcpServeraPort));  //绑定IP地址：端口  
+            serverSocket.Bind(new IPEndPoint(ip, Setting.tcpServerPort));  //绑定IP地址：端口  
             serverSocket.Listen(10);    //设定最多10个排队连接请求  
             //Console.WriteLine("启动监听{0}成功", serverSocket.LocalEndPoint.ToString());  
             //通过Clientsoket发送数据  
@@ -241,5 +203,35 @@ namespace Fleck_Forms
             bRun = false;
         }
 
+
+        internal void OnMessage(NewMsg msg)
+        {
+            string message = msg.GetMessage();
+            string[] param = { DateTime.Now.ToLongTimeString(), msg.GetAddr(), message };
+            //过滤命令
+            try
+            {
+                if (message.IndexOf("queryall") != -1)
+                {
+                    DealQueryallMessage(msg);
+                }
+                else if (message.IndexOf("position") != -1)
+                {
+                    DealPositionMessage(msg);                    
+                }
+                else if (message.IndexOf("move") != -1)
+                {
+                    DealMoveMessage(msg);
+                }
+                else if (message.IndexOf("openbook") != -1)
+                {
+                    DealOpenBookMessage(msg);
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }       
     }
 }

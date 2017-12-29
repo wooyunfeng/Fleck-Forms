@@ -96,12 +96,12 @@
             // 
             this.treeView1.Location = new System.Drawing.Point(2, 3);
             this.treeView1.Name = "treeView1";
-            this.treeView1.Size = new System.Drawing.Size(132, 570);
+            this.treeView1.Size = new System.Drawing.Size(207, 570);
             this.treeView1.TabIndex = 26;
             // 
             // btn_expend
             // 
-            this.btn_expend.Location = new System.Drawing.Point(20, 579);
+            this.btn_expend.Location = new System.Drawing.Point(48, 579);
             this.btn_expend.Name = "btn_expend";
             this.btn_expend.Size = new System.Drawing.Size(41, 23);
             this.btn_expend.TabIndex = 28;
@@ -111,7 +111,7 @@
             // 
             // btn_closeall
             // 
-            this.btn_closeall.Location = new System.Drawing.Point(71, 579);
+            this.btn_closeall.Location = new System.Drawing.Point(111, 579);
             this.btn_closeall.Name = "btn_closeall";
             this.btn_closeall.Size = new System.Drawing.Size(41, 23);
             this.btn_closeall.TabIndex = 27;
@@ -202,9 +202,9 @@
             // 
             // listView1
             // 
-            this.listView1.Location = new System.Drawing.Point(140, 3);
+            this.listView1.Location = new System.Drawing.Point(215, 3);
             this.listView1.Name = "listView1";
-            this.listView1.Size = new System.Drawing.Size(584, 605);
+            this.listView1.Size = new System.Drawing.Size(509, 605);
             this.listView1.TabIndex = 33;
             this.listView1.UseCompatibleStateImageBehavior = false;
             // 
@@ -235,9 +235,9 @@
             // listView4
             // 
             this.listView4.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.listView4.Location = new System.Drawing.Point(0, 640);
+            this.listView4.Location = new System.Drawing.Point(0, 638);
             this.listView4.Name = "listView4";
-            this.listView4.Size = new System.Drawing.Size(734, 33);
+            this.listView4.Size = new System.Drawing.Size(734, 35);
             this.listView4.TabIndex = 43;
             this.listView4.UseCompatibleStateImageBehavior = false;
             // 
@@ -245,6 +245,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.ClientSize = new System.Drawing.Size(734, 673);
             this.Controls.Add(this.panel1);
             this.MaximizeBox = false;

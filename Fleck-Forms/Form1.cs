@@ -14,7 +14,6 @@ using System.Management;
 using System.Collections.Concurrent;
 using System.Collections;
 using System.Data.SQLite;
-using MySql.Data.MySqlClient;
 using Fleck.online;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -28,7 +27,7 @@ namespace Fleck_Forms
         ConnectionFactory factory;
         IConnection connection;
         IModel send_channel;
-        Dictionary<String, Object> pList = new Dictionary<String, Object>();
+        Dictionary<String, Object> pUUIDList = new Dictionary<String, Object>();
         Dictionary<String, Object> pConnect = new Dictionary<String, Object>();
 
         public Form1()
@@ -62,8 +61,8 @@ namespace Fleck_Forms
             FleckLog.Level = LogLevel.Info;
             OnWebSocketServer(Setting.websocketPort);
             //连接rabbitMQ
-            initRabbit();            
-            revfromRabbitThread();
+//          initRabbit();            
+//          revfromRabbitThread();
         }
 
         public void OnWebSocketServer(string port)
@@ -90,11 +89,11 @@ namespace Fleck_Forms
                 };
                 socket.OnMessage = message =>
                 {
-                    sendtoRabbit(message);
+                    //sendtoRabbit(message);
                     NewMsg msg = new NewMsg(socket,message);
-                    if (!pList.ContainsKey(msg.uuid))
+                    if (!pUUIDList.ContainsKey(msg.uuid))
                     {
-                        pList.Add(msg.uuid, msg);
+                        pUUIDList.Add(msg.uuid, msg);
                     }
                     if (message.IndexOf("roomid") != -1)
                     {
@@ -108,9 +107,14 @@ namespace Fleck_Forms
                     {
                         roomSet.RemoveAll(socket);
                     }                             
-                    engine.OnMessage(socket, message);
-                    string strAddr = socket.ConnectionInfo.ClientIpAddress + ":" + socket.ConnectionInfo.ClientPort.ToString();
-                    string[] showmsg = { DateTime.Now.ToLongTimeString(), strAddr, message };
+                    engine.OnMessage(msg);
+                    string level = "17";
+                    if (msg.GetType() == "0")
+                    {
+                        level = msg.GetDepth();
+                    }
+                    string[] showmsg = { DateTime.Now.ToLongTimeString(), msg.GetAddr(), msg.GetType(), msg.index, level, msg.GetBoard() };
+                    if (msg.GetCommandType() == "position")
                     AddMsg(showmsg);
                 };
             });
@@ -173,9 +177,9 @@ namespace Fleck_Forms
             {
                 JavaScriptObject jsonObj = JavaScriptConvert.DeserializeObject<JavaScriptObject>(message);
                 string uuid = jsonObj["uuid"].ToString();
-                if (pList.ContainsKey(uuid))
+                if (pUUIDList.ContainsKey(uuid))
                 {
-                    NewMsg sendmsg = (NewMsg)pList[uuid];
+                    NewMsg sendmsg = (NewMsg)pUUIDList[uuid];
                     sendmsg.Send(message);
                 }                
             }
@@ -198,9 +202,6 @@ namespace Fleck_Forms
             if (engine != null)
             {
                 string m_online = engine.getUserCount().ToString();
-
-                string m_msg = getMsgCount().ToString() + " 个";
-                string m_speed = getDealSpeed().ToString() + " 个/分钟";                
                 string m_undo = engine.getMsgQueueCount().ToString() + " 个";
                 string m_time = RunTime.ToString();
                 DateTime currentTime = System.DateTime.Now;
@@ -210,7 +211,7 @@ namespace Fleck_Forms
                 string m_CPU = engine.comm.getCurrentCpuUsage();
                 string m_Memory = engine.comm.getAvailableRAM();
 
-                string[] names = { DateTime.Now.ToLongTimeString(),m_online, m_msg, m_speed, m_undo, m_CPU, m_Memory, m_time, m_span };
+                string[] names = { DateTime.Now.ToLongTimeString(),m_online, m_undo, m_CPU, m_Memory, m_time, m_span };
                 AddListViewItem(listView4, names, 0);
 
                 //显示引擎信息
@@ -227,16 +228,6 @@ namespace Fleck_Forms
                 //显示引擎信息
                 showEngineInfo();                     
             }
-        }
-
-        private int getDealSpeed()
-        {
-            return 0;
-        }
-
-        private int getMsgCount()
-        {
-            return 0;
         }
 
         private void showEngineInfo()
@@ -273,9 +264,9 @@ namespace Fleck_Forms
             listView1.MultiSelect = false;
 
             listView1.View = View.Details;
-            listView1.Columns.Add("时间", 60);
-            listView1.Columns.Add("用户", 132);
-            listView1.Columns.Add("状态", 73);
+            listView1.Columns.Add("  时间", 60);
+            listView1.Columns.Add("用户", 140, HorizontalAlignment.Center);
+            listView1.Columns.Add("状态", 80, HorizontalAlignment.Center);
 
             listView2.GridLines = true;
             //单选时,选择整行
@@ -288,9 +279,12 @@ namespace Fleck_Forms
             listView2.MultiSelect = false;
 
             listView2.View = View.Details;
-            listView2.Columns.Add("时间", 60);
-            listView2.Columns.Add("用户", 132);
-            listView2.Columns.Add("命令", 1100);
+            listView2.Columns.Add("  时间", 60, HorizontalAlignment.Center);
+            listView2.Columns.Add("用户", 132, HorizontalAlignment.Center);
+            listView2.Columns.Add("mode", 38, HorizontalAlignment.Center);
+            listView2.Columns.Add("index", 45, HorizontalAlignment.Center);
+            listView2.Columns.Add("level", 45, HorizontalAlignment.Center);
+            listView2.Columns.Add("board", 360, HorizontalAlignment.Center);
 
             listView3.GridLines = true;
             //单选时,选择整行
@@ -303,10 +297,12 @@ namespace Fleck_Forms
             listView3.MultiSelect = false;
 
             listView3.View = View.Details;
-            listView3.Columns.Add("时间", 60);
-            listView3.Columns.Add("用户", 132);
-            listView3.Columns.Add("引擎", 132);
-            listView3.Columns.Add("消息", 1400);
+            listView3.Columns.Add("  时间", 60);
+            listView3.Columns.Add("用户", 150, HorizontalAlignment.Center);
+            listView3.Columns.Add("引擎", 150, HorizontalAlignment.Center);
+            listView3.Columns.Add("index", 80, HorizontalAlignment.Center);
+            listView3.Columns.Add("result", 200, HorizontalAlignment.Center);
+
 
             listView4.GridLines = true;
             //单选时,选择整行
@@ -320,14 +316,12 @@ namespace Fleck_Forms
 
             listView4.View = View.Details;
             listView4.Columns.Add("  时间", 60, HorizontalAlignment.Center);
-            listView4.Columns.Add("在线用户", 60, HorizontalAlignment.Center);
-            listView4.Columns.Add("接受请求", 80, HorizontalAlignment.Center);
-            listView4.Columns.Add("处理速度", 80, HorizontalAlignment.Center);
-            listView4.Columns.Add("等待处理", 60, HorizontalAlignment.Center);
-            listView4.Columns.Add("CPU", 50, HorizontalAlignment.Center);
-            listView4.Columns.Add("剩余内存", 80, HorizontalAlignment.Center);
-            listView4.Columns.Add("启动时间", 130, HorizontalAlignment.Center);
-            listView4.Columns.Add("运行时间", 110, HorizontalAlignment.Center);
+            listView4.Columns.Add("在线用户", 100, HorizontalAlignment.Center);
+            listView4.Columns.Add("等待处理", 100, HorizontalAlignment.Center);
+            listView4.Columns.Add("CPU", 80, HorizontalAlignment.Center);
+            listView4.Columns.Add("剩余内存", 100, HorizontalAlignment.Center);
+            listView4.Columns.Add("启动时间", 140, HorizontalAlignment.Center);
+            listView4.Columns.Add("运行时间", 130, HorizontalAlignment.Center);
 
             listViewNF2.GridLines = true;
             //单选时,选择整行

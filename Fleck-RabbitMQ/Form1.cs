@@ -111,14 +111,12 @@ namespace Fleck_RabbitMQ
                 pList.Add(msg.uuid, msg);
             }
            
-            string strAddr = socket.ConnectionInfo.ClientIpAddress + ":" + socket.ConnectionInfo.ClientPort.ToString();
-
             string level = "17";
             if (msg.GetType() == "0")
             {
                 level = msg.GetDepth();
             }
-            string[] showmsg = { DateTime.Now.ToLongTimeString(), strAddr, msg.GetType(),msg.index, level,msg.GetBoard() };
+            string[] showmsg = { DateTime.Now.ToLongTimeString(), msg.GetAddr(), msg.GetType(),msg.index, level,msg.GetBoard() };
             if (msg.GetCommandType() == "position")
             {
                 AddMsgIn(showmsg);

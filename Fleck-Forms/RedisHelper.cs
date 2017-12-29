@@ -19,12 +19,12 @@ namespace Fleck_Forms
              int port = Int32.Parse(str[1]);
              createClient(ip,port);
          }
-         public RedisHelper(string host, string keyword)
+         public RedisHelper(string host, string keyword, int db = 0)
          {
              string[] str = host.Split(':');
              string ip = str[0];
              int port = Int32.Parse(str[1]);
-             createClient(ip, port, keyword);
+             createClient(ip, port, keyword, db);
          }
         /// <summary>
         /// 建立redis长连接
@@ -38,6 +38,14 @@ namespace Fleck_Forms
             }
  
         }
+        public void createClient(string hostIP, int port, string keyword, int db)
+        {
+            if (redisCli == null)
+            {
+                redisCli = new RedisClient(hostIP, port, keyword, db);
+            }
+
+        }
         public void createClient(string hostIP, int port)
         {
             if (redisCli == null)
@@ -45,6 +53,21 @@ namespace Fleck_Forms
                 redisCli = new RedisClient(hostIP, port);
              }
  
+        }
+        public void ChangeDb(long db)
+        {
+            lock (redisCli)
+            {
+                redisCli.ChangeDb(db);
+            }
+        }
+
+        public void Remove(string key)
+        {
+            lock (redisCli)
+            {
+                redisCli.Remove(key);
+            }
         }
         //private  RedisClient redisCli = new RedisClient("192.168.101.165", 6379, "123456");
         /// <summary>
@@ -150,6 +173,35 @@ namespace Fleck_Forms
             {
                 redisCli.IncrementValueInHash(key, field, incre);
             }  
+
+        }
+
+        /// <summary>
+        ///使某个字段增加
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="field"></param>
+        /// <returns></returns>
+        public void setKeyIncr(string key)
+        {
+            lock (redisCli)
+            {
+                redisCli.IncrementValue(key);
+            }
+
+        }
+        /// <summary>
+        ///使某个字段增加
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="field"></param>
+        /// <returns></returns>
+        public void setKeyDecr(string key)
+        {
+            lock (redisCli)
+            {
+                redisCli.DecrementValue(key);
+            }
 
         }
         /// <summary>

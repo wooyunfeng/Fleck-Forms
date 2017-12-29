@@ -14,7 +14,7 @@ namespace Fleck_Forms
         static public bool isSupportCloudApi { get; set; }
         static public string enginePath { get; set; }
         static public string tcpServerAddress { get; set; }
-        static public int tcpServeraPort { get; set; }
+        static public int tcpServerPort { get; set; }
         static public int thinktimeout { get; set; }
         static public string cloudRedisPath { get; set; }
         static public string engineRedis_writer { get; set; }
@@ -63,7 +63,7 @@ namespace Fleck_Forms
                 }
                 if (xe.GetAttribute("key").ToString() == "ServerPort")
                 {
-                    Setting.tcpServeraPort = Int32.Parse(xe.GetAttribute("value").ToString());
+                    Setting.tcpServerPort = Int32.Parse(xe.GetAttribute("value").ToString());
                 }
                 if (xe.GetAttribute("key").ToString() == "CloudRedisPath")
                 {
@@ -72,6 +72,10 @@ namespace Fleck_Forms
                 if (xe.GetAttribute("key").ToString() == "CountRedis")
                 {
                     Setting.countRedis = xe.GetAttribute("value").ToString();
+                }
+                if (xe.GetAttribute("key").ToString() == "OpenBookRedis")
+                {
+                    Setting.openbookRedis = xe.GetAttribute("value").ToString();
                 }
                 if (xe.GetAttribute("key").ToString() == "EngineRedisWriter")
                 {
@@ -85,5 +89,7 @@ namespace Fleck_Forms
         }
 
         public static string countRedis { get; set; }
+
+        public static string openbookRedis { get; set; }
     }    
 }

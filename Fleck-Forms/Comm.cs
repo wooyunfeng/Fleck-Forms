@@ -22,12 +22,26 @@ namespace Fleck_Forms
         public Log log;
         public Setting setting;
         public Queue DealSpeedQueue;
-        public RedisManage redis;        
-        public IDataOperate sqlOperate;        
+        public RedisManage redis;    
         public User user;
         private static int nMsgQueuecount { get; set; }
         public bool bRedis { get; set; }
 
+        public string getJson(string strJosn, string key)
+        {
+            JavaScriptObject jsonObj = JavaScriptConvert.DeserializeObject<JavaScriptObject>(strJosn);
+            string result = "";
+            try
+            {
+                result = jsonObj[key].ToString();
+            }
+            catch
+            {
+                result = "";
+            }
+            return result;
+        }
+        
         public void WriteInfo(string message, bool isOutConsole = false)
         {
             if (log == null)
@@ -71,10 +85,9 @@ namespace Fleck_Forms
             ramCounter = new PerformanceCounter("Memory", "Available MBytes");
             user = new User();
             setting = new Setting();
-            log = new Log();
+            //log = new Log();
             DealSpeedQueue = new Queue();
             redis = new RedisManage();
-            sqlOperate = new SQLiteManage();
         }
 
         public string DealQueryallMessage(string board)
@@ -128,7 +141,6 @@ namespace Fleck_Forms
                 return "";
             }
             string bestmove = redis.getbestmoveFromList(msg);
-            sqlOperate.Update(0, bestmove, msg.GetAddr(), msg.GetMessage());
             return bestmove;
         }
 

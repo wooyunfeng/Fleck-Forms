@@ -773,7 +773,8 @@ namespace ComputeZobristKey
 
         private int[] string2map(string board)
         {
-            string str1 = board.Substring(0, board.Length - 10);
+            string[] str = board.Split(' ');
+            string str1 = str[0];
             int[] map = new int[64];
             int key = 0;
             int index = 0;

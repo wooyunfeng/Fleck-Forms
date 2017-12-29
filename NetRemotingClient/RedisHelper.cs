@@ -186,6 +186,15 @@ namespace NetRemotingClient
                 return listMembers;
             }   
         }
+
+        public bool Remove(string list)
+        {
+            lock (redisCli)
+            {
+                return redisCli.Remove(list);
+            }
+        }
+
         /// <summary>
         /// 从list类型数据指定索引处获取数据，支持正索引和负索引
         /// </summary>

@@ -164,9 +164,8 @@ namespace Fleck_Forms
                             string sendmsg = currentMsg.Send(message);
                             if (message.IndexOf("bestmove") != -1)
                             {
-                                string[] msgs = { currentMsg.GetAddr(), getName(), sendmsg };
+                                string[] msgs = { currentMsg.GetAddr(), getName(), comm.getJson(sendmsg, "index"), comm.getJson(sendmsg, "result") };
                                 outputcontainer.Enqueue(msgs);
-                                comm.sqlOperate.Update(1, message, currentMsg.GetAddr(), currentMsg.GetMessage());
                                 bdealing = false;
                             }
                         }

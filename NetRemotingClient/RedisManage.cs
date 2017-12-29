@@ -44,19 +44,21 @@ namespace NetRemotingClient
             try
             {
                 string str = "";
+                engineredis_writer.Remove(list);
                 foreach(var message in listinfo) 
                 {
                     if (message != null)
                     {
-                        depthInfo depthinfo = new depthInfo(message);
-
-                        if (depthinfo.depth > 0 && depthinfo.pv != "")
-                        {
-                            str += depthinfo.depth.ToString() + ',' + depthinfo.score.ToString() + "," + depthinfo.pv + "|";
-                        }
+                        engineredis_writer.addItemToListRight(list, message);
+//                         depthInfo depthinfo = new depthInfo(message);
+// 
+//                         if (depthinfo.depth > 0 && depthinfo.pv != "")
+//                         {
+//                             str += depthinfo.depth.ToString() + ',' + depthinfo.score.ToString() + "," + depthinfo.pv + "|";
+//                         }
                     }                   
                 }
-                engineredis_writer.addItemToListLeft(list, str);               
+                //engineredis_writer.addItemToListLeft(list, str);               
             }
             catch (System.Exception ex)
             {
