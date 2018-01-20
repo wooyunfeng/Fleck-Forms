@@ -109,7 +109,7 @@ namespace Fleck_Forms
                     }                             
                     engine.OnMessage(msg);
                     string level = "17";
-                    if (msg.GetType() == "0")
+                    if (msg.GetType() == "0" || msg.GetType() == "2")
                     {
                         level = msg.GetDepth();
                     }
