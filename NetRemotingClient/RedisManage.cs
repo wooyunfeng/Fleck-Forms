@@ -16,7 +16,7 @@ namespace NetRemotingClient
             engineredis_writer = new RedisHelper(engineRedis_writer, "jiao19890228");
         }
 
-        internal void setItemToList(string list, string message)
+        internal void setItemToList(string key, string message)
         {      
             try
             {
@@ -24,12 +24,12 @@ namespace NetRemotingClient
                 if (depthinfo.depth > 0 && depthinfo.pv != "")
                 {
                     int intDepth = depthinfo.depth;
-                    for (int i = engineredis_writer.getAllItems(list).Count; i < intDepth; i++)
+                    for (int i = engineredis_writer.getAllItems(key).Count; i < intDepth; i++)
                     {
-                        engineredis_writer.addItemToListRight(list, "");
+                        engineredis_writer.addItemToListRight(key, "");
                     }
 
-                    engineredis_writer.setItemToList(list, intDepth - 1, message);
+                    engineredis_writer.setItemToList(key, intDepth - 1, message);
                 }
             }
             catch (System.Exception ex)
@@ -39,26 +39,31 @@ namespace NetRemotingClient
             
         }
 
-        internal void setItemToList(string list, string[] listinfo)
+        internal void setItemToList(string key, string[] listinfo)
         {
             try
             {
                 string str = "";
-                engineredis_writer.Remove(list);
+                if (!engineredis_writer.ContainsKey(key))
+                {
+                    engineredis_writer.Remove(key);
+                }
+
                 foreach(var message in listinfo) 
                 {
                     if (message != null)
                     {
-                        engineredis_writer.addItemToListRight(list, message);
-//                         depthInfo depthinfo = new depthInfo(message);
-// 
-//                         if (depthinfo.depth > 0 && depthinfo.pv != "")
-//                         {
-//                             str += depthinfo.depth.ToString() + ',' + depthinfo.score.ToString() + "," + depthinfo.pv + "|";
-//                         }
+                       // engineredis_writer.addItemToListRight(list, message);
+                        depthInfo depthinfo = new depthInfo(message);
+
+                        if (depthinfo.depth > 0 && depthinfo.pv != "")
+                        {
+                            str += depthinfo.depth.ToString() + ',' + depthinfo.score.ToString() + "," + depthinfo.pv + "|";
+                        }
                     }                   
                 }
-                //engineredis_writer.addItemToListLeft(list, str);               
+                str = str.Substring(0, str.Length - 1);
+                engineredis_writer.addItemToListRight(key, str);               
             }
             catch (System.Exception ex)
             {

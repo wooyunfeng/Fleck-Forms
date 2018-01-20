@@ -459,7 +459,10 @@ namespace NetRemotingClient
         {
             if (isEngineRedis)
             {
-                redis.setItemToList(board, listinfo);
+                //redis.setItemToList(board, listinfo);
+                Zobrist zobrist = new Zobrist();
+                UInt64 boardKey = zobrist.getKey(board);
+                redis.setItemToList(boardKey.ToString("X16"), listinfo);
             }
            
 //             //开局不入库
