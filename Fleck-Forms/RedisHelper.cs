@@ -35,25 +35,25 @@ namespace Fleck_Forms
             if (redisCli == null)
             {
                 redisCli = new RedisClient(hostIP, port, keyword);
-            }
- 
+            } 
         }
+
         public void createClient(string hostIP, int port, string keyword, int db)
         {
             if (redisCli == null)
             {
                 redisCli = new RedisClient(hostIP, port, keyword, db);
             }
-
         }
+
         public void createClient(string hostIP, int port)
         {
             if (redisCli == null)
             {
                 redisCli = new RedisClient(hostIP, port);
-             }
- 
+             } 
         }
+
         public void ChangeDb(long db)
         {
             lock (redisCli)
@@ -69,7 +69,6 @@ namespace Fleck_Forms
                 redisCli.Remove(key);
             }
         }
-        //private  RedisClient redisCli = new RedisClient("192.168.101.165", 6379, "123456");
         /// <summary>
         /// 获取key,返回string格式
         /// </summary>
@@ -257,7 +256,7 @@ namespace Fleck_Forms
         /// </summary>
         /// <param name="list"></param>
         /// <param name="values"></param>
-        public void getRangeToList(string list, List<string> values)
+        public void addRangeToList(string list, List<string> values)
         {
             lock (redisCli)
             {
@@ -269,7 +268,7 @@ namespace Fleck_Forms
         /// </summary>
         /// <param name="item"></param>
         /// <param name="set"></param>
-        public void getItemToSet(string item, string set)
+        public void addItemToSet(string item, string set)
         {
             lock (redisCli)
             {

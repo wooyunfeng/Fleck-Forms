@@ -98,7 +98,6 @@ namespace Fleck_Forms
 
         private void DealMoveMessage(NewMsg msg)
         {
-
             var role_from = new Role(msg.connection);
             foreach (var role in comm.user.allRoles.ToList())
             {
@@ -128,20 +127,21 @@ namespace Fleck_Forms
                 return;
             }
 
+            DealRedis(msg);
+
             //查库
             if (comm.bRedis)
             {
                 if (comm.getItemFromList(msg))
                 {
                     string sendmsg = comm.getbestmoveFromList(msg);
-                    string[] msgs = { msg.GetAddr(), "reids", sendmsg };
+                    string[] msgs = { msg.GetAddr(), "reids", msg.GetIndex(), sendmsg };
                     OutputEngineQueueEnqueue(msgs);
                     return;
                 }
             }
 
             producer.Product(msg);
-
         }
 
         internal object getUserCount()
@@ -207,7 +207,8 @@ namespace Fleck_Forms
         internal void OnMessage(NewMsg msg)
         {
             string message = msg.GetMessage();
-            string[] param = { DateTime.Now.ToLongTimeString(), msg.GetAddr(), message };
+            string[] param = { DateTime.Now.ToLongTimeString(), msg.GetAddr(), message };            
+
             //过滤命令
             try
             {
@@ -219,14 +220,22 @@ namespace Fleck_Forms
                 {
                     DealPositionMessage(msg);                    
                 }
-                else if (message.IndexOf("move") != -1)
-                {
-                    DealMoveMessage(msg);
-                }
                 else if (message.IndexOf("openbook") != -1)
                 {
                     DealOpenBookMessage(msg);
                 }
+            }
+            catch (System.Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+
+        private void DealRedis(NewMsg msg)
+        {
+            try
+            {
+                comm.redis.msgredis.addItemToSortedSet(msg.uuid, msg.GetMessage(), Int32.Parse(msg.GetIndex()));
             }
             catch (System.Exception ex)
             {

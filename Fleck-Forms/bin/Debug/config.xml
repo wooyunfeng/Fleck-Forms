@@ -4,8 +4,9 @@
   <add key="WebSocketPort" value="9001"></add>
   <add key="Level" value="17"></add>
   <add key="CloudAPI" value="true"></add>
-  <add key="ServerAddress" value="127.0.0.1"></add>
+  <add key="ServerAddress" value="0.0.0.0"></add>
   <add key="ServerPort" value="8885"></add>
+  <add key="bRedis" value="true"></add>
   <add key="CountRedis" value="47.96.28.91:6379"></add>
   <add key="OpenBookRedis" value="47.96.28.91:8642"></add>
   <add key="CloudRedisPath" value="47.96.28.91:8639"></add>  

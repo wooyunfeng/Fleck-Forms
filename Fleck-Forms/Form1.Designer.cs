@@ -32,34 +32,37 @@
             this.panel1 = new System.Windows.Forms.Panel();
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
+            this.listLogin = new Fleck_Forms.ListViewNF();
             this.treeView1 = new System.Windows.Forms.TreeView();
             this.btn_expend = new System.Windows.Forms.Button();
             this.btn_closeall = new System.Windows.Forms.Button();
             this.tabPage2 = new System.Windows.Forms.TabPage();
+            this.listMsgIn = new Fleck_Forms.ListViewNF();
             this.tabPage3 = new System.Windows.Forms.TabPage();
+            this.listEngine = new Fleck_Forms.ListViewNF();
+            this.listEngineOut = new Fleck_Forms.ListViewNF();
             this.tabPage4 = new System.Windows.Forms.TabPage();
             this.btn_reset = new System.Windows.Forms.Button();
             this.m_port = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.btn_clear = new System.Windows.Forms.Button();
+            this.listMonitor = new Fleck_Forms.ListViewNF();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
-            this.listView1 = new Fleck_Forms.ListViewNF();
-            this.listView2 = new Fleck_Forms.ListViewNF();
-            this.listViewNF2 = new Fleck_Forms.ListViewNF();
-            this.listView3 = new Fleck_Forms.ListViewNF();
-            this.listView4 = new Fleck_Forms.ListViewNF();
+            this.tabPage5 = new System.Windows.Forms.TabPage();
+            this.listLog = new Fleck_Forms.ListViewNF();
             this.panel1.SuspendLayout();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
             this.tabPage3.SuspendLayout();
             this.tabPage4.SuspendLayout();
+            this.tabPage5.SuspendLayout();
             this.SuspendLayout();
             // 
             // panel1
             // 
             this.panel1.Controls.Add(this.tabControl1);
-            this.panel1.Controls.Add(this.listView4);
+            this.panel1.Controls.Add(this.listMonitor);
             this.panel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panel1.Location = new System.Drawing.Point(0, 0);
             this.panel1.Name = "panel1";
@@ -72,6 +75,7 @@
             this.tabControl1.Controls.Add(this.tabPage2);
             this.tabControl1.Controls.Add(this.tabPage3);
             this.tabControl1.Controls.Add(this.tabPage4);
+            this.tabControl1.Controls.Add(this.tabPage5);
             this.tabControl1.Location = new System.Drawing.Point(3, 0);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
@@ -80,7 +84,7 @@
             // 
             // tabPage1
             // 
-            this.tabPage1.Controls.Add(this.listView1);
+            this.tabPage1.Controls.Add(this.listLogin);
             this.tabPage1.Controls.Add(this.treeView1);
             this.tabPage1.Controls.Add(this.btn_expend);
             this.tabPage1.Controls.Add(this.btn_closeall);
@@ -91,6 +95,14 @@
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "在线用户";
             this.tabPage1.UseVisualStyleBackColor = true;
+            // 
+            // listView1
+            // 
+            this.listLogin.Location = new System.Drawing.Point(215, 3);
+            this.listLogin.Name = "listView1";
+            this.listLogin.Size = new System.Drawing.Size(509, 605);
+            this.listLogin.TabIndex = 33;
+            this.listLogin.UseCompatibleStateImageBehavior = false;
             // 
             // treeView1
             // 
@@ -121,7 +133,7 @@
             // 
             // tabPage2
             // 
-            this.tabPage2.Controls.Add(this.listView2);
+            this.tabPage2.Controls.Add(this.listMsgIn);
             this.tabPage2.Location = new System.Drawing.Point(4, 22);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
@@ -130,10 +142,18 @@
             this.tabPage2.Text = "输入";
             this.tabPage2.UseVisualStyleBackColor = true;
             // 
+            // listView2
+            // 
+            this.listMsgIn.Location = new System.Drawing.Point(0, 0);
+            this.listMsgIn.Name = "listView2";
+            this.listMsgIn.Size = new System.Drawing.Size(727, 608);
+            this.listMsgIn.TabIndex = 34;
+            this.listMsgIn.UseCompatibleStateImageBehavior = false;
+            // 
             // tabPage3
             // 
-            this.tabPage3.Controls.Add(this.listViewNF2);
-            this.tabPage3.Controls.Add(this.listView3);
+            this.tabPage3.Controls.Add(this.listEngine);
+            this.tabPage3.Controls.Add(this.listEngineOut);
             this.tabPage3.Location = new System.Drawing.Point(4, 22);
             this.tabPage3.Name = "tabPage3";
             this.tabPage3.Padding = new System.Windows.Forms.Padding(3);
@@ -141,6 +161,22 @@
             this.tabPage3.TabIndex = 2;
             this.tabPage3.Text = "引擎";
             this.tabPage3.UseVisualStyleBackColor = true;
+            // 
+            // listViewNF2
+            // 
+            this.listEngine.Location = new System.Drawing.Point(2, 2);
+            this.listEngine.Name = "listViewNF2";
+            this.listEngine.Size = new System.Drawing.Size(727, 103);
+            this.listEngine.TabIndex = 35;
+            this.listEngine.UseCompatibleStateImageBehavior = false;
+            // 
+            // listView3
+            // 
+            this.listEngineOut.Location = new System.Drawing.Point(3, 111);
+            this.listEngineOut.Name = "listView3";
+            this.listEngineOut.Size = new System.Drawing.Size(727, 497);
+            this.listEngineOut.TabIndex = 35;
+            this.listEngineOut.UseCompatibleStateImageBehavior = false;
             // 
             // tabPage4
             // 
@@ -194,52 +230,39 @@
             this.btn_clear.UseVisualStyleBackColor = true;
             this.btn_clear.Click += new System.EventHandler(this.btn_clear_Click);
             // 
+            // listView4
+            // 
+            this.listMonitor.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.listMonitor.Location = new System.Drawing.Point(0, 638);
+            this.listMonitor.Name = "listView4";
+            this.listMonitor.Size = new System.Drawing.Size(734, 35);
+            this.listMonitor.TabIndex = 43;
+            this.listMonitor.UseCompatibleStateImageBehavior = false;
+            // 
             // timer1
             // 
             this.timer1.Enabled = true;
             this.timer1.Interval = 1000;
             this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
             // 
-            // listView1
+            // tabPage5
             // 
-            this.listView1.Location = new System.Drawing.Point(215, 3);
-            this.listView1.Name = "listView1";
-            this.listView1.Size = new System.Drawing.Size(509, 605);
-            this.listView1.TabIndex = 33;
-            this.listView1.UseCompatibleStateImageBehavior = false;
+            this.tabPage5.Controls.Add(this.listLog);
+            this.tabPage5.Location = new System.Drawing.Point(4, 22);
+            this.tabPage5.Name = "tabPage5";
+            this.tabPage5.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage5.Size = new System.Drawing.Size(723, 608);
+            this.tabPage5.TabIndex = 4;
+            this.tabPage5.Text = "日志";
+            this.tabPage5.UseVisualStyleBackColor = true;
             // 
-            // listView2
+            // listView5
             // 
-            this.listView2.Location = new System.Drawing.Point(0, 0);
-            this.listView2.Name = "listView2";
-            this.listView2.Size = new System.Drawing.Size(727, 608);
-            this.listView2.TabIndex = 34;
-            this.listView2.UseCompatibleStateImageBehavior = false;
-            // 
-            // listViewNF2
-            // 
-            this.listViewNF2.Location = new System.Drawing.Point(2, 2);
-            this.listViewNF2.Name = "listViewNF2";
-            this.listViewNF2.Size = new System.Drawing.Size(727, 103);
-            this.listViewNF2.TabIndex = 35;
-            this.listViewNF2.UseCompatibleStateImageBehavior = false;
-            // 
-            // listView3
-            // 
-            this.listView3.Location = new System.Drawing.Point(3, 111);
-            this.listView3.Name = "listView3";
-            this.listView3.Size = new System.Drawing.Size(727, 497);
-            this.listView3.TabIndex = 35;
-            this.listView3.UseCompatibleStateImageBehavior = false;
-            // 
-            // listView4
-            // 
-            this.listView4.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.listView4.Location = new System.Drawing.Point(0, 638);
-            this.listView4.Name = "listView4";
-            this.listView4.Size = new System.Drawing.Size(734, 35);
-            this.listView4.TabIndex = 43;
-            this.listView4.UseCompatibleStateImageBehavior = false;
+            this.listLog.Location = new System.Drawing.Point(4, 3);
+            this.listLog.Name = "listView5";
+            this.listLog.Size = new System.Drawing.Size(714, 599);
+            this.listLog.TabIndex = 0;
+            this.listLog.UseCompatibleStateImageBehavior = false;
             // 
             // Form1
             // 
@@ -260,6 +283,7 @@
             this.tabPage3.ResumeLayout(false);
             this.tabPage4.ResumeLayout(false);
             this.tabPage4.PerformLayout();
+            this.tabPage5.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -267,10 +291,12 @@
         #endregion
 
         private System.Windows.Forms.Panel panel1;
-        private ListViewNF listView4;
-        private ListViewNF listView3;
-        private ListViewNF listView2;
-        private ListViewNF listView1;
+        private ListViewNF listLog;
+        private ListViewNF listMonitor;
+        private ListViewNF listEngineOut;
+        private ListViewNF listMsgIn;
+        private ListViewNF listLogin;
+        private ListViewNF listEngine;
         private System.Windows.Forms.Button btn_closeall;
         private System.Windows.Forms.Button btn_expend;
         private System.Windows.Forms.TreeView treeView1;
@@ -278,13 +304,13 @@
         private System.Windows.Forms.TabControl tabControl1;
         private System.Windows.Forms.TabPage tabPage1;
         private System.Windows.Forms.TabPage tabPage2;
-        private System.Windows.Forms.TabPage tabPage3;
-        private ListViewNF listViewNF2;
+        private System.Windows.Forms.TabPage tabPage3;        
         private System.Windows.Forms.TabPage tabPage4;
         private System.Windows.Forms.Button btn_clear;
         private System.Windows.Forms.Label m_port;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Button btn_reset;
+        private System.Windows.Forms.TabPage tabPage5;
 
     }
 }

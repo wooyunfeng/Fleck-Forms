@@ -14,7 +14,6 @@ using System.Management;
 using System.Collections.Concurrent;
 using System.Collections;
 using System.Data.SQLite;
-using Fleck.online;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using Newtonsoft.Json;
@@ -23,18 +22,56 @@ namespace Fleck_Forms
 {
     public partial class Form1 : Form
     {
-        string Port = "9001";
-        ConnectionFactory factory;
-        IConnection connection;
-        IModel send_channel;
+        string Port = "9001";        
+        IConnection connection;        
         Dictionary<String, Object> pUUIDList = new Dictionary<String, Object>();
         Dictionary<String, Object> pConnect = new Dictionary<String, Object>();
+        Engine engine;
+        DateTime StartRunTime;
+
+        //安全调用控件
+        public delegate void AddConnectionItem(IWebSocketConnection socket);
+        public AddConnectionItem addListDelegate;
+
+        public delegate void AddMsgItem(string[] message);
+        public AddMsgItem addMsgDelegate;
+
+        public delegate void AddLogItem(string[] message);
+        public AddLogItem addLogDelegate;
+
+        public delegate void RemoveConnectionListItem(IWebSocketConnection socket);
+        public RemoveConnectionListItem removeListDelegate;
+
+        public void AddMsgItemMethod(string[] message)
+        {
+            AddListViewItem(listMsgIn, message);
+            System.Threading.Thread.Sleep(1);
+        }
+
+        public void AddLogMethod(string[] message)
+        {
+            AddListViewItem(listLog, message);
+            System.Threading.Thread.Sleep(1);
+        }
+
+        public void AddListItemMethod(IWebSocketConnection socket)
+        {
+            string address = socket.ConnectionInfo.ClientIpAddress;
+            string port = socket.ConnectionInfo.ClientPort.ToString();
+            string str = address + ":" + port;
+
+            string[] names = { DateTime.Now.ToLongTimeString(), str, "connected!" };
+            AddListViewItem(listLogin,names);
+
+            add2Tree(address, port);
+        }
 
         public Form1()
         {
             addListDelegate = new AddConnectionItem(AddListItemMethod);
             removeListDelegate = new RemoveConnectionListItem(RemoveListItemMethod);
             addMsgDelegate = new AddMsgItem(AddMsgItemMethod);
+            addLogDelegate = new AddLogItem(AddLogMethod);
 
             InitializeComponent();            
         }
@@ -45,6 +82,7 @@ namespace Fleck_Forms
             addListDelegate = new AddConnectionItem(AddListItemMethod);
             removeListDelegate = new RemoveConnectionListItem(RemoveListItemMethod);
             addMsgDelegate = new AddMsgItem(AddMsgItemMethod);
+            addLogDelegate = new AddLogItem(AddLogMethod);
 
             InitializeComponent();
         }
@@ -55,25 +93,22 @@ namespace Fleck_Forms
             engine = new Engine();
             //启动引擎服务
             engine.Start();
-            RunTime = System.DateTime.Now;
+            StartRunTime = System.DateTime.Now;
             m_port.Text = Setting.websocketPort;
             this.Text = Setting.title;
             FleckLog.Level = LogLevel.Info;
             OnWebSocketServer(Setting.websocketPort);
-            //连接rabbitMQ
-//          initRabbit();            
-//          revfromRabbitThread();
         }
 
         public void OnWebSocketServer(string port)
         {
             var server = new WebSocketServer("ws://0.0.0.0:" + port);
-            RoomSet roomSet = new RoomSet();
 
             server.Start(socket =>
             {
                 socket.OnOpen = () =>
                 {
+                    //list增加条目
                     AddConnection(socket);
                     engine.OnOpen(socket);
                     string strAddr = getSocketAddr(socket);
@@ -81,41 +116,35 @@ namespace Fleck_Forms
                 };
                 socket.OnClose = () =>
                 {
+                    //list删除条目
                     DelConnection(socket);
                     engine.OnClose(socket);
-                    roomSet.Remove(socket);
                     string strAddr = getSocketAddr(socket);
                     pConnect.Remove(strAddr);
+                    pUUIDList.Remove(strAddr);
                 };
                 socket.OnMessage = message =>
                 {
-                    //sendtoRabbit(message);
                     NewMsg msg = new NewMsg(socket,message);
-                    if (!pUUIDList.ContainsKey(msg.uuid))
+                    string strAddr = getSocketAddr(socket);
+                    if (!pUUIDList.ContainsKey(strAddr))
                     {
-                        pUUIDList.Add(msg.uuid, msg);
+                        pUUIDList.Add(strAddr,msg.uuid);
                     }
-                    if (message.IndexOf("roomid") != -1)
-                    {
-                        roomSet.Add(message, socket);
-                    }
-                    else if (message.IndexOf("move") != -1)
-                    {
-                        roomSet.Send(socket, message);
-                    }
-                    else if (message.IndexOf("resign") != -1)
-                    {
-                        roomSet.RemoveAll(socket);
-                    }                             
+                                               
                     engine.OnMessage(msg);
+
                     string level = "17";
+                    //0为微学堂，2为世界象棋
                     if (msg.GetType() == "0" || msg.GetType() == "2")
                     {
                         level = msg.GetDepth();
                     }
                     string[] showmsg = { DateTime.Now.ToLongTimeString(), msg.GetAddr(), msg.GetType(), msg.index, level, msg.GetBoard() };
                     if (msg.GetCommandType() == "position")
-                    AddMsg(showmsg);
+                    {
+                        AddMsg(showmsg);
+                    }                    
                 };
             });
         }
@@ -124,7 +153,9 @@ namespace Fleck_Forms
         {
             return socket.ConnectionInfo.ClientIpAddress + ":" + socket.ConnectionInfo.ClientPort.ToString();                    
         }
-
+        #region rabbitmq
+        ConnectionFactory factory;
+        IModel send_channel;
         private void initRabbit()
         {
             factory = new ConnectionFactory();
@@ -170,7 +201,7 @@ namespace Fleck_Forms
                 }
             }
         }
-
+        
         private void SendtoUser(string message)
         {
             if (JsonSplit.IsJson(message))//传入的json串
@@ -184,7 +215,7 @@ namespace Fleck_Forms
                 }                
             }
         }
-
+        #endregion
         private void AddMsg(string [] param)
         {
             try
@@ -203,16 +234,16 @@ namespace Fleck_Forms
             {
                 string m_online = engine.getUserCount().ToString();
                 string m_undo = engine.getMsgQueueCount().ToString() + " 个";
-                string m_time = RunTime.ToString();
+                string m_time = StartRunTime.ToString();
                 DateTime currentTime = System.DateTime.Now;
-                TimeSpan span = currentTime.Subtract(RunTime);
+                TimeSpan span = currentTime.Subtract(StartRunTime);
                 string m_span = span.Days + "天" + span.Hours + "时" + span.Minutes + "分" + span.Seconds + "秒";
 
                 string m_CPU = engine.comm.getCurrentCpuUsage();
                 string m_Memory = engine.comm.getAvailableRAM();
 
                 string[] names = { DateTime.Now.ToLongTimeString(),m_online, m_undo, m_CPU, m_Memory, m_time, m_span };
-                AddListViewItem(listView4, names, 0);
+                AddListViewItem(listMonitor, names, 0);
 
                 //显示引擎信息
                 int num = engine.getOutputContainerCount();
@@ -222,7 +253,7 @@ namespace Fleck_Forms
                     string[] info = new string[msg.Length + 1];
                     info[0] = DateTime.Now.ToLongTimeString();
                     msg.CopyTo(info, 1);
-                    AddListViewItem(listView3, info);
+                    AddListViewItem(listEngineOut, info);
                 }
            
                 //显示引擎信息
@@ -232,7 +263,7 @@ namespace Fleck_Forms
 
         private void showEngineInfo()
         {
-            listViewNF2.Items.Clear();
+            listEngine.Items.Clear();
             if (engine.customerlist != null)
             {
                 foreach (var customer in engine.customerlist.ToList())
@@ -240,7 +271,7 @@ namespace Fleck_Forms
                     if (customer.check())
                     {
                         string[] str = { customer.getName(), customer.logintime.ToString(), customer.getlastdealtime(), customer.getDealCount().ToString(), customer.getCount().ToString() };
-                        AddListViewItem(listViewNF2, str);
+                        AddListViewItem(listEngine, str);
                     }
                     else
                     {
@@ -253,92 +284,108 @@ namespace Fleck_Forms
 
         private void InitListView()
         {
-            listView1.GridLines = true;
+            listLogin.GridLines = true;
             //单选时,选择整行
-            listView1.FullRowSelect = true;
+            listLogin.FullRowSelect = true;
             //显示方式
-            listView1.View = View.Details;
+            listLogin.View = View.Details;
             //没有足够的空间显示时,是否添加滚动条
-            listView1.Scrollable = true;
+            listLogin.Scrollable = true;
             //是否可以选择多行
-            listView1.MultiSelect = false;
+            listLogin.MultiSelect = false;
 
-            listView1.View = View.Details;
-            listView1.Columns.Add("  时间", 60);
-            listView1.Columns.Add("用户", 140, HorizontalAlignment.Center);
-            listView1.Columns.Add("状态", 80, HorizontalAlignment.Center);
+            listLogin.View = View.Details;
+            listLogin.Columns.Add("  时间", 60);
+            listLogin.Columns.Add("用户", 140, HorizontalAlignment.Center);
+            listLogin.Columns.Add("状态", 80, HorizontalAlignment.Center);
 
-            listView2.GridLines = true;
+            listMsgIn.GridLines = true;
             //单选时,选择整行
-            listView2.FullRowSelect = true;
+            listMsgIn.FullRowSelect = true;
             //显示方式
-            listView2.View = View.Details;
+            listMsgIn.View = View.Details;
             //没有足够的空间显示时,是否添加滚动条
-            listView2.Scrollable = true;
+            listMsgIn.Scrollable = true;
             //是否可以选择多行
-            listView2.MultiSelect = false;
+            listMsgIn.MultiSelect = false;
 
-            listView2.View = View.Details;
-            listView2.Columns.Add("  时间", 60, HorizontalAlignment.Center);
-            listView2.Columns.Add("用户", 132, HorizontalAlignment.Center);
-            listView2.Columns.Add("mode", 38, HorizontalAlignment.Center);
-            listView2.Columns.Add("index", 45, HorizontalAlignment.Center);
-            listView2.Columns.Add("level", 45, HorizontalAlignment.Center);
-            listView2.Columns.Add("board", 360, HorizontalAlignment.Center);
+            listMsgIn.View = View.Details;
+            listMsgIn.Columns.Add("  时间", 60, HorizontalAlignment.Center);
+            listMsgIn.Columns.Add("用户", 132, HorizontalAlignment.Center);
+            listMsgIn.Columns.Add("mode", 38, HorizontalAlignment.Center);
+            listMsgIn.Columns.Add("index", 45, HorizontalAlignment.Center);
+            listMsgIn.Columns.Add("level", 45, HorizontalAlignment.Center);
+            listMsgIn.Columns.Add("board", 360, HorizontalAlignment.Center);
 
-            listView3.GridLines = true;
+            listEngineOut.GridLines = true;
             //单选时,选择整行
-            listView3.FullRowSelect = true;
+            listEngineOut.FullRowSelect = true;
             //显示方式
-            listView3.View = View.Details;
+            listEngineOut.View = View.Details;
             //没有足够的空间显示时,是否添加滚动条
-            listView3.Scrollable = true;
+            listEngineOut.Scrollable = true;
             //是否可以选择多行
-            listView3.MultiSelect = false;
+            listEngineOut.MultiSelect = false;
 
-            listView3.View = View.Details;
-            listView3.Columns.Add("  时间", 60);
-            listView3.Columns.Add("用户", 150, HorizontalAlignment.Center);
-            listView3.Columns.Add("引擎", 150, HorizontalAlignment.Center);
-            listView3.Columns.Add("index", 80, HorizontalAlignment.Center);
-            listView3.Columns.Add("result", 200, HorizontalAlignment.Center);
+            listEngineOut.View = View.Details;
+            listEngineOut.Columns.Add("  时间", 60);
+            listEngineOut.Columns.Add("用户", 150, HorizontalAlignment.Center);
+            listEngineOut.Columns.Add("引擎", 150, HorizontalAlignment.Center);
+            listEngineOut.Columns.Add("index", 80, HorizontalAlignment.Center);
+            listEngineOut.Columns.Add("result", 200, HorizontalAlignment.Center);
 
 
-            listView4.GridLines = true;
+            listMonitor.GridLines = true;
             //单选时,选择整行
-            listView4.FullRowSelect = true;
+            listMonitor.FullRowSelect = true;
             //显示方式
-            listView4.View = View.Details;
+            listMonitor.View = View.Details;
             //没有足够的空间显示时,是否添加滚动条
-            listView4.Scrollable = true;
+            listMonitor.Scrollable = true;
             //是否可以选择多行
-            listView4.MultiSelect = false;
+            listMonitor.MultiSelect = false;
 
-            listView4.View = View.Details;
-            listView4.Columns.Add("  时间", 60, HorizontalAlignment.Center);
-            listView4.Columns.Add("在线用户", 100, HorizontalAlignment.Center);
-            listView4.Columns.Add("等待处理", 100, HorizontalAlignment.Center);
-            listView4.Columns.Add("CPU", 80, HorizontalAlignment.Center);
-            listView4.Columns.Add("剩余内存", 100, HorizontalAlignment.Center);
-            listView4.Columns.Add("启动时间", 140, HorizontalAlignment.Center);
-            listView4.Columns.Add("运行时间", 130, HorizontalAlignment.Center);
+            listMonitor.View = View.Details;
+            listMonitor.Columns.Add("  时间", 60, HorizontalAlignment.Center);
+            listMonitor.Columns.Add("在线用户", 100, HorizontalAlignment.Center);
+            listMonitor.Columns.Add("等待处理", 100, HorizontalAlignment.Center);
+            listMonitor.Columns.Add("CPU", 80, HorizontalAlignment.Center);
+            listMonitor.Columns.Add("剩余内存", 100, HorizontalAlignment.Center);
+            listMonitor.Columns.Add("启动时间", 140, HorizontalAlignment.Center);
+            listMonitor.Columns.Add("运行时间", 130, HorizontalAlignment.Center);
 
-            listViewNF2.GridLines = true;
+
+            listLog.GridLines = true;
             //单选时,选择整行
-            listViewNF2.FullRowSelect = true;
+            listLog.FullRowSelect = true;
             //显示方式
-            listViewNF2.View = View.Details;
+            listLog.View = View.Details;
             //没有足够的空间显示时,是否添加滚动条
-            listViewNF2.Scrollable = true;
+            listLog.Scrollable = true;
             //是否可以选择多行
-            listViewNF2.MultiSelect = false;
+            listLog.MultiSelect = false;
 
-            listViewNF2.View = View.Details;
-            listViewNF2.Columns.Add("引擎地址", 200, HorizontalAlignment.Center);
-            listViewNF2.Columns.Add("登录时间", 150, HorizontalAlignment.Center);
-            listViewNF2.Columns.Add("上一次处理时间", 150, HorizontalAlignment.Center);
-            listViewNF2.Columns.Add("处理数量", 100, HorizontalAlignment.Center);
-            listViewNF2.Columns.Add("等待处理", 100, HorizontalAlignment.Center);
+            listLog.View = View.Details;
+            listLog.Columns.Add("  时间", 60, HorizontalAlignment.Center);
+            listLog.Columns.Add("消息", 600, HorizontalAlignment.Center);
+
+
+            listEngine.GridLines = true;
+            //单选时,选择整行
+            listEngine.FullRowSelect = true;
+            //显示方式
+            listEngine.View = View.Details;
+            //没有足够的空间显示时,是否添加滚动条
+            listEngine.Scrollable = true;
+            //是否可以选择多行
+            listEngine.MultiSelect = false;
+
+            listEngine.View = View.Details;
+            listEngine.Columns.Add("引擎地址", 200, HorizontalAlignment.Center);
+            listEngine.Columns.Add("登录时间", 150, HorizontalAlignment.Center);
+            listEngine.Columns.Add("上一次处理时间", 150, HorizontalAlignment.Center);
+            listEngine.Columns.Add("处理数量", 100, HorizontalAlignment.Center);
+            listEngine.Columns.Add("等待处理", 100, HorizontalAlignment.Center);
         }
 
         private void AddListViewItem(ListView listView, string[] array,int showLines = 35)
@@ -364,39 +411,7 @@ namespace Fleck_Forms
             listView.EndUpdate();
         }
 
-        Engine engine;
-        DateTime RunTime;
-
-        //安全调用控件
-        public delegate void AddConnectionItem(IWebSocketConnection socket);
-        public AddConnectionItem addListDelegate;
-
-        public delegate void AddMsgItem(string [] message);
-        public AddMsgItem addMsgDelegate;
-
-        public delegate void RemoveConnectionListItem(IWebSocketConnection socket);
-        public RemoveConnectionListItem removeListDelegate;
-
-        public void AddMsgItemMethod(string [] message)
-        {
-            AddListViewItem(listView2, message);
-            System.Threading.Thread.Sleep(1);
-        }
-
-        public void AddListItemMethod(IWebSocketConnection socket)
-        {
-            string address = socket.ConnectionInfo.ClientIpAddress;
-            string port = socket.ConnectionInfo.ClientPort.ToString();
-            string str = address + ":" + port;
-
-            string[] names = { DateTime.Now.ToLongTimeString(), str, "connected!" };
-            AddListViewItem(listView1,names);
-
-            add2Tree(address, port);
-
-        }
-
-        public void add2Tree(string address, string port)
+        private void add2Tree(string address, string port)
         {
             TreeNode tn;
             string str;
@@ -428,19 +443,19 @@ namespace Fleck_Forms
             System.Threading.Thread.Sleep(1);
         }
 
-        public void RemoveListItemMethod(IWebSocketConnection socket)
+        private void RemoveListItemMethod(IWebSocketConnection socket)
         {
             string address = socket.ConnectionInfo.ClientIpAddress;
             string port = socket.ConnectionInfo.ClientPort.ToString();
             string str = address + ":" + port;
-            
+
             string[] names = { DateTime.Now.ToLongTimeString(), str, "closed!" };
-            AddListViewItem(listView1,names);
+            AddListViewItem(listLogin,names);
 
             remove4Tree(address, port);            
         }
 
-        public void remove4Tree(string address, string port)
+        private void remove4Tree(string address, string port)
         {
             TreeNode tn;
             string str;
@@ -502,7 +517,7 @@ namespace Fleck_Forms
             }
         }
 
-        public void DelConnection(IWebSocketConnection socket)
+        private void DelConnection(IWebSocketConnection socket)
         {
             try
             {
@@ -538,10 +553,10 @@ namespace Fleck_Forms
 
         private void btn_clear_Click(object sender, EventArgs e)
         {
-            listView1.Items.Clear();
-            listView2.Items.Clear();
-            listView3.Items.Clear();
-            listView4.Items.Clear();
+            listLogin.Items.Clear();
+            listMsgIn.Items.Clear();
+            listEngineOut.Items.Clear();
+            listMonitor.Items.Clear();
         }
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)

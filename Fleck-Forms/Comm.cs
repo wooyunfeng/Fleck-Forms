@@ -88,6 +88,7 @@ namespace Fleck_Forms
             //log = new Log();
             DealSpeedQueue = new Queue();
             redis = new RedisManage();
+            bRedis = Setting.bRedis;
         }
 
         public string DealQueryallMessage(string board)
@@ -140,8 +141,7 @@ namespace Fleck_Forms
             {
                 return "";
             }
-            string bestmove = redis.getbestmoveFromList(msg);
-            return bestmove;
+            return redis.getbestmoveFromList(msg);
         }
 
         public Msg Json2Msg(string jsonStr)

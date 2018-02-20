@@ -13,13 +13,16 @@ namespace Fleck_Forms
         public RedisHelper engineredis_reader;
         public RedisHelper engineredis_writer;
         public RedisHelper openbookredis;
+        public RedisHelper msgredis;
+
 
         public RedisManage()
         {
             engineredis_writer = new RedisHelper(Setting.engineRedis_writer, "jiao19890228");
             engineredis_reader = new RedisHelper(Setting.engineRedis_reader, "jiao19890228");
             cloudredis = new RedisHelper(Setting.cloudRedisPath, "jiao19890228");
-            openbookredis = new RedisHelper(Setting.openbookRedis, "jiao19890228",1);
+            openbookredis = new RedisHelper(Setting.openbookRedis, "jiao19890228");
+            msgredis = new RedisHelper("47.96.28.91:6379", "jiao19890228",7);
         }
 
         internal bool getItemFromList(string list, int index)

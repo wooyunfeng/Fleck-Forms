@@ -12,8 +12,6 @@ namespace Fleck_Forms
     {
         public IWebSocketConnection connection { get; set; }
         public Queue<Msg> MsgQueue { get; set; }
-        public Queue QueryallQueue { get; set; }
-        public Queue<Msg> FinishQueue { get; set; }
         public Msg currentMsg { get; set; }
         public DateTime createTime { get; set; }
         public DateTime lastdealTime { get; set; }
@@ -22,8 +20,6 @@ namespace Fleck_Forms
         {
             connection = null;
             MsgQueue = new Queue<Msg>();
-            QueryallQueue = new Queue();
-            FinishQueue = new Queue<Msg>();
             createTime = System.DateTime.Now;
             lastdealTime = System.DateTime.Now;
         }
@@ -31,8 +27,6 @@ namespace Fleck_Forms
         {
             this.connection = connection;
             MsgQueue = new Queue<Msg>();
-            FinishQueue = new Queue<Msg>();
-            QueryallQueue = new Queue();
             createTime = System.DateTime.Now;
             lastdealTime = System.DateTime.Now;
         }
@@ -47,10 +41,6 @@ namespace Fleck_Forms
 
         public void EnqueueQueryMessage(string msg)
         {
-//             lock (QueryallQueue)
-//             {
-//                 QueryallQueue.Enqueue(msg);
-//             }
             MsgCount++;
         }
 
@@ -116,6 +106,7 @@ namespace Fleck_Forms
             return true;
         }
     }
+
     class resultMsg
     {
         public string index { get; set; }
@@ -877,6 +868,7 @@ namespace Fleck_Forms
             return false;
         }
     }
+   
     class Msg
     {
         public string id { get; set; }

@@ -114,7 +114,7 @@ namespace NetRemotingClient
                 string type;
 
                 type = jsonObj["type"].ToString();
-                if (type == "0")
+                if (type == "0" || type == "2")
                 {
                     strpower = jsonObj["power"].ToString();
                     switch (strpower)

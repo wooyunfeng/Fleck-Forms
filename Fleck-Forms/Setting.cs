@@ -12,6 +12,7 @@ namespace Fleck_Forms
         static public string websocketPort { get; set; }
         static public string level { get; set; }
         static public bool isSupportCloudApi { get; set; }
+        static public bool bRedis { get; set; }
         static public string enginePath { get; set; }
         static public string tcpServerAddress { get; set; }
         static public int tcpServerPort { get; set; }
@@ -56,6 +57,10 @@ namespace Fleck_Forms
                 if (xe.GetAttribute("key").ToString() == "EnginePath")
                 {
                     Setting.enginePath = xe.GetAttribute("value").ToString();
+                }
+                if (xe.GetAttribute("key").ToString() == "bRedis")
+                {
+                    Setting.bRedis = Convert.ToBoolean(xe.GetAttribute("value"));
                 }
                 if (xe.GetAttribute("key").ToString() == "ServerAddress")
                 {
